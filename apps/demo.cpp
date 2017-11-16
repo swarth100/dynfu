@@ -26,6 +26,7 @@ struct DynFuApp {
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
         cv::imshow("Scene", view_host_);
+        cvWaitKey(100);
     }
 
     void take_cloud(KinFu &kinfu) {
@@ -48,29 +49,26 @@ struct DynFuApp {
         bool has_image = false;
         cv::namedWindow("Image", cv::WINDOW_AUTOSIZE );
         cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE );
+        cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE );
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
         loadFiles(depths, images);
         for (int i = 0; i < depths.size(); ++i) {
             auto depth = cv::imread(depths[i], CV_LOAD_IMAGE_ANYDEPTH);
             auto image = cv::imread(images[i], CV_LOAD_IMAGE_COLOR);
-            std::cout << depth.data << std::endl;
-            std::cout << image.data << std::endl;
-            // depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
-            //{
-            // SampledScopeTime fps(time_ms);
-            //(void)fps;
-            // has_image = kinfu(depth_device_);
-            //}
-            // if (has_image)
-            // show_raycasted(kinfu);
-            // show_depth(depth);
+            depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
+            {
+             SampledScopeTime fps(time_ms);
+            (void)fps;
+             has_image = kinfu(depth_device_);
+            }
+            if (has_image) {
+                show_raycasted(kinfu);
+            }
+            show_depth(depth);
             cv::imshow("Image", image);
             cv::imshow("Depth", depth);
-            cv::waitKey(0);
-            //cv::imshow("Depth", depths);
         }
-        std::cout << "Finished" << std::endl;
         return true;
     }
 
