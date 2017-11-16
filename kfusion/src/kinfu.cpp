@@ -172,7 +172,7 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth,
     curr_.depth_pyr.swap(prev_.depth_pyr);
 #else
     curr_.points_pyr.swap(prev_.points_pyr);
-endif
+#endif
     curr_.normals_pyr.swap(prev_.normals_pyr);
     return ++frame_counter_, false;
   }
