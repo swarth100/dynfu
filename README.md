@@ -1,13 +1,13 @@
 KinFu remake
 ============
 
-This is lightweight, reworked and optimized version of Kinfu that was originally shared in PCL in 2011. 
+This is lightweight, reworked and optimized version of Kinfu that was originally shared in PCL in 2011.
 
 Key changes/features:
 * Performance has been improved by 1.6x factor (Fermi-tested)
-* Code size is reduced drastically. Readability improved. 
+* Code size is reduced drastically. Readability improved.
 * No hardcoded algorithm parameters! All of them can be changed at runtime (volume size, etc.)
-* The code is made independent from OpenCV GPU module and PCL library. 
+* The code is made independent from OpenCV GPU module and PCL library.
 
 Dependencies:
 * Fermi or Kepler or newer
@@ -17,7 +17,4 @@ Dependencies:
 
 Implicit dependency (needed by opencv_viz):
 * VTK 5.8.0 or higher. (apt-get install on linux, for windows please download and compile from www.vtk.org)
-
-Screenshot:
-* https://raw.githubusercontent.com/Nerei/kinfu_remake/master/perf-39.5fps-Tesla-C2070.png
 

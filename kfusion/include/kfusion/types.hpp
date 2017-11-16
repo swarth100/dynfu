@@ -1,98 +1,92 @@
 #pragma once
 
-#include <kfusion/cuda/device_array.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/core/affine.hpp>
-#include <opencv2/viz/vizcore.hpp>
 #include <iosfwd>
+#include <kfusion/cuda/device_array.hpp>
+#include <opencv2/core/affine.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/viz/vizcore.hpp>
 
 struct CUevent_st;
 
-namespace kfusion
-{
-    typedef cv::Matx33f Mat3f;
-    typedef cv::Vec3f Vec3f;
-    typedef cv::Vec3i Vec3i;
-    typedef cv::Affine3f Affine3f;
+namespace kfusion {
+typedef cv::Matx33f Mat3f;
+typedef cv::Vec3f Vec3f;
+typedef cv::Vec3i Vec3i;
+typedef cv::Affine3f Affine3f;
 
-    struct KF_EXPORTS Intr
-    {
-        float fx, fy, cx, cy;
+struct KF_EXPORTS Intr {
+  float fx, fy, cx, cy;
 
-        Intr ();
-        Intr (float fx, float fy, float cx, float cy);
-        Intr operator()(int level_index) const;
+  Intr();
+  Intr(float fx, float fy, float cx, float cy);
+  Intr operator()(int level_index) const;
+};
+
+KF_EXPORTS std::ostream &operator<<(std::ostream &os, const Intr &intr);
+
+struct Point {
+  union {
+    float data[4];
+    struct {
+      float x, y, z;
     };
+  };
+};
 
-    KF_EXPORTS std::ostream& operator << (std::ostream& os, const Intr& intr);
+typedef Point Normal;
 
-    struct Point
-    {
-        union
-        {
-            float data[4];
-            struct { float x, y, z; };
-        };
+struct RGB {
+  union {
+    struct {
+      unsigned char b, g, r;
     };
+    int bgra;
+  };
+};
 
-    typedef Point Normal;
+struct PixelRGB {
+  unsigned char r, g, b;
+};
 
-    struct RGB
-    {
-        union
-        {
-            struct { unsigned char b, g, r; };
-            int bgra;
-        };
-    };
+namespace cuda {
+typedef cuda::DeviceMemory CudaData;
+typedef cuda::DeviceArray2D<unsigned short> Depth;
+typedef cuda::DeviceArray2D<unsigned short> Dists;
+typedef cuda::DeviceArray2D<RGB> Image;
+typedef cuda::DeviceArray2D<Normal> Normals;
+typedef cuda::DeviceArray2D<Point> Cloud;
 
-    struct PixelRGB
-    {
-        unsigned char r, g, b;
-    };
+struct Frame {
+  bool use_points;
 
-    namespace cuda
-    {
-        typedef cuda::DeviceMemory CudaData;
-        typedef cuda::DeviceArray2D<unsigned short> Depth;
-        typedef cuda::DeviceArray2D<unsigned short> Dists;
-        typedef cuda::DeviceArray2D<RGB> Image;
-        typedef cuda::DeviceArray2D<Normal> Normals;
-        typedef cuda::DeviceArray2D<Point> Cloud;
+  std::vector<Depth> depth_pyr;
+  std::vector<Cloud> points_pyr;
+  std::vector<Normals> normals_pyr;
+};
+} // namespace cuda
 
-        struct Frame
-        {
-            bool use_points;
+inline float deg2rad(float alpha) { return alpha * 0.017453293f; }
 
-            std::vector<Depth> depth_pyr;
-            std::vector<Cloud> points_pyr;
-            std::vector<Normals> normals_pyr;
-        };
-    }
+struct KF_EXPORTS ScopeTime {
+  const char *name;
+  double start;
+  ScopeTime(const char *name);
+  ~ScopeTime();
+};
 
-    inline float deg2rad (float alpha) { return alpha * 0.017453293f; }
+struct KF_EXPORTS SampledScopeTime {
+public:
+  enum { EACH = 33 };
+  SampledScopeTime(double &time_ms);
+  ~SampledScopeTime();
 
-    struct KF_EXPORTS ScopeTime
-    {
-        const char* name;
-        double start;
-        ScopeTime(const char *name);
-        ~ScopeTime();
-    };
+private:
+  double getTime();
+  SampledScopeTime(const SampledScopeTime &);
+  SampledScopeTime &operator=(const SampledScopeTime &);
 
-    struct KF_EXPORTS SampledScopeTime
-    {
-    public:
-        enum { EACH = 33 };
-        SampledScopeTime(double& time_ms);
-        ~SampledScopeTime();
-    private:
-        double getTime();
-        SampledScopeTime(const SampledScopeTime&);
-        SampledScopeTime& operator=(const SampledScopeTime&);
+  double &time_ms_;
+  double start;
+};
 
-        double& time_ms_;
-        double start;
-    };
-
-}
+} // namespace kfusion
