@@ -2,6 +2,7 @@
 #include <kfusion/kinfu.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include "opencv2/imgcodecs.hpp"
 
 using namespace kfusion;
 
@@ -45,27 +46,31 @@ struct DynFuApp {
         cv::Mat depth, image;
         double time_ms = 0;
         bool has_image = false;
-
+        cv::namedWindow("Image", cv::WINDOW_AUTOSIZE );
+        cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE );
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
         loadFiles(depths, images);
-        for (int i = 0; !exit_; ++i) {
-            for (int fileIndex = 0; fileIndex < depths.size(); ++fileIndex) {
-                auto depth = cv::imread(depths[i]);
-                auto image = cv::imread(images[i]);
-                // depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
-                //{
-                // SampledScopeTime fps(time_ms);
-                //(void)fps;
-                // has_image = kinfu(depth_device_);
-                //}
-                // if (has_image)
-                // show_raycasted(kinfu);
-                // show_depth(depth);
-                cv::imshow("Image", image);
-                cv::imshow("Depth", depths);
-            }
+        for (int i = 0; i < depths.size(); ++i) {
+            auto depth = cv::imread(depths[i], CV_LOAD_IMAGE_ANYDEPTH);
+            auto image = cv::imread(images[i], CV_LOAD_IMAGE_COLOR);
+            std::cout << depth.data << std::endl;
+            std::cout << image.data << std::endl;
+            // depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
+            //{
+            // SampledScopeTime fps(time_ms);
+            //(void)fps;
+            // has_image = kinfu(depth_device_);
+            //}
+            // if (has_image)
+            // show_raycasted(kinfu);
+            // show_depth(depth);
+            cv::imshow("Image", image);
+            cv::imshow("Depth", depth);
+            cv::waitKey(0);
+            //cv::imshow("Depth", depths);
         }
+        std::cout << "Finished" << std::endl;
         return true;
     }
 
@@ -87,13 +92,14 @@ int main(int argc, char *argv[]) {
 
     if (cuda::checkIfPreFermiGPU(device)) {
         std::cout << std::endl
-                  << "Kinfu is not supported for pre-Fermi GPU "
-                     "architectures, and not built for them by "
-                     "default. Exiting..."
-                  << std::endl;
+            << "Kinfu is not supported for pre-Fermi GPU "
+            "architectures, and not built for them by "
+            "default. Exiting..."
+            << std::endl;
         return 1;
     }
-    DynFuApp app();
+
+    DynFuApp app(argv[1]);
 
     // executing
     try {
