@@ -6,17 +6,20 @@
 using namespace kfusion;
 
 struct DynFuApp {
-    DynFuApp(std::string filePath) : exit_(false), filePath_(filePath) {
+    DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
         KinFuParams params = KinFuParams::default_params();
         kinfu_ = KinFu::Ptr(new KinFu(params));
     }
 
-    void show_depth(const cv::Mat &depth) {
-        cv::Mat display;
-        // cv::normalize(depth, display, 0, 255, cv::NORM_MINMAX, CV_8U);
-        depth.convertTo(display, CV_8U, 255.0 / 4000);
-        cv::imshow("Depth", display);
-    }
+    /* TODO (rm3115) See if this can be removed */
+    //void show_depth(const cv::Mat &depth) {
+    //if (visualizer_) {
+    //cv::Mat display;
+    //// cv::normalize(depth, display, 0, 255, cv::NORM_MINMAX, CV_8U);
+    //depth.convertTo(display, CV_8U, 255.0 / 4000);
+    //cv::imshow("Depth", display);
+    //}
+    //}
 
     void show_raycasted(KinFu &kinfu) {
         const int mode = 3;
@@ -24,8 +27,11 @@ struct DynFuApp {
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
-        cv::imshow("Scene", view_host_);
-        cvWaitKey(100);
+        if (visualizer_) {
+            cv::imshow("Scene", view_host_);
+            /* TODO (rm3115) Probably can remove this wait */
+            cvWaitKey(100);
+        }
     }
 
     void take_cloud(KinFu &kinfu) {
@@ -46,9 +52,11 @@ struct DynFuApp {
         cv::Mat depth, image;
         double time_ms = 0;
         bool has_image = false;
-        cv::namedWindow("Image", cv::WINDOW_AUTOSIZE );
-        cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE );
-        cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE );
+        if (visualizer_) {
+            cv::namedWindow("Image", cv::WINDOW_AUTOSIZE );
+            cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE );
+            cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE );
+        }
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
         loadFiles(depths, images);
@@ -57,29 +65,54 @@ struct DynFuApp {
             auto image = cv::imread(images[i], CV_LOAD_IMAGE_COLOR);
             depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
             {
-             SampledScopeTime fps(time_ms);
-            (void)fps;
-             has_image = kinfu(depth_device_);
+                SampledScopeTime fps(time_ms);
+                (void)fps;
+                has_image = kinfu(depth_device_);
             }
             if (has_image) {
                 show_raycasted(kinfu);
             }
-            show_depth(depth);
-            cv::imshow("Image", image);
-            cv::imshow("Depth", depth);
+            //show_depth(depth);
+            if (visualizer_) {
+                cv::imshow("Image", image);
+                cv::imshow("Depth", depth);
+            }
         }
         return true;
     }
 
-    std::string filePath_;
-    bool exit_;
     KinFu::Ptr kinfu_;
+    std::string filePath_;
+    bool exit_, visualizer_;
     cv::Mat view_host_;
     cuda::Image view_device_;
     cuda::Depth depth_device_;
     cuda::DeviceArray<Point> cloud_buffer;
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* Parse the input flag and determine the file path and whether or not to enable visualizer
+ * Any flags will be matched and the last argument which does not match the flag will be
+ * treated as filepath
+ */
+void parseFlags(std::vector<std::string> args, std::string* filePath, bool* visualizer) {
+    std::vector<std::string> flags = {"-h", "--help", "--enable-viz"};
+    for (auto arg : args) {
+        if (std::find(std::begin(flags), std::end(flags), arg) != std::end(flags)) {
+            if (arg == "-h" || arg == "--help") {
+                std::cout << "USAGE: dynamicfusion [OPTIONS] <file path>" << std::endl;
+                std::cout << "\t--help -h:    Display help" << std::endl;
+                std::cout << "\t--enable-viz: Enable visualizer" << std::endl;
+                std::exit(EXIT_SUCCESS);
+            }
+            if (arg == "--enable-viz") {
+                *visualizer = true;
+            }
+        } else {
+            *filePath = arg;
+        }
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[]) {
@@ -95,8 +128,12 @@ int main(int argc, char *argv[]) {
             << std::endl;
         return 1;
     }
+    std::vector<std::string> args(argv + 1, argv + argc);
+    std::string filePath;
+    bool visualizer = false;
+    parseFlags(args, &filePath, &visualizer);
 
-    DynFuApp app(argv[1]);
+    DynFuApp app(filePath, visualizer);
 
     // executing
     try {
