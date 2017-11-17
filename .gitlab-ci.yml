@@ -168,10 +168,10 @@ make:
 # ---------------------------------------------------------------------------- #
 # The Test stage will perform a number of tests on the Project.
 
-# > gtest_inbuilt <
-# The gtest_inbuilt stage runs the GTest suite present within the library.
+# > gtest <
+# The gtest stage runs the GTest suite present within the library.
 # GTest binaries can be found in the group shared directory.
-gtest_inbuilt:
+gtest:
   stage: Test
 
   # Set env variables before testing should we need to access CUDA of OpenGL
@@ -188,8 +188,7 @@ gtest_inbuilt:
 
   # Run the gtests
   script:
-    - echo "Please note that we have added a consequence for [testing] failure. Any contact with the chamber floor will result in an 'unsatisfactory' mark on your official testing record followed by death. Good luck!"
-
+    - ./build/bin/quaternionTest
 
 # ---------------------------------------------------------------------------- #
 #                                   DEPLOY                                     #
