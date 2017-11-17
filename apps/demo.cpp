@@ -11,16 +11,6 @@ struct DynFuApp {
         kinfu_ = KinFu::Ptr(new KinFu(params));
     }
 
-    /* TODO (rm3115) See if this can be removed */
-    //void show_depth(const cv::Mat &depth) {
-    //if (visualizer_) {
-    //cv::Mat display;
-    //// cv::normalize(depth, display, 0, 255, cv::NORM_MINMAX, CV_8U);
-    //depth.convertTo(display, CV_8U, 255.0 / 4000);
-    //cv::imshow("Depth", display);
-    //}
-    //}
-
     void show_raycasted(KinFu &kinfu) {
         const int mode = 3;
         kinfu.renderImage(view_device_, mode);
@@ -29,8 +19,7 @@ struct DynFuApp {
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
         if (visualizer_) {
             cv::imshow("Scene", view_host_);
-            /* TODO (rm3115) Probably can remove this wait */
-            cvWaitKey(100);
+            cvWaitKey(10);
         }
     }
 
