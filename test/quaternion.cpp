@@ -27,6 +27,42 @@ protected:
     /* Objects declared here can be used by all tests in the test case for Foo. */
 };
 
+/* The following calculator has been used for the tests:
+ * http://www.andre-gaschler.com/rotationconverter/
+ */
+
+/* */
+TEST_F(DualQuaternionTest, TestRotationReal) {
+    DualQuaternion<float> dq1(90, 90, 90, 0.0, 0.0, 0.0);
+
+    /* */
+    ASSERT_FLOAT_EQ(dq1.getReal().R_component_1(), 0.5646126);
+}
+
+/* */
+TEST_F(DualQuaternionTest, TestRotationI) {
+    DualQuaternion<float> dq1(90, 90, 90, 0.0, 0.0, 0.0);
+
+    /* */
+    ASSERT_FLOAT_EQ(dq1.getReal().R_component_2(), 0.5646126);
+}
+
+/* */
+TEST_F(DualQuaternionTest, TestRotationJ) {
+    DualQuaternion<float> dq1(90, 90, 90, 0.0, 0.0, 0.0);
+
+    /* */
+    ASSERT_FLOAT_EQ(dq1.getReal().R_component_3(), 0.5646126);
+}
+
+/* */
+TEST_F(DualQuaternionTest, TestRotationK) {
+    DualQuaternion<float> dq1(90, 90, 90, 0.0, 0.0, 0.0);
+
+    /* */
+    ASSERT_FLOAT_EQ(dq1.getReal().R_component_4(), 0.2088969);
+}
+
 /* */
 TEST_F(DualQuaternionTest, TestReal) {
     DualQuaternion<float> dq1(0, 90, 90, 0.0, 0.0, 0.0);
