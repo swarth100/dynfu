@@ -47,4 +47,3 @@ bugprone-*
 
 # Prevent conflicting standards
 -llvm-include-order
--google-build-using-namespace
