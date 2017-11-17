@@ -1,3 +1,10 @@
+# ---------------------------------------------------------------------------- #
+# GOOGLE TEST DEPENDECIES
+# ---------------------------------------------------------------------------- #
+
+# Implementation heavily based upon:
+# https://github.com/kaizouman/gtest-cmake-example
+
 find_package(Threads REQUIRED)
 
 # Enable ExternalProject CMake module
@@ -39,4 +46,21 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-add_subdirectory(dualQuaternion)
+# Force test build
+set(gtest_build_samples ON)
+
+# ---------------------------------------------------------------------------- #
+# LINK TEST EXECUTABLES TO FILES
+# ---------------------------------------------------------------------------- #
+
+# Add quaternion Test
+ADD_EXECUTABLE(quaternionTest quaternion.cpp)
+TARGET_LINK_LIBRARIES(quaternionTest libgtest libgmock)
+
+# ---------------------------------------------------------------------------- #
+# ADD TESTS TO DEFAULT PATH (BIN)
+# ---------------------------------------------------------------------------- #
+
+# Add as a test and set default properties (i.e. path to BIN)
+add_test(NAME quaternionTest COMMAND quaternionTest)
+default_properties(quaternionTest)
