@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <dynfu/utils/dual_quaternion.hpp>
 
 /* The fixture for testing class Quaternion. */
 class DualQuaternionTest : public ::testing::Test {
@@ -28,7 +29,6 @@ protected:
 
 /* */
 TEST_F(DualQuaternionTest, TestReal) {
-    /*
     DualQuaternion<float> dq1(0, 90, 90, 0.0, 0.0, 0.0);
     DualQuaternion<float> dq2(0, 90, 90, 0.0, 0.0, 0.0);
 
@@ -36,8 +36,8 @@ TEST_F(DualQuaternionTest, TestReal) {
 
     DualQuaternion<float> dqRes(2.0, 2.0, 2.0, 0.0, 0.0, 0.0);
 
+    /* */
     ASSERT_FLOAT_EQ(dqSum.getReal().R_component_1(), dqRes.getReal().R_component_1());
-    */
 }
 
 int main(int argc, char **argv) {
