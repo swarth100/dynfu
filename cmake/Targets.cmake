@@ -133,8 +133,9 @@ endmacro()
 
 ################################################################################################
 # short command for adding test target
-#macro(add_test the_target)
-#  add_executable(${the_target} ${ARGN})
-#  default_properties(${the_target})
-#  test_props(${the_target})
-#endmacro()
+macro(CREATE_TEST target)
+  ADD_EXECUTABLE(${target} ${ARGN})
+  TARGET_LINK_LIBRARIES(${target} libgtest libgmock)
+  add_test(NAME ${target} COMMAND ${target})
+  default_properties(${target})
+endmacro()

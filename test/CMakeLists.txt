@@ -50,17 +50,8 @@ include_directories("${source_dir}/googletest/include"
 set(gtest_build_samples ON)
 
 # ---------------------------------------------------------------------------- #
-# LINK TEST EXECUTABLES TO FILES
+# CREATE TESTS
 # ---------------------------------------------------------------------------- #
 
 # Add quaternion Test
-ADD_EXECUTABLE(quaternionTest quaternion.cpp)
-TARGET_LINK_LIBRARIES(quaternionTest libgtest libgmock)
-
-# ---------------------------------------------------------------------------- #
-# ADD TESTS TO DEFAULT PATH (BIN)
-# ---------------------------------------------------------------------------- #
-
-# Add as a test and set default properties (i.e. path to BIN)
-add_test(NAME quaternionTest COMMAND quaternionTest)
-default_properties(quaternionTest)
+CREATE_TEST(quaternionTest quaternion.cpp)

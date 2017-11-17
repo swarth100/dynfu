@@ -47,3 +47,7 @@ bugprone-*
 
 # Prevent conflicting standards
 -llvm-include-order
+
+# Deprecated checks
+-hicpp-special-member-functions
+-hicpp-use-equals-delete
