@@ -1,0 +1,66 @@
+#!/usr/bin/ruby
+
+# Initialise list of files containing ignore rules
+files = []
+
+# Retrieve all eligible files for linting and add them to a list
+file_str = `./scripts/.find_bash`
+files = file_str.split(" ")
+
+# Initialise return JSON
+ret_json = ""
+
+# Open JSOn array
+ret_json += "["
+
+# Insert a stub to trigger parsing when no input is available
+ret_json += "{\"name\":\"null\"},"
+
+# Iterate through each file
+files.each do |file|
+
+	# Retrieve the git log info diffing the current branch with dev
+	diff_log = `git diff origin/dev #{file}`
+
+	# Parse the diff output to retrieve filenames
+	diff_list = diff_log.split("\@\@")
+
+	# Only nominate a file if it has a diff output
+	if (diff_list.size != 0)
+
+		# Simplify file names to no longer have path
+		file_name = file.split("/")[-1]
+		ret_json += "{\"name\":\"#{file_name}\""
+
+		# Initialise line selection
+		ret_json += ",\"lines\":["
+
+		# Iterate through list of diff lines
+		for index in 0 ... diff_list.size
+		  if (index % 2) == 1
+			  # Parse output retrieving differing filelines
+			  lines = diff_list[index].split("-")[1].split("+")[1].split(",")
+			  lines[1] = lines[1].to_i + lines[0].to_i
+
+			  # Select the start and end line numbers for each diff section
+			  ret_json += "[#{lines[0]},#{lines[1]}],"
+		  end
+		end
+
+		# Delete the trailing comma
+		ret_json = ret_json.chop
+
+		# Close the given file object
+		ret_json += "]},"
+
+	end
+end
+
+# Delete the trailing comma
+ret_json = ret_json.chop
+
+# Close the JSON array
+ret_json += "]"
+
+# Return the newly packaged JSON
+puts ret_json

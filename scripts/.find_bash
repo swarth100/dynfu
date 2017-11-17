@@ -1,0 +1,2 @@
+#!/bin/bash
+eval "find . -type f -name \"*.*pp\" `./scripts/.find_helper`"
