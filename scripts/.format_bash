@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "# -------------------------------------------------------------- #"
+if [ ! -z "$(exec "./scripts/.diff_format_bash" | grep '<replacement offset*')" ]
+then
+	./scripts/.diff_format_helper
+	echo "To fix these error make sure you run clang-format before pushing"
+	echo "clang-format documentation:"
+	echo "https://clang.llvm.org/docs/ClangFormat.html"
+	exit 1
+else
+	echo "clang-format successful"
+fi;

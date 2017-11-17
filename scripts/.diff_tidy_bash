@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "-line-filter=`./scripts/.diff_tidy_helper`"

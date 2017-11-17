@@ -1,0 +1,23 @@
+#!/usr/bin/ruby
+
+# Find all files to be formatted
+command = `./scripts/.find_bash`
+
+# Split them into an array for iteration
+files = command.split(" ")
+
+# Iterate through each file
+files.each do |file|
+
+    # Attempt to format each file separately
+    format_file = `/vol/project/2017/362/g1736211/bin/clang-format -output-replacements-xml #{file} | grep '<replacement offset*'`
+
+    # Should file fail formatting print error log
+    if format_file != ''
+            puts ">> ERROR while formatting: " + file
+            puts "# ----------------------- ERROR LOG ---------------------------- #"
+            puts `/vol/project/2017/362/g1736211/bin/clang-format -output-replacements-xml #{file}`
+            puts "# -------------------------------------------------------------- #\n"
+    end
+
+end
