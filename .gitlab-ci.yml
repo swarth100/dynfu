@@ -31,11 +31,6 @@ stages:
 .env_setup: &env_setup |
   source setup.sh --set-paths
 
-# Variables for use in script
-variables:
-  CONTAINER_IMAGE: g1736211/dynamic-fusion-core
-  DEV_IMAGE: g1736211/dynamic-fusion-core:dev
-  TAG_IMAGE: g1736211/dynamic-fusion-core:${CI_COMMIT_REF_SLUG}
 # ---------------------------------------------------------------------------- #
 #                                     SETUP                                    #
 # ---------------------------------------------------------------------------- #
@@ -204,7 +199,7 @@ gtest_inbuilt:
 
 # > deploy <
 # The deploy stage will deploy the newly built project binaries
-# to /data/DynamicFusionCore.
+# to /data/dynfu.
 depoy:
   stage: Deploy
 
@@ -217,47 +212,12 @@ depoy:
 
   # Clean the output distributed library directory to clone new data into it
   before_script:
-    - rm -rf /data/DynamicFusionCore
-    - mkdir /data/DynamicFusionCore
+    - rm -rf /data/dynfu
+    - mkdir /data/dynfu
 
   # Copy the latest build BINARIES to /data/
   script:
     - cp -R build/bin/* /data/dynfu
-
-# > docker_build <
-# The docker_build stage creates the Docker image on a docker-compatible runner
-docker_image_build:
-  stage: Deploy
-  tags:
-    - docker
-  script:
-    - docker build -t $TAG_IMAGE .
-
-# > docker_deploy_dev <
-# Deploys to Docker Hub current dev branch
-docker_image_deploy_dev:
-  stage: Deploy
-  tags:
-    - docker
-  script:
-    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
-    - docker tag $TAG_IMAGE $DEV_IMAGE
-    - docker push $DEV_IMAGE
-  only:
-    - dev
-
-# > docker_deploy <
-# Deploys to Docker Hub current master branch
-docker_image_deploy:
-  stage: Deploy
-  tags:
-    - docker
-  script:
-    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
-    - docker tag $TAG_IMAGE $CONTAINER_IMAGE
-    - docker push $CONTAINER_IMAGE
-  only:
-    - master
 
 # ---------------------------------------------------------------------------- #
 #                                   CLEANUP                                    #
