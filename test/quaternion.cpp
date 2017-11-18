@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <dynfu/utils/dual_quaternion.hpp>
 
-#include <math.h>
+#include <cmath>
 
 /* The fixture for testing class Quaternion. */
 class DualQuaternionTest : public ::testing::Test {
