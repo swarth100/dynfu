@@ -1,5 +1,16 @@
+#ifndef DYNFU_NODE_HPP
+#define DYNFU_NODE_HPP
+
+/* Dynfu Includes */
+#include <dynfu/utils/dual_quaternion.hpp>
+
+/* OpenCV Includes */
 #include <opencv2/core/affine.hpp>
 #include <opencv2/core/core.hpp>
+
+/* Sys Headers */
+#include <memory>
+#include <vector>
 
 /*
  * Node of the warp field.
@@ -26,8 +37,11 @@ public:
 
 private:
     cv::Vec3f dg_v;
-    // DualQuaternion<float> dg_se3;
+    std::shared_ptr<DualQuaternion<float>> dg_se3;
     float dg_w;
 
-    std::vector<Node> *nearestNeighbours;
+    std::vector<std::shared_ptr<Node>> *nearestNeighbours;
 };
+
+/* DYNFU_NODE_HPP */
+#endif

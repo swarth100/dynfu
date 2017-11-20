@@ -1,9 +1,12 @@
 #include <dynfu/solver.hpp>
 
+/* TODO: Add comment */
 Solver::Solver(ceres::Solver::options options) { this.options = options; }
 
+/* TODO: Add comment */
 Solver::~Solver() {}
 
+/* TODO: Add comment */
 template <typename T>
 void calculateWarpToLive(WarpField::WarpField warpField, T liveFrame) {
     auto nodes        = warpField.getNodes();

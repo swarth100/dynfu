@@ -3,20 +3,24 @@
 
 #include <dynfu/warp_field.hpp>
 
-Node::Node() {}
+/* TODO: Add comment */
+WarpField::WarpField() {}
 
-Node::~Node() {}
+/* TODO: Add comment */
+WarpField::~WarpField() {}
 
-void Node::getNearestNeighbours() {}
-
-// TODO: figure out x_c in the exponent
-void Node::setWeight() {
-    float exponent = 1.f;
-    dg_w           = exp(exponent / (2.f * dg_w * dg_w));
+/* TODO: Add comment */
+void WarpField::init(std::shared_ptr<Frame> canonicalFrame) {
+    // initialise all deformation nodes
 }
 
-WarpField::WarpField(std::vector<Node> *nodes) {}
+/* TODO: Add comment */
+void WarpField::warp() {
+    // calculate DQB for all points
+    // warps all points
+}
 
-WarpField::~WarpField() { delete nodes; }
-
-std::vector<Node> *WarpField::getNodes() { return nodes; }
+/*
+ * Returns a vector of all nodes in the warp field.
+ */
+std::vector<std::shared_ptr<Node>> WarpField::getNodes() {}
