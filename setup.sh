@@ -69,9 +69,9 @@ then
     echo "Running CMake ..."
     if ! $QUIET
     then
-        cmake -DCMAKE_PREFIX_PATH=/vol/project/2017/362/g1736211/share/OpenCV -DBUILD_TESTS=ON -DGTEST_LIBRARY=/vol/project/2017/362/g1736211/gtest/libgtest.so -DGTEST_MAIN_LIBRARY=/vol/project/2017/362/g1736211/gtest/libgtest_main.so -DGTEST_INCLUDE_DIR=/vol/project/2017/362/g1736211/gtest/include -DCMAKE_CXX_FLAGS="-std=c++11" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. || (cd ../ && return 1)
+        cmake -DCMAKE_PREFIX_PATH=/vol/project/2017/362/g1736211/share/OpenCV -DCMAKE_CXX_FLAGS="-std=c++11" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. || (cd ../ && return 1)
     else
-        cmake -DCMAKE_PREFIX_PATH=/vol/project/2017/362/g1736211/share/OpenCV -DBUILD_TESTS=ON -DGTEST_LIBRARY=/vol/project/2017/362/g1736211/gtest/libgtest.so -DGTEST_MAIN_LIBRARY=/vol/project/2017/362/g1736211/gtest/libgtest_main.so -DGTEST_INCLUDE_DIR=/vol/project/2017/362/g1736211/gtest/include -DCMAKE_CXX_FLAGS="-std=c++11" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. >/dev/null 2>&1 || (cd ../ && return 1)
+        cmake -DCMAKE_PREFIX_PATH=/vol/project/2017/362/g1736211/share/OpenCV -DCMAKE_CXX_FLAGS="-std=c++11" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. >/dev/null 2>&1 || (cd ../ && return 1)
     fi
 fi
 
