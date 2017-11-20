@@ -117,6 +117,13 @@ int main(int argc, char *argv[]) {
                   << std::endl;
         return 1;
     }
+
+    if (argc < 2) {
+        return std::cerr << "Error: incorrect number of arguments. Please supply path to source data. Exiting..."
+                         << std::endl,
+               -1;
+    }
+
     std::vector<std::string> args(argv + 1, argv + argc);
     std::string filePath;
     bool visualizer = false;
