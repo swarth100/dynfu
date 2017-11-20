@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    /* Program requires at least one argument - the path to the directory where the source files are */
     if (argc < 2) {
         return std::cerr << "Error: incorrect number of arguments. Please supply path to source data. Exiting..."
                          << std::endl,
@@ -128,6 +129,14 @@ int main(int argc, char *argv[]) {
     std::string filePath;
     bool visualizer = false;
     parseFlags(args, &filePath, &visualizer);
+
+    /* Disable the visualiser when running over SSH */
+    if (visualizer && getenv("SSH_CLIENT")) {
+        return std::cerr << "Error: cannot run visualiser while in SSH environment. Please run locally or disable "
+                            "visualiser. Exiting..."
+                         << std::endl,
+               -1;
+    }
 
     DynFuApp app(filePath, visualizer);
 
