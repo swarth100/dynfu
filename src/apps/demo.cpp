@@ -11,9 +11,9 @@ struct DynFuApp {
         kinfu_             = KinFu::Ptr(new KinFu(params));
     }
 
-    void show_raycasted(KinFu &kinfu) {
+    void show_raycasted(KinFu *kinfu) {
         const int mode = 3;
-        kinfu.renderImage(view_device_, mode);
+        (*kinfu).renderImage(view_device_, mode);
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
@@ -23,17 +23,17 @@ struct DynFuApp {
         }
     }
 
-    void take_cloud(KinFu &kinfu) {
-        cuda::DeviceArray<Point> cloud = kinfu.tsdf().fetchCloud(cloud_buffer);
-        cv::Mat cloud_host(1, (int) cloud.size(), CV_32FC4);
+    void take_cloud(KinFu *kinfu) {
+        cuda::DeviceArray<Point> cloud = (*kinfu).tsdf().fetchCloud(cloud_buffer);
+        cv::Mat cloud_host(1, static_cast<int>(cloud.size()), CV_32FC4);
         cloud.download(cloud_host.ptr<Point>());
     }
 
-    void loadFiles(std::vector<cv::String> &depths, std::vector<cv::String> &images) {
-        cv::glob(filePath_ + "/depth", depths);
-        cv::glob(filePath_ + "/color", images);
-        std::sort(depths.begin(), depths.end());
-        std::sort(images.begin(), images.end());
+    void loadFiles(std::vector<cv::String> *depths, std::vector<cv::String> *images) {
+        cv::glob(filePath_ + "/depth", *depths);
+        cv::glob(filePath_ + "/color", *images);
+        std::sort((*depths).begin(), (*depths).end());
+        std::sort((*images).begin(), (*images).end());
     }
 
     bool execute() {
@@ -48,7 +48,7 @@ struct DynFuApp {
         }
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
-        loadFiles(depths, images);
+        loadFiles(&depths, &images);
         for (int i = 0; i < depths.size(); ++i) {
             auto depth = cv::imread(depths[i], CV_LOAD_IMAGE_ANYDEPTH);
             auto image = cv::imread(images[i], CV_LOAD_IMAGE_COLOR);
@@ -59,7 +59,7 @@ struct DynFuApp {
                 has_image = kinfu(depth_device_);
             }
             if (has_image) {
-                show_raycasted(kinfu);
+                show_raycasted(&kinfu);
             }
             // show_depth(depth);
             if (visualizer_) {
