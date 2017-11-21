@@ -1,19 +1,19 @@
 #ifndef DYNFU_FRAME_HPP
 #define DYNFU_FRAME_HPP
 
-/* OpenCV Includes */
+/* opencv includes */
 #include <opencv2/core/affine.hpp>
 #include <opencv2/core/core.hpp>
 
 /* */
 class Frame {
 public:
-    Frame(void *addIt);  // TODO figure out
+    Frame(int id, std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     ~Frame();
 
-    void getId();
-    void getVertices();
-    void getNormals();
+    int getId();
+    std::vector<cv::Vec3f> getVertices();
+    std::vector<cv::Vec3f> getNormals();
 
 private:
     int id;
