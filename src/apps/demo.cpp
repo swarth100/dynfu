@@ -30,6 +30,11 @@ struct DynFuApp {
     }
 
     void loadFiles(std::vector<cv::String> *depths, std::vector<cv::String> *images) {
+        if (!boost::filesystem::exists(filePath_)) {
+            std::cerr << "Error: Directory '" << filePath_ << "' does not exist. Exiting..." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
         cv::glob(filePath_ + "/depth", *depths);
         cv::glob(filePath_ + "/color", *images);
         std::sort((*depths).begin(), (*depths).end());
