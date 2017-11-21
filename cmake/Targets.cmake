@@ -13,9 +13,6 @@ endfunction()
 ################################################################################################
 # short command getting sources from standart directores
 macro(pickup_std_sources)
-  #kf_source_group("Source" GLOB "src/*.cpp" "src/*.h*")
-  #kf_source_group("Source\\utils" GLOB "src/utils/*.cpp" "src/utils/*.h*")
-  #kf_source_group("Source\\cuda" GLOB "src/cuda/*.c*" "src/cuda/*.h*")
   FILE(GLOB_RECURSE sources *.cpp *.cu)
 endmacro()
 
@@ -82,7 +79,6 @@ endfunction()
 macro(add_module_library name)
   set(module_name ${name})
   pickup_std_sources()
-  include_directories(src src/cuda)
 
   set(__has_cuda OFF)
   check_cuda(__has_cuda)
