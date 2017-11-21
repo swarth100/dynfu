@@ -71,21 +71,10 @@ endfunction()
 # short command for adding library module
 macro(add_module_library name)
   set(module_name ${name})
+
   FILE(GLOB_RECURSE sources *.cpp *.cu)
 
-  set(__has_cuda OFF)
-  check_cuda(__has_cuda)
-
-  set(__lib_type STATIC)
-  if (${ARGV1} MATCHES "SHARED|STATIC")
-    set(__lib_type ${ARGV1})
-  endif()
-
-  if (__has_cuda)
-    cuda_add_library(${module_name} ${__lib_type} ${sources})
-  else()
-    add_library(${module_name} ${__lib_type} ${sources})
-  endif()
+  cuda_add_library(${module_name} STATIC ${sources})
 
   if(MSVC)
     set_target_properties(${module_name} PROPERTIES DEFINE_SYMBOL KFUSION_API_EXPORTS)
@@ -95,6 +84,7 @@ macro(add_module_library name)
 
   default_properties(${module_name})
 endmacro()
+
 
 ################################################################################################
 # short command for adding application module
