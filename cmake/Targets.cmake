@@ -11,13 +11,6 @@ endfunction()
 
 
 ################################################################################################
-# short command getting sources from standart directores
-macro(pickup_std_sources)
-  FILE(GLOB_RECURSE sources *.cpp *.cu)
-endmacro()
-
-
-################################################################################################
 # short command for declaring includes from other modules
 macro(declare_deps_includes)
   foreach(__arg ${ARGN})
@@ -78,7 +71,7 @@ endfunction()
 # short command for adding library module
 macro(add_module_library name)
   set(module_name ${name})
-  pickup_std_sources()
+  FILE(GLOB_RECURSE sources *.cpp *.cu)
 
   set(__has_cuda OFF)
   check_cuda(__has_cuda)
