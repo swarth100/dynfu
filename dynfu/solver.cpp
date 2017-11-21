@@ -14,7 +14,7 @@ void Solver::calculateWarpToLive(WarpField warpField, std::shared_ptr<Frame> /*L
     auto nodes        = warpField.getNodes();
     auto translations = 0;
     auto rotations    = 0;
-
+    /*
     ceres::Problem problem;
     ceres::CostFunction *costFunction = new ceres::AutoDiffCostFunction<ceres::CostFunctor, 1, 1>(new CostFunctor);
     problem.AddResidualBlock(costFunction, NULL, &initialTransformation);
@@ -23,4 +23,5 @@ void Solver::calculateWarpToLive(WarpField warpField, std::shared_ptr<Frame> /*L
     ceres::Solve(this->options, &problem, &summary);
 
     std::cout << summary.BriefReport() << "\n";
+    */
 }
