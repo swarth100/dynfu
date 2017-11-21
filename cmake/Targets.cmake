@@ -11,18 +11,6 @@ endfunction()
 
 
 ################################################################################################
-# short command getting sources from standart directores
-macro(pickup_std_sources)
-  kf_source_group("Include" GLOB "include/${module_name}/*.h*")
-  kf_source_group("Include\\cuda" GLOB "include/${module_name}/cuda/*.h*")
-  kf_source_group("Source" GLOB "src/*.cpp" "src/*.h*")
-  kf_source_group("Source\\utils" GLOB "src/utils/*.cpp" "src/utils/*.h*")
-  kf_source_group("Source\\cuda" GLOB "src/cuda/*.c*" "src/cuda/*.h*")
-  FILE(GLOB_RECURSE sources include/${module_name}/*.h* src/*.cpp src/*.h* src/cuda/*.h* src/cuda/*.c*)
-endmacro()
-
-
-################################################################################################
 # short command for declaring includes from other modules
 macro(declare_deps_includes)
   foreach(__arg ${ARGN})
@@ -83,22 +71,10 @@ endfunction()
 # short command for adding library module
 macro(add_module_library name)
   set(module_name ${name})
-  pickup_std_sources()
-  include_directories(include src src/cuda)
 
-  set(__has_cuda OFF)
-  check_cuda(__has_cuda)
+  FILE(GLOB_RECURSE sources *.cpp *.cu)
 
-  set(__lib_type STATIC)
-  if (${ARGV1} MATCHES "SHARED|STATIC")
-    set(__lib_type ${ARGV1})
-  endif()
-
-  if (__has_cuda)
-    cuda_add_library(${module_name} ${__lib_type} ${sources})
-  else()
-    add_library(${module_name} ${__lib_type} ${sources})
-  endif()
+  cuda_add_library(${module_name} STATIC ${sources})
 
   if(MSVC)
     set_target_properties(${module_name} PROPERTIES DEFINE_SYMBOL KFUSION_API_EXPORTS)
@@ -107,20 +83,8 @@ macro(add_module_library name)
   endif()
 
   default_properties(${module_name})
-
-  if(USE_PROJECT_FOLDERS)
-    set_target_properties(${module_name} PROPERTIES FOLDER "Libraries")
-  endif()
-
-  set_target_properties(${module_name} PROPERTIES INSTALL_NAME_DIR lib)
-
-  install(TARGETS ${module_name}
-    RUNTIME DESTINATION bin COMPONENT main
-    LIBRARY DESTINATION lib COMPONENT main
-    ARCHIVE DESTINATION lib COMPONENT main)
-
-  install(DIRECTORY include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h*")
 endmacro()
+
 
 ################################################################################################
 # short command for adding application module
@@ -139,3 +103,4 @@ macro(CREATE_TEST target)
   add_test(NAME ${target} COMMAND ${target})
   default_properties(${target})
 endmacro()
+

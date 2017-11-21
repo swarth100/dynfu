@@ -1,13 +1,17 @@
-include_directories(${CMAKE_SOURCE_DIR}/kfusion/include)
+file(GLOB app_SRCS *.cpp)
 
-file(GLOB srcs *.cpp *.hpp)
-add_executable(demo ${srcs})
-target_link_libraries(demo ${OpenCV_LIBS} kfusion)
+# Link source files to executables
+add_executable(app ${app_SRCS})
 
-set_target_properties(demo PROPERTIES
-    DEBUG_POSTFIX "d"
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+# Link to all libraries
+target_link_libraries(app
+    dynfu
+    kfusion
+    ${CUDA_LIBRARIES}
+    ${CUDA_CUDA_LIBRARY}
+    ${OpenCV_LIBS}
+)
 
-install(TARGETS demo RUNTIME DESTINATION bin COMPONENT main)
-install(FILES ${srcs} DESTINATION app COMPONENT main)
+# Set the output paths correctly
+default_properties(app)
+
