@@ -24,8 +24,8 @@ include(cmake/Targets.cmake)
 # DEPENDENCIES
 # ---------------------------------------------------------------------------- #
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
+find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
 
 # ---------------------------------------------------------------------------- #
 # MISCELLANEOUS SETTINGS
@@ -49,17 +49,13 @@ endif()
 # ---------------------------------------------------------------------------- #
 # SET INCLUDE PATHS
 # ---------------------------------------------------------------------------- #
+include_directories(${OpenCV_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS} ${CERES_INCLUDE_DIRS})
 include_directories(include)
-
-# ---------------------------------------------------------------------------- #
-# BUILD INCLUDE PROJECTS
-# ---------------------------------------------------------------------------- #
-add_subdirectory(kfusion)
 
 # ---------------------------------------------------------------------------- #
 # BUILD SRC DIRECTORY
 # ---------------------------------------------------------------------------- #
-add_subdirectory(apps)
+add_subdirectory(src)
 
 # ---------------------------------------------------------------------------- #
 # BUILD TESTS

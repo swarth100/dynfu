@@ -1,13 +1,13 @@
 #include <dynfu/dyn_fusion.hpp>
 
 /* TODO: Add comment */
-DynFusion::DynFusion();
+DynFusion::DynFusion() = default;
 
 /* TODO: Add comment */
-DynFusion::~DynFusion();
+DynFusion::~DynFusion() = default;
 
 /* TODO: Add comment */
-void DynFusion::initCanonicalFrame();
+void DynFusion::initCanonicalFrame() {}
 
 /* TODO: Add comment */
 void DynFusion::warpCanonicalToLive() {
