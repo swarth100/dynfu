@@ -6,7 +6,7 @@
 #include <dynfu/warp_field.hpp>
 
 /* Ceres Includes */
-#include "ceres/ceres.h"
+#include <ceres/ceres.h>
 
 /* */
 class Solver {
