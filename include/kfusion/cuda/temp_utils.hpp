@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cuda/cuda.h>
+#include <cuda.h>
 #include <kfusion/cuda/kernel_containers.hpp>
 
 namespace kfusion {
