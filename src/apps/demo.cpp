@@ -1,4 +1,3 @@
-#include <boost/filesystem.hpp>
 #include <iostream>
 #include <kfusion/kinfu.hpp>
 #include <opencv2/highgui/highgui.hpp>
