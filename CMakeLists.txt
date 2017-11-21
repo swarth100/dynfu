@@ -55,6 +55,7 @@ include_directories(include)
 # BUILD INCLUDE PROJECTS
 # ---------------------------------------------------------------------------- #
 add_subdirectory(kfusion)
+add_subdirectory(dynfu)
 
 # ---------------------------------------------------------------------------- #
 # BUILD SRC DIRECTORY
