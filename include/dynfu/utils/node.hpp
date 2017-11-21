@@ -1,38 +1,40 @@
 #ifndef DYNFU_NODE_HPP
 #define DYNFU_NODE_HPP
 
-/* Dynfu Includes */
+/* dynfu includes */
 #include <dynfu/utils/dual_quaternion.hpp>
 
-/* OpenCV Includes */
+/* opencv includes */
 #include <opencv2/core/affine.hpp>
 #include <opencv2/core/core.hpp>
 
-/* Sys Headers */
+/* sys headers */
 #include <memory>
 #include <vector>
 
 /*
- * Node of the warp field.
- * The state of the warp field at a given time list defined by the values of a
- * set of n deformation nodes.
+ * node of the warp field
+ * the state of the warp field at a given time list defined by the
+ * set of n deformation nodes
  *
  * dg_v
- * Position of the node in space. This will be used when computing k-NN for
- * warping points.
+ * position of the node in space; will be used when computing k-NN for
+ * warping points
  *
  * dg_se3
- * Transformation associated with a node.
+ * transformation
  *
  * dg_w
- * Radial basis weight which controls the extent of transformation.
+ * radial basis weight which controls the extent of transformation
  */
 class Node {
 public:
-    Node();
+    Node(cv::Vec3f dg_v, std::shared_ptr<DualQuaternion<float>> dg_se3, float dg_w);
     ~Node();
 
-    // DualQuaternion<float> getTransformation();
+    std::shared_ptr<DualQuaternion<float>> getTransformation();
+    std::vector<std::shared_ptr<Node>> getNearestNeighbours();
+
     void setWeight();
 
 private:
