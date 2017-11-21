@@ -101,19 +101,6 @@ macro(add_module_library name)
   endif()
 
   default_properties(${module_name})
-
-  if(USE_PROJECT_FOLDERS)
-    set_target_properties(${module_name} PROPERTIES FOLDER "Libraries")
-  endif()
-
-  set_target_properties(${module_name} PROPERTIES INSTALL_NAME_DIR lib)
-
-  install(TARGETS ${module_name}
-    RUNTIME DESTINATION bin COMPONENT main
-    LIBRARY DESTINATION lib COMPONENT main
-    ARCHIVE DESTINATION lib COMPONENT main)
-
-  install(DIRECTORY include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h*")
 endmacro()
 
 ################################################################################################
