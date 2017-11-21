@@ -1,28 +1,19 @@
 #ifndef DYNFU_WARP_FIELD_HPP
 #define DYNFU_WARP_FIELD_HPP
 
-/* Dynfu Includes */
-#include <dynfu/utils/frame.hpp>
-#include <dynfu/utils/node.hpp>
-
-/* */
-class WarpField {
-public:
-    WarpField();
-    ~WarpField();
-
-    void init(std::shared_ptr<Frame> canonicalFrame);
-
-    void warp();
-
-    /*
-     * Returns a vector of all nodes in the warp field.
-     */
-    std::vector<std::shared_ptr<Node>> getNodes();
-
+#include <iostream>
+#include <nanoflann/nanoflann.hpp>
+#include <nanoflann/pointcloud.hpp>
+class Warpfield {
 private:
-    std::vector<std::shared_ptr<Node>> nodes;
-    std::shared_ptr<Frame> canonicalFrame;
+    /* KD-tree for the deformation nodes */
+public:
+    /* Type for the index tree */
+    typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PointCloud>, PointCloud, 3>
+        kd_tree_t;
+
+    Warpfield();
+    //~Warpfield();
 };
 
 /* DYNFU_WARP_FIELD_HPP */
