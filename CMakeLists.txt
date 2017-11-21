@@ -53,15 +53,9 @@ include_directories(${OpenCV_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS} ${CERES_INCLUDE_
 include_directories(include)
 
 # ---------------------------------------------------------------------------- #
-# BUILD INCLUDE PROJECTS
-# ---------------------------------------------------------------------------- #
-add_subdirectory(kfusion)
-add_subdirectory(dynfu)
-
-# ---------------------------------------------------------------------------- #
 # BUILD SRC DIRECTORY
 # ---------------------------------------------------------------------------- #
-add_subdirectory(apps)
+add_subdirectory(src)
 
 # ---------------------------------------------------------------------------- #
 # BUILD TESTS
