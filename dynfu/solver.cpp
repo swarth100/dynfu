@@ -10,7 +10,6 @@ Solver::Solver(ceres::Solver::Options options) {
 Solver::~Solver() = default;
 
 /* TODO: Add comment */
-template <typename T>
 void Solver::calculateWarpToLive(WarpField warpField, std::shared_ptr<Frame> /*LiveFrame*/) {
     auto nodes        = warpField.getNodes();
     auto translations = 0;
@@ -21,7 +20,7 @@ void Solver::calculateWarpToLive(WarpField warpField, std::shared_ptr<Frame> /*L
     problem.AddResidualBlock(costFunction, NULL, &initialTransformation);
 
     ceres::Solver::Summary summary;
-    ceres::Solve(this.options, &problem, &summary);
+    ceres::Solve(this->options, &problem, &summary);
 
     std::cout << summary.BriefReport() << "\n";
 }
