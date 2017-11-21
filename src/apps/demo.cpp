@@ -1,3 +1,4 @@
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <kfusion/kinfu.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -11,7 +12,7 @@ struct DynFuApp {
         kinfu_             = KinFu::Ptr(new KinFu(params));
     }
 
-    void show_raycasted(KinFu *kinfu) {
+    void show_raycasted(KinFu *kinfu, int i) {
         const int mode = 3;
         (*kinfu).renderImage(view_device_, mode);
 
@@ -21,6 +22,9 @@ struct DynFuApp {
             cv::imshow("Scene", view_host_);
             cvWaitKey(10);
         }
+        std::string path = outPath_ + "/" + std::to_string(i) + ".png";
+        cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
+        cv::imwrite(path, view_host_);
     }
 
     void take_cloud(KinFu *kinfu) {
@@ -46,6 +50,14 @@ struct DynFuApp {
         std::sort((*images).begin(), (*images).end());
     }
 
+    void createOutputDirectory() {
+        outPath_ = filePath_ + "/out";
+        boost::filesystem::path dir(outPath_);
+        if (boost::filesystem::create_directory(dir)) {
+            std::cout << "Created output dir." << std::endl;
+        }
+    }
+
     bool execute() {
         KinFu &kinfu = *kinfu_;
         cv::Mat depth, image;
@@ -59,6 +71,7 @@ struct DynFuApp {
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
         loadFiles(&depths, &images);
+        createOutputDirectory();
         for (int i = 0; i < depths.size(); ++i) {
             auto depth = cv::imread(depths[i], CV_LOAD_IMAGE_ANYDEPTH);
             auto image = cv::imread(images[i], CV_LOAD_IMAGE_COLOR);
@@ -76,7 +89,7 @@ struct DynFuApp {
                 has_image = kinfu(depth_device_);
             }
             if (has_image) {
-                show_raycasted(&kinfu);
+                show_raycasted(&kinfu, i);
             }
             // show_depth(depth);
             if (visualizer_) {
@@ -89,6 +102,7 @@ struct DynFuApp {
 
     KinFu::Ptr kinfu_;
     std::string filePath_;
+    std::string outPath_;
     bool exit_, visualizer_;
     cv::Mat view_host_;
     cuda::Image view_device_;
