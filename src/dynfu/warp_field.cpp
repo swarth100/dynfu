@@ -1,7 +1,5 @@
 #include <dynfu/warp_field.hpp>
 
-#define KNN_NEIGHBOURS 8
-
 Warpfield::Warpfield() {
     typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PointCloud>, PointCloud, 3>
         kd_tree_t;
@@ -53,13 +51,35 @@ Warpfield::Warpfield() {
     //}
 }
 
+/* TODO: Add comment */
+Warpfield::~Warpfield() {}
+
+/* TODO: Add comment */
+void Warpfield::init(std::shared_ptr<Frame> canonicalFrame) {
+    // initialise all deformation nodes
+}
+
+/* TODO: Add comment */
+void Warpfield::warp() {
+    // calculate DQB for all points
+    // warps all points
+}
+
+/*
+ * Returns a vector of all nodes in the warp field.
+ */
+std::vector<std::shared_ptr<Node>> Warpfield::getNodes() {}
+
 /* Find the index of k closest neighbour for the given point */
-std::vector<int> findNeighbors(int numNeighbour, cv::Vec3f point) {
+std::vector<int> Warpfield::findNeighbors(int numNeighbour, cv::Vec3f point) {
     std::vector<float> outDistSqr(numNeighbour);
     std::vector<size_t> retIndex(numNeighbour);
     /* Unpack the Vec3f into vector */
-    std::vector<float> query = {point[0], point[1], point[2]};
+    /*std::vector<float> query = {point[0], point[1], point[2]};
     int n                    = knnTree->knnSearch(&query[0], numNeighbour, &retIndex[0], &outDistSqr[0]);
     retIndex.resize(n);
     return retIndex
+    */
+    std::vector<int> resStub;
+    return resStub;
 }

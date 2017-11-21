@@ -14,7 +14,7 @@ public:
     Solver(ceres::Solver::Options options);
     ~Solver();
 
-    void calculateWarpToLive(WarpField warpField, std::shared_ptr<Frame> LiveFrame);
+    void calculateWarpToLive(Warpfield warpField, std::shared_ptr<Frame> LiveFrame);
 
 private:
     ceres::Solver::Options options;

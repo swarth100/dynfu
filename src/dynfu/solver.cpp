@@ -10,7 +10,7 @@ Solver::Solver(ceres::Solver::Options options) {
 Solver::~Solver() = default;
 
 /* TODO: Add comment */
-void Solver::calculateWarpToLive(WarpField warpField, std::shared_ptr<Frame> /*LiveFrame*/) {
+void Solver::calculateWarpToLive(Warpfield warpField, std::shared_ptr<Frame> /*LiveFrame*/) {
     auto nodes        = warpField.getNodes();
     auto translations = 0;
     auto rotations    = 0;
