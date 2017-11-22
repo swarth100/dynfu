@@ -32,10 +32,14 @@ public:
     Node(cv::Vec3f dg_v, std::shared_ptr<DualQuaternion<float>> dg_se3, float dg_w);
     ~Node();
 
+    const cv::Vec3f getPosition();
+    const float getWeight();
+
     const std::shared_ptr<DualQuaternion<float>>& getTransformation();
     const std::vector<std::shared_ptr<Node>>& getNearestNeighbours();
 
     void setWeight();
+    void setNeighbours(std::vector<std::shared_ptr<Node>> nodes);
 
 private:
     cv::Vec3f dg_v;

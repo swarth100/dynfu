@@ -18,7 +18,7 @@
 #include <nanoflann/pointcloud.hpp>
 
 /* Set max amount of closest neighbours to consider */
-#define KNN_NEIGHBOURS 8
+#define KNN 8
 
 typedef nanoflann::L2_Simple_Adaptor<float, PointCloud> nanoflannAdaptor;
 typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflannAdaptor, PointCloud, 3> kd_tree_t;
@@ -33,7 +33,7 @@ public:
     void init(std::vector<std::shared_ptr<Node>> nodes);
 
     /* Finds a set amount of closest neighbours */
-    std::vector<size_t> findNeighbors(int numNeighbour, cv::Vec3f point);
+    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, std::shared_ptr<Node> node);
 
     /* Warps the given field according to the solver's deformation node data */
     void warp(std::shared_ptr<Frame> liveFrame);
@@ -46,9 +46,6 @@ public:
 private:
     /* List of currently held deformation nodes */
     std::vector<std::shared_ptr<Node>> nodes;
-
-    /* Original canonical frame */
-    std::shared_ptr<Frame> canonicalFrame;
 
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;

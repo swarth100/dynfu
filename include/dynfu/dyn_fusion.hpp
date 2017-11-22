@@ -5,10 +5,13 @@
 #include <dynfu/utils/solver.hpp>
 #include <dynfu/warp_field.hpp>
 
+/* Typedefs */
+#include <kfusion/types.hpp>
+
 /* */
 class DynFusion {
 public:
-    DynFusion();
+    DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     ~DynFusion();
 
     void initCanonicalFrame();
@@ -19,8 +22,8 @@ private:
     std::shared_ptr<Frame> canonicalFrame;
     std::shared_ptr<Frame> liveFrame;
     std::shared_ptr<Frame> canonicalWarpedToLive;
-    std::shared_ptr<Warpfield> prevWarpfield;
-    std::shared_ptr<Solver<double>> solver;
+    std::shared_ptr<Warpfield> warpfield;
+    std::shared_ptr<Solver<float>> solver;
 };
 
 /* DYNFU_DYNFUSION_HPP */
