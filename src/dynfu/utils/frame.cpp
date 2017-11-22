@@ -13,6 +13,6 @@ Frame(int id, std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals) {
 
 int getId() { return this.id; }
 
-std::vector<cv::Vec3f> getVertices() { return this->vertices; }
+std::vector<cv::Vec3f>* getVertices() { return this->vertices; }
 
-std::vector<cv::Vec3f> getNormals() { return this->normals; }
+std::vector<cv::Vec3f>* getNormals() { return this->normals; }

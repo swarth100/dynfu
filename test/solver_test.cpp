@@ -23,7 +23,7 @@ protected:
      * before each test). */
     void SetUp() override {
         ceres::Solver::options;
-        options.asd = 0;  // TODO set up options
+        options.linear_solve_type = SPARSE_NORMAL_CHOLESKY;
     }
 
     /* Code here will be called immediately after each test (right
@@ -58,21 +58,21 @@ TEST_SINGLE_VERTEX(SolverTest) {
 
     warpField.init(nodes);
 
-    source_vertex = cv::Vec3f(0, 0, 0);
+    auto source_vertex = cv::Vec3f(0, 0, 0);
 
     std::vector<cv::Vec3f> sourceVertices;
     sourceVertices.emplace_back(source_vertex);
 
     canonicalFrame(0, sourceVertices, sourceVertices);
 
-    target_vertex = cv::Vec3f(0.05, 0.05, 0.05);
+    auto target_vertex = cv::Vec3f(0.05, 0.05, 0.05);
 
     std::vector<cv::Vec3f> targetVertices;
     targetVertices.emplace_back(targetVertices);
 
     liveFrame(1, targetVertices, targetVertices);
 
-    warpField.warp(canonicalFrame, liveFrame);
+    warpField.warp(solver, liveFrame);
 
     for (size_t i = 0; i < source_vertices.size(); i++) {
         ASSERT_NEAR(source_vertex[i][0], target_vertex[i][0], MAX_ERROR);

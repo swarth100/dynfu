@@ -2,14 +2,14 @@
 #define COST_FUNCTOR_HPP
 
 /* dynfu includes */
-#include <dynfu/utils/frame.hpp>
 
+template<typename T>
 class CostFunctor {
 public:
-    CostFunctor(Frame liveFrame, Frame canonicalFrame, WarpField warpField);
+    CostFunctor(Frame liveFrame, Frame canonicalFrame, WarpField::WarpField warpField);
 
     template <typename T>
-    bool operator()(Frame liveFrame, Frame canonicalFrame, T const* const* parameters, T* residuals);
+    bool operator()(Frame canonicalFrame, Frame liveFrame, T const* const* parameters, T* residuals);
 
 private:
     T const* const* parameters;

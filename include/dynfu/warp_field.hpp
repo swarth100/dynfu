@@ -1,14 +1,18 @@
 #ifndef DYNFU_WARP_FIELD_HPP
 #define DYNFU_WARP_FIELD_HPP
 
-/* Main system dependencies */
-#include <iostream>
-#include <memory>
-
-/* Dynfu dependencies */
-#include <dynfu/utils/frame.hpp>
+/* dynfu includes */
 #include <dynfu/utils/node.hpp>
+#include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/solver.hpp>
+
+/* ceres includes */
+#include <ceres/ceres.h>
+
+/* sys headers */
+#include <memory>
+#include <iostream>
+#include <vector>
 
 /* Nanoflann dependencies */
 #include <nanoflann/nanoflann.hpp>
@@ -33,7 +37,7 @@ public:
     std::vector<int> findNeighbors(int numNeighbour, cv::Vec3f point);
 
     /* Warps the given field according to the solver's deformation node data */
-    void warp(Solver solver, Frame liveFrame);
+    void warp(std::shared_ptr<Frame> liveFrame);
 
     /* Returns a vector of all nodes in the warp field. */
     std::vector<std::shared_ptr<Node>> getNodes();

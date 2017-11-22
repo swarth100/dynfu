@@ -1,13 +1,25 @@
 #include <dynfu/utils/node.hpp>
 
-/* TODO: Add comment */
-Node::Node() {}
+/* sys headers */
+#include <cmath>
 
-/* TODO: Add comment */
+Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float weight) {
+    this->dg_v    = position;
+    this->dg_se3 = transformation;
+    this->dg_w    = weight;
+
+    // TODO: init nearest neighbours
+}
+
 Node::~Node() {}
 
-/* TODO: Add comment */
-void Node::setWeight() {
-    float exponent = 1.f;
-    dg_w           = exp(exponent / (2.f * dg_w * dg_w));
+const std::shared_ptr<DualQuaternion<float>>&  Node::getTransformation() { return dg_se3; };
+
+const std::vector<std::shared_ptr<Node>>& Node::getNearestNeighbours() { return nearestNeighbours; };
+
+// TODO: finish once nearest neighbours have been initialised
+void setWeight() {
+    float weight = 0;
+    float sum    = 0;
+    weight       = exp(-0.f / (2 * pow(sum, 2)));
 }

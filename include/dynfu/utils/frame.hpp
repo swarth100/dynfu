@@ -8,7 +8,11 @@
 /* */
 class Frame {
 public:
-    Frame(int id, std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
+    /*
+     * constructor for a frame
+     * takes as input the frame id, the vertices, and the normals
+     */
+    Frame(int id, std::vector<cv::Vec3f>* vertices, std::vector<cv::Vec3f>* normals);
     ~Frame();
 
     int getId();
@@ -17,8 +21,8 @@ public:
 
 private:
     int id;
-    std::vector<cv::Vec3f> vertices;
-    std::vector<cv::Vec3f> normals;
+    std::vector<cv::Vec3f>* vertices;
+    std::vector<cv::Vec3f>* normals;
 };
 
 /* DYNFU_FRAME_HPP */
