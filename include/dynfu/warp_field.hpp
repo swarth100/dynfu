@@ -24,7 +24,7 @@ typedef nanoflann::L2_Simple_Adaptor<float, PointCloud> nanoflannAdaptor;
 typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflannAdaptor, PointCloud, 3> kd_tree_t;
 
 class Warpfield {
-/* Type for the index tree */
+    /* Type for the index tree */
 public:
     Warpfield();
     ~Warpfield();

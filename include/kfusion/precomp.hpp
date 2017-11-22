@@ -26,4 +26,3 @@ inline device::Aff3f device_cast<device::Aff3f, Affine3f>(const Affine3f &source
     return aff;
 }
 }  // namespace kfusion
-

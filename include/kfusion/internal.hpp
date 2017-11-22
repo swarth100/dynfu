@@ -150,4 +150,3 @@ void mergePointNormal(const DeviceArray<Point> &cloud, const DeviceArray<float8>
                       const DeviceArray<float12> &output);
 }  // namespace device
 }  // namespace kfusion
-
