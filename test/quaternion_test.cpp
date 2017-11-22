@@ -43,7 +43,8 @@ protected:
  * http://www.andre-gaschler.com/rotationconverter/
  */
 
-/* */
+/* This test checks that the Real part of Dual Quaternions is computed correctly
+ * We check the results against an online calculator */
 TEST_F(DualQuaternionTest, TestReal) {
     /* */
     ASSERT_NEAR(dq45.getReal().R_component_1(), 0.8446231020115715, MAXERROR);
@@ -52,16 +53,26 @@ TEST_F(DualQuaternionTest, TestReal) {
     ASSERT_NEAR(dq45.getReal().R_component_4(), 0.19134170284356303, MAXERROR);
 }
 
-/* */
+/* This test checks that the Dual part of Dual Quaternions is computed correctly
+ * The following test can be found at:
+ * https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/other/dualQuaternion/example/index.htm */
 TEST_F(DualQuaternionTest, TestDual) {
-    /* */
+    /* First the Quaternion should evaluate the Real Part.
+     * Secondly, given the (normal of the) Real Part, the Quaternion multiplies
+     * it by the Translation value to hold the Dual Part. */
 
-    /* Real should be: (0.9659, 0, 0.2588, 0) */
+    /* Real should be:
+     *     (0.9659, 0, 0.2588, 0)
+     */
     ASSERT_NEAR(dq30.getReal().R_component_1(), 0.9659, MAXERROR);
     ASSERT_NEAR(dq30.getReal().R_component_2(), 0.0f, MAXERROR);
     ASSERT_NEAR(dq30.getReal().R_component_3(), 0.2588, MAXERROR);
     ASSERT_NEAR(dq30.getReal().R_component_4(), 0.0f, MAXERROR);
 
+    /* Dual should be:
+     *     [0.5 * (0, 0, 0, 100)](0.9659, 0, 0.2588, 0) =
+     *     (0, -12.94, 0, 48.295)
+     */
     ASSERT_NEAR(dq30.getDual().R_component_1(), 0.0f, MAXERROR);
     ASSERT_NEAR(dq30.getDual().R_component_2(), -12.9409, MAXERROR);
     ASSERT_NEAR(dq30.getDual().R_component_3(), 0.0f, MAXERROR);
