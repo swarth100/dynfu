@@ -28,7 +28,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
     for (int y = 0; y < cloudHost.cols; ++y) {
         for (int x = 0; x < cloudHost.rows; ++x) {
             auto point = cloudHost.at<kfusion::Point>(x, y);
-            if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z)))  {
+            if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z))) {
                 canonical[x + cloudHost.rows * y] = cv::Vec3f(point.x, point.y, point.z);
             }
         }
