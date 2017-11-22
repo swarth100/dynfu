@@ -55,4 +55,8 @@ set(gtest_build_samples ON)
 
 # Add quaternion Test
 CREATE_TEST(quaternionTest quaternion_test.cpp)
+
+APPEND_COVERAGE_COMPILER_FLAGS()
+SETUP_TARGET_FOR_COVERAGE(NAME "coverage" EXECUTABLE quaternionTest)
+
 #CREATE_TEST(solverTest solver_test.cpp)
