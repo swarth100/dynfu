@@ -56,7 +56,7 @@ Warpfield::Warpfield() {
 Warpfield::~Warpfield() = default;
 
 /* TODO: Add comment */
-void Warpfield::init(std::shared_ptr<Frame> /*canonicalFrame*/) {
+void Warpfield::init(std::shared_ptr<Node>> /*nodes*/) {
     // initialise all deformation nodes
 }
 
@@ -84,3 +84,5 @@ std::vector<int> Warpfield::findNeighbors(int numNeighbour, cv::Vec3f /*point*/)
     std::vector<int> resStub;
     return resStub;
 }
+
+void WarpField::addNode(Node newNode) { this->nodes.emplace_back(newNode); }
