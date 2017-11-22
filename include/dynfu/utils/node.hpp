@@ -29,7 +29,7 @@
  */
 class Node {
 public:
-    Node(cv::Vec3f dg_v, std::shared_ptr<DualQuaternion<float>> dg_se3, float dg_w);
+    Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float weight);
     ~Node();
 
     const cv::Vec3f getPosition();

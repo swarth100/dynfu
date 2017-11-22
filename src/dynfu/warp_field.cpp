@@ -5,7 +5,7 @@
 #include <ctgmath>
 
 /* TODO: Add comment */
-Warpfield::Warpfield() {}
+Warpfield::Warpfield() = default;
 
 /* TODO: Add comment */
 Warpfield::~Warpfield() = default;

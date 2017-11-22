@@ -1,7 +1,7 @@
 #include <dynfu/dyn_fusion.hpp>
 
 /* We initialise the dynamic fusion with the initals vertices and normals */
-DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals) {
+DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* normals */) {
     /* Sample the deformation nodes */
     int steps = 50;
     std::vector<std::shared_ptr<Node>> deformationNodes;
@@ -19,7 +19,7 @@ DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> nor
 }
 
 /* TODO: Add comment */
-DynFusion::~DynFusion() {}
+DynFusion::~DynFusion() = default;
 
 /* TODO: Add comment */
 void DynFusion::initCanonicalFrame() {}

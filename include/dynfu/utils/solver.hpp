@@ -46,7 +46,7 @@ public:
 
         ceres::Solver::Summary summary;
 
-        ceres::Solve(this.options, &problem, &summary);
+        ceres::Solve(this->options, &problem, &summary);
 
         std::cout << summary.FullReport() << "\n";
     }

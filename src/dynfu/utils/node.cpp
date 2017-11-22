@@ -9,7 +9,7 @@ Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transforma
     this->dg_w   = weight;
 }
 
-Node::~Node() {}
+Node::~Node() = default;
 
 const cv::Vec3f Node::getPosition() { return dg_v; }
 
@@ -21,7 +21,7 @@ const std::vector<std::shared_ptr<Node>>& Node::getNearestNeighbours() { return 
 
 void Node::setNeighbours(std::vector<std::shared_ptr<Node>> nodes) { nearestNeighbours = nodes; }
 
-// TODO: finish once nearest neighbours have been initialised
+// TODO(dig15): finish once nearest neighbours have been initialised
 void Node::setWeight() {
     float weight = 0;
     float sum    = 0;
