@@ -54,5 +54,5 @@ set(gtest_build_samples ON)
 # ---------------------------------------------------------------------------- #
 
 # Add quaternion Test
-CREATE_TEST(quaternionTest quaternion.cpp)
+CREATE_TEST(quaternionTest quaternion_test.cpp)
 #CREATE_TEST(solverTest solver_test.cpp)
