@@ -19,8 +19,8 @@ ret_json += "{\"name\":\"null\"},"
 # Iterate through each file
 files.each do |file|
 
-	# Retrieve the git log info diffing the current branch with dev
-	diff_log = `git diff origin/dev #{file}`
+	# Retrieve the git log info diffing the current branch with master
+	diff_log = `git diff origin/master #{file}`
 
 	# Parse the diff output to retrieve filenames
 	diff_list = diff_log.split("\@\@")
