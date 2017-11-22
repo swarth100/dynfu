@@ -8,19 +8,24 @@
 Warpfield::Warpfield() = default;
 
 /* TODO: Add comment */
-Warpfield::~Warpfield() = default;
+Warpfield::~Warpfield() {
+    delete cloud;
+}
 
 /* TODO: Add comment */
-void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
+void Warpfield::init(std::vector<std::shared_ptr<Node>>& nodes) {
     // initialise all deformation nodes
     this->nodes = nodes;
+
+    /* Hold deformation nodes position */
     std::vector<cv::Vec3f> deformationNodesPosition;
-    for (auto node : nodes) {
+
+    for (auto node : this->nodes) {
         deformationNodesPosition.push_back(node->getPosition());
     }
-    PointCloud cloud;
-    cloud.pts = deformationNodesPosition;
-    kdTree    = std::make_shared<kd_tree_t>(3, cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    cloud = new PointCloud;
+    cloud->pts = deformationNodesPosition;
+    kdTree    = std::make_shared<kd_tree_t>(3, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
     kdTree->buildIndex();
 }
 
@@ -39,6 +44,7 @@ std::vector<std::shared_ptr<Node>> Warpfield::getNodes() {}
 /* Find the nodes index of k closest neighbour for the given point */
 std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, std::shared_ptr<Node> node) {
     auto point = node->getPosition();
+    std::cout << "point" << point[0] << " " << point[1] << " " << point[2] << std::endl;
     /* Not used, ignores the distance to the nodes for now */
     std::vector<float> outDistSqr(numNeighbor);
     std::vector<size_t> retIndex(numNeighbor);
