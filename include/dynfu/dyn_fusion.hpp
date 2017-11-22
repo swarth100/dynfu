@@ -19,7 +19,7 @@ private:
     std::shared_ptr<Frame> canonicalFrame;
     std::shared_ptr<Frame> liveFrame;
     std::shared_ptr<Frame> canonicalWarpedToLive;
-    std::shared_ptr<WarpField> prevWarpField;
+    std::shared_ptr<Warpfield> prevWarpfield;
     std::shared_ptr<Solver> solver;
 };
 
