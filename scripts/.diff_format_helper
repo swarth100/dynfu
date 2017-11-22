@@ -9,8 +9,8 @@ files = file_str.split(" ")
 # Iterate through each file
 files.each do |file|
 
-	# Retrieve diff log with origin/dev
-	diff_log = `git diff origin/dev #{file}`
+	# Retrieve diff log with origin/master
+	diff_log = `git diff origin/master #{file}`
 
 	# Split diff log on line numbers
 	diff_list = diff_log.split("\@\@")

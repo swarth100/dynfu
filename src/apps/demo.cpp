@@ -8,7 +8,7 @@ using namespace kfusion;
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
         KinFuParams params = KinFuParams::default_params();
-        kinfu_ = KinFu::Ptr(new KinFu(params));
+        kinfu_             = KinFu::Ptr(new KinFu(params));
     }
 
     void show_raycasted(KinFu &kinfu) {
@@ -25,7 +25,7 @@ struct DynFuApp {
 
     void take_cloud(KinFu &kinfu) {
         cuda::DeviceArray<Point> cloud = kinfu.tsdf().fetchCloud(cloud_buffer);
-        cv::Mat cloud_host(1, (int)cloud.size(), CV_32FC4);
+        cv::Mat cloud_host(1, (int) cloud.size(), CV_32FC4);
         cloud.download(cloud_host.ptr<Point>());
     }
 
@@ -42,9 +42,9 @@ struct DynFuApp {
         double time_ms = 0;
         bool has_image = false;
         if (visualizer_) {
-            cv::namedWindow("Image", cv::WINDOW_AUTOSIZE );
-            cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE );
-            cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE );
+            cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
+            cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE);
+            cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE);
         }
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
@@ -55,13 +55,13 @@ struct DynFuApp {
             depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
             {
                 SampledScopeTime fps(time_ms);
-                (void)fps;
+                (void) fps;
                 has_image = kinfu(depth_device_);
             }
             if (has_image) {
                 show_raycasted(kinfu);
             }
-            //show_depth(depth);
+            // show_depth(depth);
             if (visualizer_) {
                 cv::imshow("Image", image);
                 cv::imshow("Depth", depth);
@@ -84,7 +84,7 @@ struct DynFuApp {
  * Any flags will be matched and the last argument which does not match the flag will be
  * treated as filepath
  */
-void parseFlags(std::vector<std::string> args, std::string* filePath, bool* visualizer) {
+void parseFlags(std::vector<std::string> args, std::string *filePath, bool *visualizer) {
     std::vector<std::string> flags = {"-h", "--help", "--enable-viz"};
     for (auto arg : args) {
         if (std::find(std::begin(flags), std::end(flags), arg) != std::end(flags)) {
@@ -111,10 +111,10 @@ int main(int argc, char *argv[]) {
 
     if (cuda::checkIfPreFermiGPU(device)) {
         std::cout << std::endl
-            << "Kinfu is not supported for pre-Fermi GPU "
-            "architectures, and not built for them by "
-            "default. Exiting..."
-            << std::endl;
+                  << "Kinfu is not supported for pre-Fermi GPU "
+                     "architectures, and not built for them by "
+                     "default. Exiting..."
+                  << std::endl;
         return 1;
     }
     std::vector<std::string> args(argv + 1, argv + argc);
