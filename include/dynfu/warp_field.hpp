@@ -20,11 +20,11 @@
 /* Set max amount of closest neighbours to consider */
 #define KNN_NEIGHBOURS 8
 
-/* Type for the index tree */
 typedef nanoflann::L2_Simple_Adaptor<float, PointCloud> nanoflannAdaptor;
 typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflannAdaptor, PointCloud, 3> kd_tree_t;
 
 class Warpfield {
+/* Type for the index tree */
 public:
     Warpfield();
     ~Warpfield();
@@ -33,7 +33,7 @@ public:
     void init(std::vector<std::shared_ptr<Node>> nodes);
 
     /* Finds a set amount of closest neighbours */
-    std::vector<int> findNeighbors(int numNeighbour, cv::Vec3f point);
+    std::vector<size_t> findNeighbors(int numNeighbour, cv::Vec3f point);
 
     /* Warps the given field according to the solver's deformation node data */
     void warp(std::shared_ptr<Frame> liveFrame);
@@ -49,6 +49,9 @@ private:
 
     /* Original canonical frame */
     std::shared_ptr<Frame> canonicalFrame;
+
+    /* KD-tree for deformation nodes */
+    std::shared_ptr<kd_tree_t> kdTree;
 };
 
 /* DYNFU_WARP_FIELD_HPP */
