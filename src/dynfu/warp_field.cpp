@@ -64,7 +64,7 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> /*nodes*/) {
     // initialise all deformation nodes
 }
 
-void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
+void Warpfield::warp(std::shared_ptr<Frame> /*liveFrame*/) {
     // calculate DQB for all points
     // warps all points
 
