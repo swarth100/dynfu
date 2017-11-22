@@ -8,6 +8,7 @@
 /* Dynfu dependencies */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
+#include <dynfu/utils/solver.hpp>
 
 /* Nanoflann dependencies */
 #include <nanoflann/nanoflann.hpp>
@@ -26,16 +27,18 @@ public:
     ~Warpfield();
 
     /* Initialises the warpfield's canonical Frame*/
-    void init(std::shared_ptr<Frame> canonicalFrame);
+    void init(std::vector<std::shared_ptr<Node>> nodes);
 
     /* Finds a set amount of closest neighbours */
     std::vector<int> findNeighbors(int numNeighbour, cv::Vec3f point);
 
     /* Warps the given field according to the solver's deformation node data */
-    void warp();
+    void warp(Solver solver, Frame liveFrame);
 
     /* Returns a vector of all nodes in the warp field. */
     std::vector<std::shared_ptr<Node>> getNodes();
+
+    void addNode(Node newNode);
 
 private:
     /* List of currently held deformation nodes */
