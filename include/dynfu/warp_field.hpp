@@ -2,15 +2,15 @@
 #define DYNFU_WARP_FIELD_HPP
 
 /* dynfu includes */
-#include <dynfu/utils/node.hpp>
 #include <dynfu/utils/frame.hpp>
+#include <dynfu/utils/node.hpp>
 
 /* ceres includes */
 #include <ceres/ceres.h>
 
 /* sys headers */
-#include <memory>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 /* Nanoflann dependencies */
