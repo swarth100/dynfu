@@ -8,7 +8,7 @@ Solver::~Solver() {}
 
 static ceres::CostFunction* Create(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<Frame> canonicalFrame,
                                    std::shared_ptr<Frame> liveFrame) {
-    auto costFunctor = new CostFunctor(warpfield, canonicalFrame, liveFrame);
+    auto costFunctor  = new CostFunctor(warpfield, canonicalFrame, liveFrame);
     auto costFunction = new ceres::DynamicAutoDiffCostFunction<CostFunctor, 6>(costFunctor);
 
     int numResiduals = 3;

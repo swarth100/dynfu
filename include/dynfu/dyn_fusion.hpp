@@ -1,8 +1,8 @@
 #ifndef DYNFU_DYNFUSION_HPP
 #define DYNFU_DYNFUSION_HPP
 
-#include <dynfu/utils/solver.hpp>
 #include <dynfu/utils/frame.hpp>
+#include <dynfu/utils/solver.hpp>
 #include <dynfu/warp_field.hpp>
 
 /* */

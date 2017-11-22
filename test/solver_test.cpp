@@ -41,7 +41,7 @@ protected:
 };
 
 /* */
-TEST_F(SolverTest,SingleVertexTest) {
+TEST_F(SolverTest, SingleVertexTest) {
     std::vector<std_sharedptr<Node>> nodes;
 
     DualQuaternion<float>* dg_se3 = DualQuaternion<float>();

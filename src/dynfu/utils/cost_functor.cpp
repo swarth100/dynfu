@@ -1,6 +1,7 @@
 #include <dynfu/utils/cost_functor.hpp>
 
-CostFunctor(std::shared_ptr<Frame> liveFrame, std::shared_ptr<Frame> canonicalFrame, std::shared_ptr<Warpfield> warpfield) {
+CostFunctor(std::shared_ptr<Frame> liveFrame, std::shared_ptr<Frame> canonicalFrame,
+            std::shared_ptr<Warpfield> warpfield) {
     auto nodes = warpField.getNodes();
 
     for (std::size_t i = 0; i != (sizeof nodes / sizeof *nodes); i++) {

@@ -6,13 +6,14 @@
 
 /* dynfu includes */
 
-template<typename T>
+template <typename T>
 class CostFunctor {
 public:
     CostFunctor(std::shared<Frame> liveFrame, std::shared<Frame> canonicalFrame, std::shared<Warpfield> warpfield);
 
     template <typename T>
-    bool operator()(std::shared<Frame> canonicalFrame, std::shared<Frame> liveFrame, T const* const* parameters, T* residuals);
+    bool operator()(std::shared<Frame> canonicalFrame, std::shared<Frame> liveFrame, T const* const* parameters,
+                    T* residuals);
 
 private:
     T const* const* parameters;

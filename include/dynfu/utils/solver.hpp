@@ -8,7 +8,7 @@
 #include <ceres/ceres.h>
 
 /* */
-template<typename T>
+template <typename T>
 class Solver {
 public:
     Solver(ceres::Solver::Options options);

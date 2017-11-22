@@ -1,8 +1,8 @@
 #include <dynfu/warp_field.hpp>
 
 /* sys headers */
-#include <math.h>
-#include <tgmath.h>
+#include <cmath>
+#include <ctgmath>
 
 /* TODO: Add comment */
 Warpfield::Warpfield() {
@@ -70,8 +70,6 @@ void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
 
     ceres::Solver::Options options;
     options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
-
-
 }
 
 /*
