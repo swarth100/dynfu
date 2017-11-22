@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "-checks=-*`./scripts/.flags_helper` -warnings-as-errors=*"

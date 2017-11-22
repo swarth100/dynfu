@@ -1,0 +1,53 @@
+#!/usr/bin/ruby
+
+# Initialise list of files containing ignore rules
+files = []
+
+file_str = `./scripts/.find_bash`
+files = file_str.split(" ")
+
+# Iterate through each file
+files.each do |file|
+
+	# Retrieve diff log with origin/master
+	diff_log = `git diff origin/master #{file}`
+
+	# Split diff log on line numbers
+	diff_list = diff_log.split("\@\@")
+
+	# Initialise line_flag
+	line_flag = ""
+
+	# Only populate flag when files are present in diff
+	if (diff_list.size != 0)
+
+		# Iterate and add all differing line numbers
+		for index in 0 ... diff_list.size
+		  if (index % 2) == 1
+			  lines = diff_list[index].split("-")[1].split("+")[1].split(",")
+			  lines[1] = lines[1].to_i + lines[0].to_i
+
+			  # Add all begin and end line numbers
+			  line_flag += "-lines=#{lines[0]}:#{lines[1]} "
+
+		  end
+		end
+	end
+
+	# Should no flags be set, add length zero for given file
+	if line_flag == ""
+		line_flag = "-length=0 "
+	end
+
+	# Attempt to format file with custom flag
+	format_file = `/vol/project/2017/362/g1736211/bin/clang-format -output-replacements-xml #{line_flag} #{file} | grep '<replacement offset*'`
+
+	# Should file fail formatting print error log
+    if format_file != ''
+            puts ">> ERROR while formatting: " + file
+            puts "# ----------------------- ERROR LOG ---------------------------- #"
+            puts `/vol/project/2017/362/g1736211/bin/clang-format -output-replacements-xml #{file}`
+            puts "# -------------------------------------------------------------- #\n"
+    end
+
+end

@@ -1,0 +1,23 @@
+#!/usr/bin/ruby
+
+# Initialise list of files containing ignore rules
+files = []
+
+# Lintignore contains all files which must not be considered when linting
+files << '.lintignore'
+
+# Gitignored files shouldn't also be linted as they're not tracked to git
+files << '.gitignore'
+
+# Iterate through each file
+files.each do |file|
+
+	# Read all the lines from each file
+	File.readlines(file).each do |line|
+
+		# Package the line of each file as a path which can be read by bash "find" command
+		print "! -path \"" + line.chomp + "\" "
+
+	end
+
+end

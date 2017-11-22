@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "/vol/project/2017/362/g1736211/bin/clang-format -output-replacements-xml -lines=`./scripts/.diff_format_helper` `./scripts/.find_bash`"
