@@ -11,6 +11,7 @@
 /* */
 class DynFusion {
 public:
+    DynFusion();
     DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     ~DynFusion();
 
