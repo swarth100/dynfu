@@ -1,7 +1,7 @@
 #include <dynfu/utils/frame.hpp>
 
 Frame::Frame(int id, std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals) {
-    this->id        = id;
+    this->id       = id;
     this->vertices = vertices;
     this->normals  = normals;
 }

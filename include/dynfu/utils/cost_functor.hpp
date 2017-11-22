@@ -11,9 +11,10 @@
 template <class T>
 class CostFunctor {
 public:
-    CostFunctor(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<Frame> canonicalFrame, std::shared_ptr<Frame> liveFrame) {
+    CostFunctor(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<Frame> canonicalFrame,
+                std::shared_ptr<Frame> liveFrame) {
         auto nodes = warpfield->getNodes();
-        int i = 0;
+        int i      = 0;
         for (auto node : nodes) {
             auto nearestNeighbours = node->getNearestNeighbours();
             for (auto nearestNeighbour : nearestNeighbours) {
@@ -34,14 +35,18 @@ public:
 
     bool operator()(std::shared_ptr<Frame> canonicalFrame, std::shared_ptr<Frame> liveFrame, T const* const* parameters,
                     T* residuals) {
-        residuals[0] = T(liveFrame->getVertices()[0] - canonicalFrame->getVertices()[0]) - parameters[0] - parameters[3];
-        residuals[1] = T(liveFrame->getVertices()[1] - canonicalFrame->getVertices()[1]) - parameters[1] - parameters[4];
-        residuals[2] = T(liveFrame->getVertices()[2] - canonicalFrame->getVertices()[2]) - parameters[2] - parameters[5];
+        residuals[0] =
+            T(liveFrame->getVertices()[0] - canonicalFrame->getVertices()[0]) - parameters[0] - parameters[3];
+        residuals[1] =
+            T(liveFrame->getVertices()[1] - canonicalFrame->getVertices()[1]) - parameters[1] - parameters[4];
+        residuals[2] =
+            T(liveFrame->getVertices()[2] - canonicalFrame->getVertices()[2]) - parameters[2] - parameters[5];
 
         return true;
     }
 
     T const* const* getParameters() { return parameters; }
+
 private:
     T const* const* parameters;
 };

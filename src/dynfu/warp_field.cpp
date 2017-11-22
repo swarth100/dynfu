@@ -5,8 +5,7 @@
 #include <ctgmath>
 
 /* TODO: Add comment */
-Warpfield::Warpfield() {
-}
+Warpfield::Warpfield() {}
 
 /* TODO: Add comment */
 Warpfield::~Warpfield() = default;
@@ -21,7 +20,7 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
     }
     PointCloud cloud;
     cloud.pts = deformationNodesPosition;
-    kdTree = std::make_shared<kd_tree_t>(3, cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    kdTree    = std::make_shared<kd_tree_t>(3, cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
     kdTree->buildIndex();
 }
 

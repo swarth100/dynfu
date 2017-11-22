@@ -16,12 +16,10 @@ DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> nor
     for (auto node : deformationNodes) {
         node->setNeighbours(warpfield->findNeighbors(KNN, node));
     }
-
 }
 
 /* TODO: Add comment */
-DynFusion::~DynFusion() {
-}
+DynFusion::~DynFusion() {}
 
 /* TODO: Add comment */
 void DynFusion::initCanonicalFrame() {}
