@@ -1,8 +1,8 @@
 #ifndef DYNFU_DYNFUSION_HPP
 #define DYNFU_DYNFUSION_HPP
 
-#include <dynfu/solver.hpp>
 #include <dynfu/utils/frame.hpp>
+#include <dynfu/utils/solver.hpp>
 #include <dynfu/warp_field.hpp>
 
 /* */
@@ -20,7 +20,7 @@ private:
     std::shared_ptr<Frame> liveFrame;
     std::shared_ptr<Frame> canonicalWarpedToLive;
     std::shared_ptr<Warpfield> prevWarpfield;
-    std::shared_ptr<Solver> solver;
+    std::shared_ptr<Solver<double>> solver;
 };
 
 /* DYNFU_DYNFUSION_HPP */

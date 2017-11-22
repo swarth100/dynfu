@@ -12,5 +12,5 @@ void DynFusion::initCanonicalFrame() {}
 /* TODO: Add comment */
 void DynFusion::warpCanonicalToLive() {
     // query the solver passing to it the canonicalFrame, liveFrame, and
-    // prevWarpField
+    // prevwarpField
 }

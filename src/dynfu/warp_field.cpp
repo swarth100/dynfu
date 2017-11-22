@@ -1,5 +1,9 @@
 #include <dynfu/warp_field.hpp>
 
+/* sys headers */
+#include <cmath>
+#include <ctgmath>
+
 /* TODO: Add comment */
 Warpfield::Warpfield() {
     typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PointCloud>, PointCloud, 3>
@@ -56,14 +60,16 @@ Warpfield::Warpfield() {
 Warpfield::~Warpfield() = default;
 
 /* TODO: Add comment */
-void Warpfield::init(std::shared_ptr<Frame> /*canonicalFrame*/) {
+void Warpfield::init(std::vector<std::shared_ptr<Node>> /*nodes*/) {
     // initialise all deformation nodes
 }
 
-/* TODO: Add comment */
-void Warpfield::warp() {
+void Warpfield::warp(std::shared_ptr<Frame> /*liveFrame*/) {
     // calculate DQB for all points
     // warps all points
+
+    ceres::Solver::Options options;
+    options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
 }
 
 /*
@@ -84,3 +90,5 @@ std::vector<int> Warpfield::findNeighbors(int numNeighbour, cv::Vec3f /*point*/)
     std::vector<int> resStub;
     return resStub;
 }
+
+// void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }
