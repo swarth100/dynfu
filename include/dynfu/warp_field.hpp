@@ -30,7 +30,7 @@ public:
     ~Warpfield();
 
     /* Initialises the warpfield's canonical Frame*/
-    void init(std::vector<std::shared_ptr<Node>> nodes);
+    void init(std::vector<std::shared_ptr<Node>> &nodes);
 
     /* Finds a set amount of closest neighbours */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, std::shared_ptr<Node> node);
@@ -49,6 +49,9 @@ private:
 
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;
+
+    /* TODO(rm3115) Not sure why but shared ptr doesn't work */
+    PointCloud *cloud;
 };
 
 /* DYNFU_WARP_FIELD_HPP */
