@@ -79,3 +79,6 @@ tags
 
 # Ignore build directory
 build
+
+# ignore remote sync config file
+.remote-sync.json

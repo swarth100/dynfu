@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <dynfu/solver.hpp>
+#include <dynfu/utils/solver.hpp>
 
 #include <cmath>
 
@@ -22,7 +22,7 @@ protected:
     /* Code here will be called immediately after the constructor (right
      * before each test). */
     void SetUp() override {
-        ceres::Solver::options;
+        ceres::Solver::Options options;
         options.linear_solve_type = SPARSE_NORMAL_CHOLESKY;
     }
 
@@ -34,14 +34,14 @@ protected:
     }
 
     /* Objects declared here can be used by all tests in the test case for Solver. */
-    Solver solver;
+    Solver<float> solver;
     Frame liveFrame;
-    kfusion::WarpField warpField;
+    WarpField warpField;
     const float MAX_ERROR = 1e-3;
 };
 
 /* */
-TEST_SINGLE_VERTEX(SolverTest) {
+TEST_F(SolverTest,SingleVertexTest) {
     std::vector<std_sharedptr<Node>> nodes;
 
     DualQuaternion<float>* dg_se3 = DualQuaternion<float>();
@@ -63,7 +63,7 @@ TEST_SINGLE_VERTEX(SolverTest) {
     std::vector<cv::Vec3f> sourceVertices;
     sourceVertices.emplace_back(source_vertex);
 
-    canonicalFrame(0, sourceVertices, sourceVertices);
+    canonicalFrameWarpedToLive(0, sourceVertices, sourceVertices);
 
     auto target_vertex = cv::Vec3f(0.05, 0.05, 0.05);
 
@@ -72,7 +72,7 @@ TEST_SINGLE_VERTEX(SolverTest) {
 
     liveFrame(1, targetVertices, targetVertices);
 
-    warpField.warp(solver, liveFrame);
+    warpField.warp(canonicalFrameWarpedToLive, liveFrame);
 
     for (size_t i = 0; i < source_vertices.size(); i++) {
         ASSERT_NEAR(source_vertex[i][0], target_vertex[i][0], MAX_ERROR);
