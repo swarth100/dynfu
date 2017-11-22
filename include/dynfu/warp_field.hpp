@@ -4,7 +4,6 @@
 /* dynfu includes */
 #include <dynfu/utils/node.hpp>
 #include <dynfu/utils/frame.hpp>
-#include <dynfu/utils/solver.hpp>
 
 /* ceres includes */
 #include <ceres/ceres.h>

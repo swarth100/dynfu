@@ -60,11 +60,11 @@ Warpfield::Warpfield() {
 Warpfield::~Warpfield() = default;
 
 /* TODO: Add comment */
-void Warpfield::init(std::shared_ptr<Node>> /*nodes*/) {
+void Warpfield::init(std::vector<std::shared_ptr<Node>> /*nodes*/) {
     // initialise all deformation nodes
 }
 
-void WarpField::warp(std::shared_ptr<Frame> liveFrame) {
+void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
     // calculate DQB for all points
     // warps all points
 
@@ -93,4 +93,4 @@ std::vector<int> Warpfield::findNeighbors(int numNeighbour, cv::Vec3f /*point*/)
     return resStub;
 }
 
-// void WarpField::addNode(Node newNode) { nodes.emplace_back(newNode); }
+// void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }

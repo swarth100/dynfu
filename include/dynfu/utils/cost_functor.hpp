@@ -1,15 +1,18 @@
 #ifndef COST_FUNCTOR_HPP
 #define COST_FUNCTOR_HPP
 
+/* System includes */
+#include <memory>
+
 /* dynfu includes */
 
 template<typename T>
 class CostFunctor {
 public:
-    CostFunctor(Frame liveFrame, Frame canonicalFrame, WarpField::WarpField warpField);
+    CostFunctor(std::shared<Frame> liveFrame, std::shared<Frame> canonicalFrame, std::shared<Warpfield> warpfield);
 
     template <typename T>
-    bool operator()(Frame canonicalFrame, Frame liveFrame, T const* const* parameters, T* residuals);
+    bool operator()(std::shared<Frame> canonicalFrame, std::shared<Frame> liveFrame, T const* const* parameters, T* residuals);
 
 private:
     T const* const* parameters;

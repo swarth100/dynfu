@@ -2,7 +2,7 @@
 #define DYNFU_SOLVER_HPP
 
 /* dynfu includes */
-#include "dynfu/warp_field.hpp"
+#include <dynfu/warp_field.hpp>
 
 /* ceres includes */
 #include <ceres/ceres.h>
@@ -14,10 +14,10 @@ public:
     Solver(ceres::Solver::Options options);
     ~Solver();
 
-    static ceres::CostFunction* Create(WarpField& warpField, std::shared_ptr<Frame> canonicalFrame,
+    static ceres::CostFunction* Create(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<Frame> canonicalFrame,
                                        std::shared_ptr<Frame> liveFrame);
 
-    void calculateWarpToLive(WarpField& warpField, std::shared_ptr<Frame> canonicalFrame,
+    void calculateWarpToLive(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<Frame> canonicalFrame,
                              std::shared_ptr<Frame> liveFrame);
 
 private:

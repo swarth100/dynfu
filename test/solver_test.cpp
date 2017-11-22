@@ -36,7 +36,7 @@ protected:
     /* Objects declared here can be used by all tests in the test case for Solver. */
     Solver<float> solver;
     Frame liveFrame;
-    WarpField warpField;
+    Warpfield warpfield;
     const float MAX_ERROR = 1e-3;
 };
 

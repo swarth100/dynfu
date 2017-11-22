@@ -6,9 +6,9 @@ Solver::Solver(ceres::Solver::options options) { this.options = options; }
 
 Solver::~Solver() {}
 
-static ceres::CostFunction* Create(WarpField& warpField, std::shared_ptr<Frame> canonicalFrame,
+static ceres::CostFunction* Create(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<Frame> canonicalFrame,
                                    std::shared_ptr<Frame> liveFrame) {
-    auto costFunctor = new CostFunctor(warpField, canonicalFrame, liveFrame);
+    auto costFunctor = new CostFunctor(warpfield, canonicalFrame, liveFrame);
     auto costFunction = new ceres::DynamicAutoDiffCostFunction<CostFunctor, 6>(costFunctor);
 
     int numResiduals = 3;
@@ -23,9 +23,9 @@ static ceres::CostFunction* Create(WarpField& warpField, std::shared_ptr<Frame> 
     return costFunction;
 }
 
-void calculateWarpToLive(WarpField& warpField, std::shared_ptr<Frame> canonicalFrame,
+void calculateWarpToLive(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<Frame> canonicalFrame,
                          std::shared_ptr<Frame> liveFrame) {
-    ceres::CostFunction* costFunction = this->Create(warpField, canonicalFrame, liveFrame);
+    ceres::CostFunction* costFunction = this->Create(warpfield, canonicalFrame, liveFrame);
 
     ceres::Problem problem;
     problem.AddResidualBlock(costFunction, NULL);
