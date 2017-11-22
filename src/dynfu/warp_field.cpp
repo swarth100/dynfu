@@ -33,8 +33,7 @@ Warpfield::Warpfield() {
     canonical_vertices.emplace_back(cv::Vec3f(2, 2, 2));
     canonical_vertices.emplace_back(cv::Vec3f(3, 3, 3));
 
-
-    for(auto v : canonical_vertices) {
+    for (auto v : canonical_vertices) {
         auto res = findNeighbors(1, v);
         for (auto r : res) {
             std::cout << r << std::endl;
