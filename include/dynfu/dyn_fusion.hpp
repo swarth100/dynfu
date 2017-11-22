@@ -14,6 +14,8 @@ public:
     DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     ~DynFusion();
 
+    void init(kfusion::cuda::Cloud &vertices);
+
     void initCanonicalFrame();
     // void updateCanonicalFrame();
     void warpCanonicalToLive();
