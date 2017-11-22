@@ -18,6 +18,22 @@ DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* 
     }
 }
 
+void DynamicFusion::init(cuda::Cloud &vertices) {
+    cv::Mat cloudHost;
+    cloudHost.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
+    vertices.download(view_host_.ptr<void>(), view_host_.step);
+    std::vector<cv::Vec3f> canonical(cloudHost.rows * cloudHost.cols);
+
+    for (int y = 0; y < cloudHost.cols; ++y) {
+        for (int x = 0; x < cloudHost.rows; ++x) {
+            auto point = cloudHost.at<Point>(i, j);
+            if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z)))  {
+                canonical[x + cloudHost.col * y] = cv::Vec3f(point.x, point.y, point.z);
+            }
+        }
+    }
+}
+
 /* TODO: Add comment */
 DynFusion::~DynFusion() = default;
 
