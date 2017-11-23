@@ -44,6 +44,15 @@ public:
     void addNode(Node newNode);
 
 private:
+    /* Save the given vec3s to PCL format */
+    void saveToPcl(std::vector<cv::Vec3f> vectors);
+
+    /* Getter for pcl cloud counter */
+    int getFrameNum();
+
+    /* PCL Frame counter */
+    int frameNum = 0;
+
     /* List of currently held deformation nodes */
     std::vector<std::shared_ptr<Node>> nodes;
 
