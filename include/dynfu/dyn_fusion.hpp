@@ -32,6 +32,12 @@ private:
     std::shared_ptr<Frame> canonicalWarpedToLive;
     std::shared_ptr<Warpfield> warpfield;
     std::shared_ptr<Solver<float>> solver;
+
+    /* Convert the cloud to opencv matrix */
+    cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
+    /* Convert the normals to opencv matrix */
+    cv::Mat normalsToMat(kfusion::cuda::Normals normals);
+    std::vector<cv::Vec3f> matToVector(cv::Mat);
 };
 
 /* DYNFU_DYNFUSION_HPP */

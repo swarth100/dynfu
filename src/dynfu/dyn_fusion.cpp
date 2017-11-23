@@ -20,9 +20,7 @@ DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* 
 }
 
 void DynFusion::init(kfusion::cuda::Cloud &vertices) {
-    cv::Mat cloudHost;
-    cloudHost.create(vertices.rows(), vertices.cols(), CV_32FC4);
-    vertices.download(cloudHost.ptr<kfusion::Point>(), cloudHost.step);
+    cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonical(cloudHost.rows * cloudHost.cols);
 
     for (int y = 0; y < cloudHost.cols; ++y) {
@@ -62,7 +60,12 @@ void DynFusion::warpCanonicalToLive() {
     // prevwarpField
 }
 
-void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {}
+void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
+    auto liveFrameVertices = matToVector(cloudToMat(vertices));
+    auto liveFrameNormals  = matToVector(normalsToMat(normals));
+
+    liveFrame = std::make_shared<Frame>(frameID, liveFrameVertices, liveFrameNormals);
+}
 
 std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) {
     /* From the warp field get the k (8) closest points */
@@ -73,4 +76,31 @@ std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) 
     /* Get the dg_se3 from each of the nodes, (dual quaternion), time it by the w(x) and calculate the sum */
     /* Before returning, normalise the dual quaternion (there should be function for this */
     return std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+}
+
+cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {
+    cv::Mat cloudHost;
+    cloudHost.create(cloud.rows(), cloud.cols(), CV_32FC4);
+    cloud.download(cloudHost.ptr<kfusion::Point>(), cloudHost.step);
+    return cloudHost;
+}
+
+cv::Mat DynFusion::normalsToMat(kfusion::cuda::Normals normals) {
+    cv::Mat normalsHost;
+    normalsHost.create(normals.rows(), normals.cols(), CV_32FC4);
+    normals.download(normalsHost.ptr<kfusion::Point>(), normalsHost.step);
+    return normalsHost;
+}
+
+std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
+    std::vector<cv::Vec3f> vector(matrix.cols * matrix.rows);
+    for (int y = 0; y < matrix.cols; ++y) {
+        for (int x = 0; x < matrix.rows; ++x) {
+            auto point = matrix.at<kfusion::Point>(x, y);
+            if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z))) {
+                vector[x + matrix.rows * y] = cv::Vec3f(point.x, point.y, point.z);
+            }
+        }
+    }
+    return vector;
 }
