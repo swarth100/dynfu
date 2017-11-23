@@ -62,7 +62,7 @@ void DynFusion::warpCanonicalToLive() {
     // prevwarpField
 }
 
-std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f point) {
+std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) {
     /* From the warp field get the k (8) closest points */
 
     /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
