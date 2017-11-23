@@ -62,6 +62,8 @@ void DynFusion::warpCanonicalToLive() {
     // prevwarpField
 }
 
+void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {}
+
 std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) {
     /* From the warp field get the k (8) closest points */
 
