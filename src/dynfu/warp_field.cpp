@@ -71,6 +71,21 @@ std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, std
     return neighborNodes;
 }
 
+/* Find the nodes index of k closest neighbour for the given point */
+std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv::Vec3f point) {
+    /* Not used, ignores the distance to the nodes for now */
+    std::vector<float> outDistSqr(numNeighbor);
+    std::vector<size_t> retIndex(numNeighbor);
+    /* Unpack the Vec3f into vector */
+    std::vector<float> query = {point[0], point[1], point[2]};
+    int n                    = kdTree->knnSearch(&query[0], numNeighbor, &retIndex[0], &outDistSqr[0]);
+    retIndex.resize(n);
+    std::vector<std::shared_ptr<Node>> neighborNodes;
+    for (auto index : retIndex) {
+        neighborNodes.push_back(nodes[index]);
+    }
+    return neighborNodes;
+}
 /* -------------------------------------------------------------------------- */
 /* PRIVATE METHODS */
 
