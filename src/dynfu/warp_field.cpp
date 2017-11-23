@@ -10,10 +10,16 @@
 #include <pcl/point_types.h>
 
 /* TODO: Add comment */
-Warpfield::Warpfield() = default;
+Warpfield::Warpfield() {
+    cloud = nullptr;
+}
 
 /* TODO: Add comment */
-Warpfield::~Warpfield() { delete cloud; }
+Warpfield::~Warpfield() {
+    if (cloud) {
+        delete cloud;
+    }
+}
 
 /* TODO: Add comment */
 void Warpfield::init(std::vector<std::shared_ptr<Node>>& nodes) {
