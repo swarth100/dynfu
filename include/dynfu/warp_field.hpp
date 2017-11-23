@@ -43,9 +43,6 @@ public:
 
     void addNode(Node newNode);
 
-    /* Returns a dual quaternion which represents the dual quaternion blending for a point */
-    std::shared_ptr<DualQuaternion<float>>DynFusion::calcDQB(cv::Vec3f point);
-
 private:
     /* Save the given vec3s to PCL format */
     void saveToPcl(std::vector<cv::Vec3f> vectors);

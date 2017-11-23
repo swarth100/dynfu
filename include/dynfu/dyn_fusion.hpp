@@ -21,6 +21,9 @@ public:
     // void updateCanonicalFrame();
     void warpCanonicalToLive();
 
+    /* Returns a dual quaternion which represents the dual quaternion blending for a point */
+    std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
+
 private:
     std::shared_ptr<Frame> canonicalFrame;
     std::shared_ptr<Frame> liveFrame;
