@@ -51,7 +51,6 @@ std::vector<std::shared_ptr<Node>> Warpfield::getNodes() {}
 /* Find the nodes index of k closest neighbour for the given point */
 std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, std::shared_ptr<Node> node) {
     auto point = node->getPosition();
-    std::cout << "point" << point[0] << " " << point[1] << " " << point[2] << std::endl;
     /* Not used, ignores the distance to the nodes for now */
     std::vector<float> outDistSqr(numNeighbor);
     std::vector<size_t> retIndex(numNeighbor);
