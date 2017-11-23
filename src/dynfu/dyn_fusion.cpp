@@ -61,3 +61,14 @@ void DynFusion::warpCanonicalToLive() {
     // query the solver passing to it the canonicalFrame, liveFrame, and
     // prevwarpField
 }
+
+std::shared_ptr<DualQuaternion<float>>DynFusion::calcDQB(cv::Vec3f point) {
+    /* From the warp field get the k (8) closest points */
+
+    /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
+    /* Apply the formula to get w(x) */
+
+    /* Get the dg_se3 from each of the nodes, (dual quaternion), time it by the w(x) and calculate the sum */
+    /* Before returning, normalise the dual quaternion (there should be function for this */
+    return std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+}
