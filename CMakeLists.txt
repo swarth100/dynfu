@@ -9,6 +9,28 @@ if (DEFINED CMAKE_BUILD_TYPE)
 endif()
 
 # ---------------------------------------------------------------------------- #
+# MISCELLANEOUS SETTINGS
+# ---------------------------------------------------------------------------- #
+if(USE_PROJECT_FOLDERS)
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+  set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
+endif()
+
+# Make debug directory for output files
+file(MAKE_DIRECTORY "files")
+
+# ---------------------------------------------------------------------------- #
+# CUDA SETTINGS
+# ---------------------------------------------------------------------------- #
+set(HAVE_CUDA 1)
+#list(APPEND CUDA_NVCC_FLAGS "-arch;compute_20")
+list(APPEND CUDA_NVCC_FLAGS "-gencode;arch=compute_30,code=sm_30;-gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50")
+
+if(UNIX OR APPLE)
+  list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
+endif()
+
+# ---------------------------------------------------------------------------- #
 # SET THE PROJECT
 # ---------------------------------------------------------------------------- #
 project(kfusion C CXX)
@@ -26,31 +48,19 @@ include(cmake/Targets.cmake)
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
-
-# ---------------------------------------------------------------------------- #
-# MISCELLANEOUS SETTINGS
-# ---------------------------------------------------------------------------- #
-if(USE_PROJECT_FOLDERS)
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-  set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
-endif()
-
-# ---------------------------------------------------------------------------- #
-# CUDA SETTINGS
-# ---------------------------------------------------------------------------- #
-set(HAVE_CUDA 1)
-#list(APPEND CUDA_NVCC_FLAGS "-arch;compute_20")
-list(APPEND CUDA_NVCC_FLAGS "-gencode;arch=compute_30,code=sm_30;-gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50")
-
-if(UNIX OR APPLE)
-  list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
-endif()
+find_package(Boost 1.36.0 COMPONENTS filesystem)
+find_package(PCL 1.2 REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # SET INCLUDE PATHS
 # ---------------------------------------------------------------------------- #
-include_directories(${OpenCV_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS} ${CERES_INCLUDE_DIRS})
-include_directories(include)
+include_directories(include
+  ${PCL_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+  ${CUDA_INCLUDE_DIRS}
+  ${CERES_INCLUDE_DIRS}
+)
 
 # ---------------------------------------------------------------------------- #
 # BUILD SRC DIRECTORY
