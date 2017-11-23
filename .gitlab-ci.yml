@@ -174,8 +174,18 @@ docker_image_build:
   tags:
     - docker
   script:
-    - docker build -t $TAG_IMAGE .
+    - docker build --build-arg CUDA_GENERATION=Maxwell -t $TAG_IMAGE .
+  except:
+    - master
 
+docker_image_build_master:
+  stage: Build
+  tags:
+    - docker
+  script:
+    - docker build --build-arg CUDA_GENERATION=Auto -t $TAG_IMAGE .
+  only:
+    - master
 
 # ---------------------------------------------------------------------------- #
 #                                    TEST                                      #
