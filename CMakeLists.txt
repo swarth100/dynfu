@@ -55,11 +55,11 @@ find_package(PCL 1.2 REQUIRED)
 # SET INCLUDE PATHS
 # ---------------------------------------------------------------------------- #
 include_directories(include
-  ${PCL_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ${CUDA_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
+  ${CUDA_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 # ---------------------------------------------------------------------------- #
