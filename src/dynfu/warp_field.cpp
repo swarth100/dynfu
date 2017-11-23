@@ -10,9 +10,7 @@
 #include <pcl/point_types.h>
 
 /* TODO: Add comment */
-Warpfield::Warpfield() {
-    cloud = nullptr;
-}
+Warpfield::Warpfield() { cloud = nullptr; }
 
 /* TODO: Add comment */
 Warpfield::~Warpfield() {
