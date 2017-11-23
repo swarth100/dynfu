@@ -46,6 +46,8 @@ kfusion::KinFuParams kfusion::KinFuParams::default_params() {
 kfusion::KinFu::KinFu(const KinFuParams &params) : frame_counter_(0), params_(params) {
     CV_Assert(params.volume_dims[0] % 32 == 0);
 
+    dynfu = std::make_shared<DynFusion>();
+
     volume_ = cv::Ptr<cuda::TsdfVolume>(new cuda::TsdfVolume(params_.volume_dims));
 
     volume_->setTruncDist(params_.tsdf_trunc_dist);
@@ -154,7 +156,7 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     // can't perform more on first frame
     if (frame_counter_ == 0) {
         /* TODO (rm3115) Initialise the warp fields */
-        Warpfield wf;
+        dynfu->init(curr_.points_pyr[0]);
         volume_->integrate(dists_, poses_.back(), p.intr);
 #if defined USE_DEPTH
         curr_.depth_pyr.swap(prev_.depth_pyr);

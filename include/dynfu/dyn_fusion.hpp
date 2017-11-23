@@ -11,12 +11,18 @@
 /* */
 class DynFusion {
 public:
+    DynFusion();
     DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     ~DynFusion();
+
+    void init(kfusion::cuda::Cloud &vertices);
 
     void initCanonicalFrame();
     // void updateCanonicalFrame();
     void warpCanonicalToLive();
+
+    /* Returns a dual quaternion which represents the dual quaternion blending for a point */
+    std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
 
 private:
     std::shared_ptr<Frame> canonicalFrame;

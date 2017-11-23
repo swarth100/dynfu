@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <dynfu/dyn_fusion.hpp>
+
 namespace kfusion {
 namespace cuda {
 KF_EXPORTS int getCudaEnabledDeviceCount();
@@ -89,5 +91,7 @@ private:
 
     cv::Ptr<cuda::TsdfVolume> volume_;
     cv::Ptr<cuda::ProjectiveICP> icp_;
+
+    std::shared_ptr<DynFusion> dynfu;
 };
 }  // namespace kfusion

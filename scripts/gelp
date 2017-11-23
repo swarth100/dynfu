@@ -1,0 +1,270 @@
+#!/usr/bin/ruby
+
+require 'optparse'
+
+# Courtesy of:
+# https://stackoverflow.com/questions/535721/ruby-max-integer
+FIXNUM_MAX = (2**(0.size * 8 -2) -1)
+
+# Options parsing
+options = {:merge => "", :checkout => "", :delete => "", :squash => false, :push => false, :upstream => false}
+
+OptionParser.new do|opts|
+  opts.banner = "Usage: git_commit_helper [options]"
+  
+  opts.on('-m', '--merge [<branch>]', 'Merge to branch after committing') do |branch|
+    options[:merge] = branch || "dev";
+  end
+
+  opts.on('-c', '--checkout [<name>]', 'Checkout to new branch before committing') do |branch|
+    options[:checkout] = branch;
+  end
+
+  opts.on('-s', '--squash', 'Squash all selected commits') do
+    options[:squash] = true;
+  end
+
+  opts.on('-p', '--push', 'Pushes the given changes') do
+    options[:push] = true;
+  end
+  
+  opts.on('-u', '--upstream', 'Performs the selected action upstream. Works with push and delete.') do
+    options[:upstream] = true;
+  end
+  
+  opts.on('-d', '--delete [<branch>]', 'Removes the given branch locally') do |branch|
+    options[:delete] = branch;
+  end
+
+  opts.on('-h', '--help', 'Displays Help') do
+    puts opts
+    exit
+  end
+end.parse!
+
+# Add prompt for checkout branch name if not given as command line argument
+while (!options[:checkout]) do
+  puts "Insert checkout branch name"
+  options[:checkout] = gets.chomp
+  
+  if (options[:checkout] == "")
+    options[:checkout] = nil
+  end
+end
+
+# Retrieve the modified files
+value = `git status`
+
+# Retrieve the branch name
+curBranch = (`git branch | grep \\\*`).split("* ")[1]
+
+# Magical format parsing
+array = value.split(/[\t\n]/)
+
+counter = 0
+baseCounter = FIXNUM_MAX
+tracked = true
+added = true
+
+# Tracked files
+parsedT ||= []
+
+# Added files
+parsedA ||= []
+
+# Untracked files
+parsedU ||= []
+
+# Commit messages for all files
+comMexs ||= []
+comFiles ||= []
+
+# Set branch names
+if !options[:delete]
+  options[:delete] = curBranch
+end
+
+# Return a list of tracked files and untracked files
+for element in array do
+  # Skip the initial extra fluff added by git
+  if (element == "Untracked files:")
+    tracked = false
+    baseCounter = counter + 2
+  end
+  
+  if (element == "Changes to be committed:")
+    baseCounter = counter + 2
+    added = true
+  end
+  
+  if (element == "Changes not staged for commit:")
+    baseCounter = counter + 3
+    added = false
+  end
+  
+  # Magical input parsing
+  if (counter >= baseCounter)
+    if (tracked)
+      e = element.split(':')
+      if (e != [] && e.length >= 2)
+        if (!added)
+          parsedT << e
+        else
+          parsedA << e
+        end
+      end
+    else
+      e = element.split(' ')
+      if (e.length <= 2 && e[0] != nil)
+        parsedU << e[0]
+      end
+    end
+  end
+  counter += 1
+end
+
+# If checkout flag is selected, first checkout
+if (options[:checkout] != "")
+  system "git checkout -b " + options[:checkout] + " > /dev/null"
+end
+
+# Add all tracked elements to the added elements
+for element in parsedT do 
+  parsedA << element
+end
+
+# Add all untracked elements to the Added elements
+for element in parsedU do 
+  parsedA << ["added", element]
+end
+
+for element in parsedA do
+  file = element[1].split(' ')[0]
+  puts element[0] + " " + file
+  msg = gets.chomp
+  
+  # If squash mode is off commit every message individually
+  if (!options[:squash])
+    # If msg is nil, skip
+    if (msg != "")
+      system "git add " + file + " > /dev/null"
+      system "git commit -m \"" + file + ": " + msg + "\"" + " > /dev/null"
+    end
+  else
+    if (msg != "")
+      comMexs << msg
+      comFiles << file
+    end
+  end
+end
+
+#When squash iterate
+if (options[:squash])
+  for file in comFiles do
+    system "git add " + file + " > /dev/null"
+  end
+  
+  # Squahs user input
+  puts "Overall squash feature implemented:"
+  msg = gets.chomp
+
+  puts "Squash reference file: "
+  file = gets.chomp
+  
+  # Package commit messages for multiline squash
+  defMex = "git commit -m \"" + file + ": " + msg + "\" -m \'"
+
+  # Add all selected messages
+  for mex in comMexs do
+     defMex << mex + "\n"
+  end
+  
+  # End multiline input
+  defMex << "\' "
+
+  # Output sys command
+  system defMex + " > /dev/null"
+end
+
+# If merge flag is selected, merge at the end of the procedure
+if (options[:merge] != "")
+
+  # Determine the current branch name
+  name = `git branch`
+  for element in name.split("\n") do
+    br = element.split("*")
+    if (br.length > 1)
+      branch = br[1].split(" ")[0]
+      break
+    end
+  end
+  
+  system "git checkout " + options[:merge]
+  system "git merge " + branch + " --no-ff"
+end
+
+# If push flag is selected, push the given changes to remote
+if (options[:push])
+
+  extraCmd = ""
+  
+  # Accordingly with the flags, set upstream or not
+  if (options[:upstream])
+    extraCmd = "-u origin #{curBranch}"
+  end
+  
+  system "git push #{extraCmd}"
+  
+end
+
+# If delete flag is selected, the given branch is removed.
+# NOTE: As you cannot remove a branch you're on.
+if (options[:delete] != "")
+  
+  # Accordingly with the flags, set upstream or not
+  if (options[:upstream])
+    system "git push --delete origin #{options[:delete]}"
+  end
+  
+  # Always remove locally
+  system "git branch -d #{options[:delete]}"
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
