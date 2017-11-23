@@ -31,6 +31,11 @@ stages:
 .env_setup: &env_setup |
   source setup.sh --set-paths
 
+# Variables for use in script
+variables:
+  CONTAINER_IMAGE: g1736211/dynfu
+  DEV_IMAGE: g1736211/dynfu:dev
+  TAG_IMAGE: g1736211/dynfu:${CI_COMMIT_REF_SLUG}
 # ---------------------------------------------------------------------------- #
 #                                     SETUP                                    #
 # ---------------------------------------------------------------------------- #
@@ -162,6 +167,15 @@ make:
   script:
     - source setup.sh --make
 
+# > docker_build <
+# The docker_build stage creates the Docker image on a docker-compatible runner
+docker_image_build:
+  stage: Build
+  tags:
+    - docker
+  script:
+    - docker build -t $TAG_IMAGE .
+
 
 # ---------------------------------------------------------------------------- #
 #                                    TEST                                      #
@@ -240,6 +254,31 @@ depoy:
   script:
     - cp -R build/bin/* /data/dynfu
 
+# > docker_deploy_dev <
+# Deploys to Docker Hub
+docker_image_deploy_dev:
+  stage: Deploy
+  tags:
+    - docker
+  script:
+    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
+    - docker tag $TAG_IMAGE $DEV_IMAGE
+    - docker push $DEV_IMAGE
+  only:
+    - dev
+
+# > docker_deploy <
+# Deploys to Docker Hub
+docker_image_deploy:
+  stage: Deploy
+  tags:
+    - docker
+  script:
+    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
+    - docker tag $TAG_IMAGE $CONTAINER_IMAGE
+    - docker push $CONTAINER_IMAGE
+  only:
+    - master
 # ---------------------------------------------------------------------------- #
 #                                   CLEANUP                                    #
 # ---------------------------------------------------------------------------- #
