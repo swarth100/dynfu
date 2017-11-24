@@ -49,6 +49,10 @@ include_directories("${source_dir}/googletest/include"
 # ---------------------------------------------------------------------------- #
 # CODE COVERAGE (GCOV) SETTINGS
 # ---------------------------------------------------------------------------- #
+# Lcov Documentation:
+# http://ltp.sourceforge.net/coverage/lcov/lcov.1.php
+# http://swarminglogic.com/jotting/2014_05_lcov
+
 # Add Flags for coverage report
 APPEND_COVERAGE_COMPILER_FLAGS()
 
