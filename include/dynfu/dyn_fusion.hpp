@@ -4,6 +4,7 @@
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/solver.hpp>
 #include <dynfu/warp_field.hpp>
+#include <dynfu/utils/dual_quaternion.hpp>
 
 /* Typedefs */
 #include <kfusion/types.hpp>
