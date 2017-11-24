@@ -69,9 +69,13 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
 
 std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) {
     /* From the warp field get the k (8) closest points */
+    auto nearestNeighbors = Warpfield::findNeighbors(KNN, point);
 
     /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
     /* Apply the formula to get w(x) */
+    for (auto node : nearestNeighbors) {
+        float nodeWeight = getWeight(node, point);
+    }
 
     /* Get the dg_se3 from each of the nodes, (dual quaternion), time it by the w(x) and calculate the sum */
     /* Before returning, normalise the dual quaternion (there should be function for this */
