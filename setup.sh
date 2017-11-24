@@ -69,9 +69,9 @@ then
     echo "Running CMake ..."
     if ! $QUIET
     then
-        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV;/usr/lib/vtk-5.10" .. || (cd ../ && return 1)
+        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV" .. || (cd ../ && return 1)
     else
-        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV;/usr/lib/vtk-5.10" .. >/dev/null 2>&1 || (cd ../ && return 1)
+        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV" .. >/dev/null 2>&1 || (cd ../ && return 1)
     fi
 fi
 
