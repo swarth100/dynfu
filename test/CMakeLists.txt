@@ -46,17 +46,34 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-# Force test build
-set(gtest_build_samples ON)
+# ---------------------------------------------------------------------------- #
+# CODE COVERAGE (GCOV) SETTINGS
+# ---------------------------------------------------------------------------- #
+# Add Flags for coverage report
+APPEND_COVERAGE_COMPILER_FLAGS()
+
+# Exclude certain directories
+SET(COVERAGE_EXCLUDES
+  'src/kfusion/*'
+  'src/apps/*'
+  'include/kfusion/*'
+  'include/nanoflann/*'
+  'cmake/*'
+  'test/*'
+  'scripts/*'
+  '/usr/*'
+  'core/*'
+)
 
 # ---------------------------------------------------------------------------- #
 # CREATE TESTS
 # ---------------------------------------------------------------------------- #
+# Force test build
+set(gtest_build_samples ON)
 
 # Add quaternion Test
 CREATE_TEST(quaternionTest quaternion_test.cpp)
 
-APPEND_COVERAGE_COMPILER_FLAGS()
 SETUP_TARGET_FOR_COVERAGE(NAME "coverage" EXECUTABLE quaternionTest)
 
 #CREATE_TEST(solverTest solver_test.cpp)
