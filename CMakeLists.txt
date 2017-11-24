@@ -9,6 +9,11 @@ if (DEFINED CMAKE_BUILD_TYPE)
 endif()
 
 # ---------------------------------------------------------------------------- #
+# SET THE PROJECT
+# ---------------------------------------------------------------------------- #
+project(kfusion C CXX)
+
+# ---------------------------------------------------------------------------- #
 # MISCELLANEOUS SETTINGS
 # ---------------------------------------------------------------------------- #
 if(USE_PROJECT_FOLDERS)
@@ -16,24 +21,24 @@ if(USE_PROJECT_FOLDERS)
   set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
 endif()
 
+# Force to export compile commands for linters
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Make debug directory for output files
 file(MAKE_DIRECTORY "files")
+
+# Set CXX to compile with C++11 standard
+LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
 # ---------------------------------------------------------------------------- #
 set(HAVE_CUDA 1)
-#list(APPEND CUDA_NVCC_FLAGS "-arch;compute_20")
 list(APPEND CUDA_NVCC_FLAGS "-gencode;arch=compute_30,code=sm_30;-gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50")
 
 if(UNIX OR APPLE)
   list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
 endif()
-
-# ---------------------------------------------------------------------------- #
-# SET THE PROJECT
-# ---------------------------------------------------------------------------- #
-project(kfusion C CXX)
 
 # ---------------------------------------------------------------------------- #
 # UTILITY FUNCTIONS (MACROS) AND PATHS
