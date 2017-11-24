@@ -38,9 +38,9 @@ project(kfusion C CXX)
 # ---------------------------------------------------------------------------- #
 # UTILITY FUNCTIONS (MACROS) AND PATHS
 # ---------------------------------------------------------------------------- #
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-include(cmake/Utils.cmake)
-include(cmake/Targets.cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+include(Utils)
+include(Targets)
 
 # ---------------------------------------------------------------------------- #
 # DEPENDENCIES
