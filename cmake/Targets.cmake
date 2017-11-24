@@ -88,10 +88,10 @@ endmacro()
 
 ################################################################################################
 # short command for adding application module
-macro(add_application target sources)
+macro(add_application target)
+  FILE(GLOB_RECURSE sources *.cpp)
   add_executable(${target} ${sources})
   default_properties(${target})
-  app_props(${target})
 endmacro()
 
 
@@ -103,4 +103,3 @@ macro(CREATE_TEST target)
   add_test(NAME ${target} COMMAND ${target})
   default_properties(${target})
 endmacro()
-
