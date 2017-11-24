@@ -8,6 +8,8 @@
 /* Typedefs */
 #include <kfusion/types.hpp>
 
+#include <math.h>
+
 /* */
 class DynFusion {
 public:
