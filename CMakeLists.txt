@@ -11,9 +11,6 @@ project(kfusion C CXX)
 # ---------------------------------------------------------------------------- #
 # CMAKE SETTINGS
 # ---------------------------------------------------------------------------- #
-# Force to export compile commands for linters
-SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 # Use both Debug and Release versions
 SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
 
