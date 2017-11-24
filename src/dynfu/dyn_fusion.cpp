@@ -76,8 +76,8 @@ std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) 
     DualQuaternion<float> transformationSum(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     for (auto node : nearestNeighbors) {
         float nodeWeight = getWeight(node, point);
-        
-        DualQuaternion<float> dg_se3 = *node->getTransformation(); 
+
+        DualQuaternion<float> dg_se3                  = *node->getTransformation();
         DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
         transformationSum += weighted_transformation;
     }
