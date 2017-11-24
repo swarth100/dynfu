@@ -3,29 +3,22 @@
 # ---------------------------------------------------------------------------- #
 cmake_minimum_required(VERSION 2.8.8)
 
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Possible configurations" FORCE)
-if (DEFINED CMAKE_BUILD_TYPE)
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES})
-endif()
-
 # ---------------------------------------------------------------------------- #
 # SET THE PROJECT
 # ---------------------------------------------------------------------------- #
 project(kfusion C CXX)
 
 # ---------------------------------------------------------------------------- #
-# MISCELLANEOUS SETTINGS
+# CMAKE SETTINGS
 # ---------------------------------------------------------------------------- #
-if(USE_PROJECT_FOLDERS)
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-  set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
-endif()
-
 # Force to export compile commands for linters
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Use both Debug and Release versions
+SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
+
 # Make debug directory for output files
-file(MAKE_DIRECTORY "files")
+FILE(MAKE_DIRECTORY "files")
 
 # Set CXX to compile with C++11 standard
 LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
@@ -33,17 +26,18 @@ LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
 # ---------------------------------------------------------------------------- #
-set(HAVE_CUDA 1)
-list(APPEND CUDA_NVCC_FLAGS "-gencode;arch=compute_30,code=sm_30;-gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50")
+SET(HAVE_CUDA 1)
+LIST(APPEND CUDA_NVCC_FLAGS "-gencode;arch=compute_30,code=sm_30;-gencode;arch=compute_35,code=sm_35;-gencode;arch=compute_50,code=sm_50")
 
+# Apple settings
 if(UNIX OR APPLE)
-  list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
+  LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
 endif()
 
 # ---------------------------------------------------------------------------- #
 # UTILITY FUNCTIONS (MACROS) AND PATHS
 # ---------------------------------------------------------------------------- #
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 include(Utils)
 include(Targets)
 
