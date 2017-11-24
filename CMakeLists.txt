@@ -44,6 +44,7 @@ endif()
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 include(Utils)
 include(Targets)
+include(CodeCoverage)
 
 # ---------------------------------------------------------------------------- #
 # DEPENDENCIES
