@@ -35,6 +35,11 @@ struct DynFuApp {
             exit(EXIT_FAILURE);
         }
 
+        if (!boost::filesystem::exists(filePath_ + "/depth") || !boost::filesystem::exists(filePath_ + "/color")) {
+            std::cerr << "Error: Directory should contain 'color' and 'depth' directories. Exiting..." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
         cv::glob(filePath_ + "/depth", *depths);
         cv::glob(filePath_ + "/color", *images);
         std::sort((*depths).begin(), (*depths).end());
