@@ -155,7 +155,7 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     // can't perform more on first frame
     if (frame_counter_ == 0) {
-        /* TODO (rm3115) Initialise the warp fields */
+        /* Initialise the warpfield */
         dynfu->init(curr_.points_pyr[0]);
         volume_->integrate(dists_, poses_.back(), p.intr);
 #if defined USE_DEPTH
@@ -185,12 +185,12 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     poses_.push_back(poses_.back() * affine);  // curr -> global
 
-    /* TODO (rm3115) Warp the live frame */
-    /* I think that the (since size of pyramid decreses in size
-     * curr_,depth_pyr[0] = depth data
-     * curr_.points_pyr[0] = live frame
-     * curr_.normals_pyr[0] = normals
-     */
+    /* Add live frame to Dynfu */
+    dynfu->addLiveFrame(frame_counter_, curr_.points_pyr[0], curr_.normals_pyr[0]);
+
+    /* TODO(rm3115) Apply warp and get the result (probably need to upload the data back to curr_.points and
+     * curr_.normals) */
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Volume integration
 
