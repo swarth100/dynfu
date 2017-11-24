@@ -52,8 +52,8 @@ include(CodeCoverage)
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
-find_package(Boost 1.36.0 COMPONENTS filesystem)
-find_package(PCL 1.2 REQUIRED)
+find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
+find_package(PCL 1.2 REQUIRED COMPONENTS io)
 
 # ---------------------------------------------------------------------------- #
 # SET INCLUDE PATHS
