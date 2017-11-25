@@ -65,10 +65,7 @@ SET(COVERAGE_EXCLUDES
   '/usr/*'
   'core/*'
   '/tmp/*'
-  'ceres/*'
-  'eigen3/*'
-  'opencv2/*'
-  'pcl-1.8/*'
+  '/vol/project/*'
   '/vol/cuda/*'
 )
 
@@ -81,10 +78,10 @@ set(gtest_build_samples ON)
 # Add quaternion Test
 CREATE_TEST(dynfu_test)
 
+# Link all libraries for testing
 target_link_libraries(dynfu_test
   dynfu
 )
 
+# Generate coverage commands
 SETUP_TARGET_FOR_COVERAGE(NAME "coverage" EXECUTABLE dynfu_test)
-
-#CREATE_TEST(solverTest solver_test.cpp)
