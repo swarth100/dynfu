@@ -13,10 +13,6 @@ DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* 
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
     warpfield->init(deformationNodes);
-
-    for (auto node : deformationNodes) {
-        node->setNeighbours(warpfield->findNeighbors(KNN, node));
-    }
 }
 
 void DynFusion::init(kfusion::cuda::Cloud &vertices) {
@@ -42,10 +38,6 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
     warpfield->init(deformationNodes);
-
-    for (auto node : deformationNodes) {
-        node->setNeighbours(warpfield->findNeighbors(KNN, node));
-    }
 }
 
 /* TODO: Add comment */
