@@ -2,6 +2,7 @@
 
 RUN_CMAKE=false
 RUN_MAKE=false
+RUN_COVERAGE=false
 RUN_SET_PATHS=false
 QUIET=false
 
@@ -11,6 +12,7 @@ usage() {
     echo "\t--help                 -h: Display help"
     echo "\t--set-paths            -p: Setup the enviroment path"
     echo "\t--cmake                -c: Run CMake"
+    echo "\t--coverage             -v: Generate Coverage Report"
     echo "\t--make                 -m: Run make"
     echo "\t--quiet                -q: Set quiet option"
     echo "\t--all                  -a: Run all the settings"
@@ -32,6 +34,9 @@ while [ "$1" != "" ]; do
             ;;
         -m | --make)
             RUN_MAKE=true
+            ;;
+        -v | --coverage)
+            RUN_COVERAGE=true
             ;;
         -a | --all)
             RUN_SET_PATHS=true
@@ -85,5 +90,17 @@ then
         make -j4 >/dev/null 2>&1 || (cd ../ && return 1)
     fi
     echo "Make complete!"
+fi
+
+if $RUN_COVERAGE
+then
+    echo "Generating coverage report ..."
+    if ! $QUIET
+    then
+        make coverage -j4 || (cd ../ && return 1)
+    else
+        make coverage -j4 >/dev/null 2>&1 || (cd ../ && return 1)
+    fi
+    echo "Coverage Report generation complete!"
 fi
 cd ..

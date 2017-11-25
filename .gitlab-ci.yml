@@ -190,6 +190,28 @@ gtest:
   script:
     - ./build/bin/dynfu_test
 
+# > coverage <
+# The coverage stage runs gcov (and on top of that lcov) to generate a coverage
+# report of the test for the source files.
+coverage:
+  stage: Test
+
+  # Set env variables before testing should we need to access CUDA of OpenGL
+  # headers.
+  before_script:
+    - *env_setup
+
+  # Coverage report is constructed for the newly build binaries
+  cache:
+    key: "$CI_COMMIT_SHA"
+    paths:
+      - build/
+    policy: pull
+
+  # Generate the coverage report
+  script:
+    - source setup.sh --coverage
+
 # ---------------------------------------------------------------------------- #
 #                                   DEPLOY                                     #
 # ---------------------------------------------------------------------------- #
