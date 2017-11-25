@@ -9,6 +9,14 @@ cmake_minimum_required(VERSION 2.8.8)
 project(kfusion C CXX)
 
 # ---------------------------------------------------------------------------- #
+# UTILITY FUNCTIONS (MACROS) AND PATHS
+# ---------------------------------------------------------------------------- #
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+include(Utils)
+include(Targets)
+include(CodeCoverage)
+
+# ---------------------------------------------------------------------------- #
 # CMAKE SETTINGS
 # ---------------------------------------------------------------------------- #
 # Use both Debug and Release versions
@@ -19,6 +27,9 @@ FILE(MAKE_DIRECTORY "files")
 
 # Set CXX to compile with C++11 standard
 LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+
+# Add Flags for coverage report
+APPEND_COVERAGE_COMPILER_FLAGS()
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -39,20 +50,13 @@ if(UNIX OR APPLE)
 endif()
 
 # ---------------------------------------------------------------------------- #
-# UTILITY FUNCTIONS (MACROS) AND PATHS
-# ---------------------------------------------------------------------------- #
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
-include(Utils)
-include(Targets)
-
-# ---------------------------------------------------------------------------- #
 # DEPENDENCIES
 # ---------------------------------------------------------------------------- #
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
-find_package(Boost 1.36.0 COMPONENTS filesystem)
-find_package(PCL 1.2 REQUIRED)
+find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
+find_package(PCL 1.2 REQUIRED COMPONENTS io)
 
 # ---------------------------------------------------------------------------- #
 # SET INCLUDE PATHS

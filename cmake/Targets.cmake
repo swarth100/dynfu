@@ -98,7 +98,8 @@ endmacro()
 ################################################################################################
 # short command for adding test target
 macro(CREATE_TEST target)
-  ADD_EXECUTABLE(${target} ${ARGN})
+  FILE(GLOB SRCS *.cpp)
+  ADD_EXECUTABLE(${target} ${SRCS})
   TARGET_LINK_LIBRARIES(${target} libgtest libgmock)
   add_test(NAME ${target} COMMAND ${target})
   default_properties(${target})
