@@ -1,6 +1,9 @@
 #ifndef DYNFU_WARP_FIELD_HPP
 #define DYNFU_WARP_FIELD_HPP
 
+/* kinfu includes */
+#include <kfusion/types.hpp>
+
 /* dynfu includes */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
@@ -30,10 +33,10 @@ public:
     ~Warpfield();
 
     /* Initialises the warpfield's canonical Frame*/
-    void init(std::vector<std::shared_ptr<Node>> &nodes);
+    void init(std::vector<std::shared_ptr<Node>> nodes);
 
     /* Finds a set amount of closest neighbours */
-    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, std::shared_ptr<Node> node);
+    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);
 
     /* Finds a set amount of closest neighbours */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f point);
@@ -43,6 +46,8 @@ public:
 
     /* Returns a vector of all nodes in the warp field. */
     std::vector<std::shared_ptr<Node>> getNodes();
+
+    float** getParameters();
 
     void addNode(Node newNode);
 
@@ -63,7 +68,10 @@ private:
     std::shared_ptr<kd_tree_t> kdTree;
 
     /* TODO(rm3115) Not sure why but shared ptr doesn't work */
-    PointCloud *cloud;
+    PointCloud* cloud;
+
+    float** residuals;
+    float** parametres;
 };
 
 /* DYNFU_WARP_FIELD_HPP */
