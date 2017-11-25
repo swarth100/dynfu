@@ -87,4 +87,4 @@ target_link_libraries(dynfu_test
 )
 
 # Generate coverage commands
-SETUP_TARGET_FOR_COVERAGE(NAME "coverage" EXECUTABLE dynfu_test)
+SETUP_TARGET_FOR_COVERAGE(NAME coverage EXECUTABLE dynfu_test)
