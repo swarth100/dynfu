@@ -36,17 +36,14 @@ public:
     const float getWeight();
 
     const std::shared_ptr<DualQuaternion<float>>& getTransformation();
-    const std::vector<std::shared_ptr<Node>>& getNearestNeighbours();
 
     void setWeight();
-    void setNeighbours(std::vector<std::shared_ptr<Node>> nodes);
+    void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
 
 private:
     cv::Vec3f dg_v;
     std::shared_ptr<DualQuaternion<float>> dg_se3;
     float dg_w;
-
-    std::vector<std::shared_ptr<Node>> nearestNeighbours;
 };
 
 /* DYNFU_NODE_HPP */
