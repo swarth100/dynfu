@@ -9,6 +9,14 @@ cmake_minimum_required(VERSION 2.8.8)
 project(kfusion C CXX)
 
 # ---------------------------------------------------------------------------- #
+# UTILITY FUNCTIONS (MACROS) AND PATHS
+# ---------------------------------------------------------------------------- #
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+include(Utils)
+include(Targets)
+include(CodeCoverage)
+
+# ---------------------------------------------------------------------------- #
 # CMAKE SETTINGS
 # ---------------------------------------------------------------------------- #
 # Use both Debug and Release versions
@@ -19,6 +27,9 @@ FILE(MAKE_DIRECTORY "files")
 
 # Set CXX to compile with C++11 standard
 LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+
+# Add Flags for coverage report
+APPEND_COVERAGE_COMPILER_FLAGS()
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -37,14 +48,6 @@ LIST(APPEND CUDA_NVCC_FLAGS
 if(UNIX OR APPLE)
   LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
 endif()
-
-# ---------------------------------------------------------------------------- #
-# UTILITY FUNCTIONS (MACROS) AND PATHS
-# ---------------------------------------------------------------------------- #
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
-include(Utils)
-include(Targets)
-include(CodeCoverage)
 
 # ---------------------------------------------------------------------------- #
 # DEPENDENCIES

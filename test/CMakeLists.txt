@@ -53,9 +53,6 @@ include_directories("${source_dir}/googletest/include"
 # http://ltp.sourceforge.net/coverage/lcov/lcov.1.php
 # http://swarminglogic.com/jotting/2014_05_lcov
 
-# Add Flags for coverage report
-APPEND_COVERAGE_COMPILER_FLAGS()
-
 # Exclude certain directories
 SET(COVERAGE_EXCLUDES
   'src/kfusion/*'
@@ -67,6 +64,12 @@ SET(COVERAGE_EXCLUDES
   'scripts/*'
   '/usr/*'
   'core/*'
+  '/tmp/*'
+  'ceres/*'
+  'eigen3/*'
+  'opencv2/*'
+  'pcl-1.8/*'
+  '/vol/cuda/*'
 )
 
 # ---------------------------------------------------------------------------- #
@@ -76,8 +79,12 @@ SET(COVERAGE_EXCLUDES
 set(gtest_build_samples ON)
 
 # Add quaternion Test
-CREATE_TEST(quaternionTest quaternion_test.cpp)
+CREATE_TEST(dynfu_test)
 
-SETUP_TARGET_FOR_COVERAGE(NAME "coverage" EXECUTABLE quaternionTest)
+target_link_libraries(dynfu_test
+  dynfu
+)
+
+SETUP_TARGET_FOR_COVERAGE(NAME "coverage" EXECUTABLE dynfu_test)
 
 #CREATE_TEST(solverTest solver_test.cpp)

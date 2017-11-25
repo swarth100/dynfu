@@ -91,8 +91,3 @@ TEST_F(DualQuaternionTest, TestTotal) {
     /* */
     // ASSERT_FLOAT_EQ(dqSum.getReal().R_component_1(), dqRes.getReal().R_component_1());
 }
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
