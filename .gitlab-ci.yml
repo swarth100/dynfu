@@ -188,7 +188,7 @@ gtest:
 
   # Run the gtests
   script:
-    - ./build/bin/quaternionTest
+    - ./build/bin/dynfu_test
 
 # ---------------------------------------------------------------------------- #
 #                                   DEPLOY                                     #
