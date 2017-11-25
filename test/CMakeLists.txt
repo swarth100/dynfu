@@ -82,6 +82,8 @@ CREATE_TEST(dynfu_test)
 target_link_libraries(dynfu_test
   dynfu
   ceres
+  ${Boost_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
 # Generate coverage commands
