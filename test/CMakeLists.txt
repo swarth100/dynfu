@@ -81,6 +81,7 @@ CREATE_TEST(dynfu_test)
 # Link all libraries for testing
 target_link_libraries(dynfu_test
   dynfu
+  ceres
 )
 
 # Generate coverage commands
