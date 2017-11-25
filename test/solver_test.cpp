@@ -293,8 +293,3 @@ TEST_F(SolverTest, MultipleVerticesTest) {
         // ASSERT_NEAR(vertex[2], targetVertex[2], max_error);
     }
 }
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
