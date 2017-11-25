@@ -3,7 +3,6 @@
 
 #include <dynfu/utils/dual_quaternion.hpp>
 #include <dynfu/utils/frame.hpp>
-#include <dynfu/utils/solver.hpp>
 #include <dynfu/warp_field.hpp>
 
 /* Typedefs */
@@ -34,7 +33,6 @@ private:
     std::shared_ptr<Frame> liveFrame;
     std::shared_ptr<Frame> canonicalWarpedToLive;
     std::shared_ptr<Warpfield> warpfield;
-    std::shared_ptr<Solver<float>> solver;
 
     /* Get weight of node on point for DQB */
     float getWeight(std::shared_ptr<Node> node, cv::Vec3f point);
