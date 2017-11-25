@@ -105,10 +105,16 @@ void Warpfield::saveToPcl(std::vector<cv::Vec3f> vectors) {
 
     /* Save to PCL */
     std::string filenameStr = ("files/PCLFrame" + std::to_string(this->getFrameNum()) + ".pcd");
-    pcl::io::savePCDFileASCII(filenameStr, (*cloud));
 
-    /* Print out to stderr when after successful save */
-    std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
+    /* Add try catch to handle errors due to wrong scoping with directories */
+    try {
+        pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+
+        /* Print out to stderr when after successful save */
+        std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
+    } catch (...) {
+        std::cout << "Error occured when processing PCL file" << std::endl;
+    }
 }
 
 // void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }
