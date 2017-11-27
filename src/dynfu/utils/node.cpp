@@ -11,11 +11,11 @@ Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transforma
 
 Node::~Node() = default;
 
-const cv::Vec3f Node::getPosition() { return dg_v; }
+cv::Vec3f Node::getPosition() { return dg_v; }
 
-const float Node::getWeight() { return dg_w; }
+float Node::getWeight() { return dg_w; }
 
-const std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
+std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
 
 void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
 
