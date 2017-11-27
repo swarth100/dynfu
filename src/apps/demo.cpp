@@ -49,6 +49,7 @@ struct DynFuApp {
         std::sort((*images).begin(), (*images).end());
     }
 
+    /* Create a new directory /out if not already present inside the input folder */
     void createOutputDirectory() {
         outPath_ = filePath_ + "/out";
         boost::filesystem::path dir(outPath_);
