@@ -45,7 +45,6 @@ ADD CMakeLists.txt /dynfu
 ADD cmake /dynfu/cmake
 ADD src /dynfu/src
 ADD include /dynfu/include
-ADD test /dynfu/test
 
 WORKDIR dynfu/build
 RUN cmake -D CUDA_CUDA_LIBRARY="/usr/local/cuda/lib64/stubs/libcuda.so" ..

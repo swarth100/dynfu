@@ -14,7 +14,9 @@ project(kfusion C CXX)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 include(Utils)
 include(Targets)
-include(CodeCoverage)
+if(BUILD_TESTS)
+  include(CodeCoverage)
+endif()
 
 # ---------------------------------------------------------------------------- #
 # CMAKE SETTINGS
@@ -28,8 +30,10 @@ FILE(MAKE_DIRECTORY "files")
 # Set CXX to compile with C++11 standard
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive")
 
-# Add Flags for coverage report
-APPEND_COVERAGE_COMPILER_FLAGS()
+if(BUILD_TESTS)
+  # Add Flags for coverage report
+  APPEND_COVERAGE_COMPILER_FLAGS()
+endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include(cmake/Utils.cmake)
@@ -80,5 +84,7 @@ add_subdirectory(src)
 # ---------------------------------------------------------------------------- #
 # BUILD TESTS
 # ---------------------------------------------------------------------------- #
-enable_testing()
-add_subdirectory(test)
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
