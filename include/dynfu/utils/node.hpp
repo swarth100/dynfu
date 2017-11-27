@@ -32,10 +32,10 @@ public:
     Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float weight);
     ~Node();
 
-    const cv::Vec3f getPosition();
-    const float getWeight();
+    cv::Vec3f getPosition();
+    float getWeight();
 
-    const std::shared_ptr<DualQuaternion<float>>& getTransformation();
+    std::shared_ptr<DualQuaternion<float>>& getTransformation();
 
     void setWeight();
     void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
