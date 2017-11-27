@@ -5,6 +5,7 @@ add_application(app)
 target_link_libraries(app
     dynfu
     kfusion
+    ${Boost_LIBRARIES}
     ${CUDA_LIBRARIES}
     ${CUDA_CUDA_LIBRARY}
     ${OpenCV_LIBS}
