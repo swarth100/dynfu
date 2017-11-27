@@ -14,9 +14,10 @@ Warpfield::Warpfield() { cloud = nullptr; }
 
 /* TODO: Add comment */
 Warpfield::~Warpfield() {
-    if (cloud) {
+    // FIXME (dig15): for some reason we cannot delete the cloud
+    /*if (cloud) {
         delete cloud;
-    }
+    }*/
 }
 
 /* TODO: Add comment */
@@ -50,8 +51,6 @@ void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
         // point->setTransformation(transformation);
     }
 }
-
-float** Warpfield::getParameters() { return parametres; }
 
 /*
  * Returns a vector of all nodes in the warp field.
@@ -105,16 +104,10 @@ void Warpfield::saveToPcl(std::vector<cv::Vec3f> vectors) {
 
     /* Save to PCL */
     std::string filenameStr = ("files/PCLFrame" + std::to_string(this->getFrameNum()) + ".pcd");
+    pcl::io::savePCDFileASCII(filenameStr, (*cloud));
 
-    /* Add try catch to handle errors due to wrong scoping with directories */
-    try {
-        pcl::io::savePCDFileASCII(filenameStr, (*cloud));
-
-        /* Print out to stderr when after successful save */
-        std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
-    } catch (...) {
-        std::cout << "Error occured when processing PCL file" << std::endl;
-    }
+    /* Print out to stderr when after successful save */
+    std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
 }
 
 // void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }
