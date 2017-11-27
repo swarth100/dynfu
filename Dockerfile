@@ -29,9 +29,6 @@ RUN rm -rf ceres-solver
 # Install pcl
 RUN apt-get install -y libpcl-dev
 
-# Install lcov
-RUN apt-get install -y lcov
-
 # Install libproj
 RUN apt-get install -y libproj-dev
 
@@ -48,8 +45,11 @@ ADD include /dynfu/include
 
 WORKDIR dynfu/build
 RUN cmake -D CUDA_CUDA_LIBRARY="/usr/local/cuda/lib64/stubs/libcuda.so" ..
-RUN make
+RUN make -j`nproc`
 WORKDIR ..
+
+# Remove unnecessary packages
+RUN apt-get remove -y cmake python pkg-config git zip clang build-essential
 
 # Run dynamicfusion using /data
 CMD ./build/bin/app /data
