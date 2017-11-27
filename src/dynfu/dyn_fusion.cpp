@@ -67,9 +67,10 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     liveFrame = std::make_shared<Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
-std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) {
+std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f point) {
     /* From the warp field get the k (8) closest points */
-    auto nearestNeighbors = Warpfield::findNeighbors(KNN, point);
+    Warpfield warpfield;
+    auto nearestNeighbors = warpfield.findNeighbors(KNN, point);
 
     /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
     /* Apply the formula to get w(x) */
@@ -115,8 +116,8 @@ std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
         }
     }
     return vector;
+}
 
-/* */
 float DynFusion::getWeight(std::shared_ptr<Node> node, cv::Vec3f point) {
     float distance_norm = cv::norm(node->getPosition() - point);
     return exp((-1 * pow(distance_norm, 2)) / (2 * pow(node->getWeight(), 2)));
