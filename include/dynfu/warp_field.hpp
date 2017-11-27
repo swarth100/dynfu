@@ -44,8 +44,6 @@ public:
     /* Returns a vector of all nodes in the warp field. */
     std::vector<std::shared_ptr<Node>> getNodes();
 
-    float** getParameters();
-
     void addNode(Node newNode);
 
 private:
@@ -66,9 +64,6 @@ private:
 
     /* TODO(rm3115) Not sure why but shared ptr doesn't work */
     PointCloud* cloud;
-
-    float** residuals;
-    float** parametres;
 };
 
 /* DYNFU_WARP_FIELD_HPP */
