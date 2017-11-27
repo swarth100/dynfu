@@ -99,12 +99,18 @@ public:
 
         std::vector<double> values;
 
-        int j = 0;
-        for (auto node : warpfield.getNodes()) {
+        int j                                    = 0;
+        std::vector<std::shared_ptr<Node>> nodes = warpfield.getNodes();
+
+        std::cout << ">>entering" << std::endl;
+        std::cout << "size: " << nodes.size() << std::endl;
+
+        for (auto node : nodes) {
             j++;  // std::cout << node->getWeight() << std::endl;
             // values.push_back(node->getWeight());
             std::cout << j << std::endl;
         }
+        std::cout << "<<out" << std::endl;
 
         int i = 0;
         for (auto vertices : liveFrame->getVertices()) {
@@ -132,3 +138,4 @@ private:
 
     std::vector<double*> parameters;
 };
+

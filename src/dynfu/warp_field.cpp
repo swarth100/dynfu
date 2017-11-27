@@ -55,7 +55,9 @@ void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
 /*
  * Returns a vector of all nodes in the warp field.
  */
-std::vector<std::shared_ptr<Node>> Warpfield::getNodes() {}
+std::vector<std::shared_ptr<Node>> Warpfield::getNodes() {
+	return this->nodes;
+}
 
 /* Find the nodes index of k closest neighbour for the given point */
 std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv::Vec3f vertex) {
