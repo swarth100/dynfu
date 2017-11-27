@@ -62,6 +62,13 @@ struct DynFuApp {
         for (int i = 0; i < depths.size(); ++i) {
             auto depth = cv::imread(depths[i], CV_LOAD_IMAGE_ANYDEPTH);
             auto image = cv::imread(images[i], CV_LOAD_IMAGE_COLOR);
+
+            if (!image.data || !depth.data) {
+                std::cerr << "Error: Image could not be read. Check for improper"
+                          << " permissions, or invalid formats. Exiting..." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
             depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
             {
                 SampledScopeTime fps(time_ms);
