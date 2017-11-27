@@ -26,7 +26,7 @@ SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
 FILE(MAKE_DIRECTORY "files")
 
 # Set CXX to compile with C++11 standard
-LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive")
 
 # Add Flags for coverage report
 APPEND_COVERAGE_COMPILER_FLAGS()
@@ -56,7 +56,6 @@ find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
-find_package(PCL 1.2 REQUIRED COMPONENTS io)
 
 # ---------------------------------------------------------------------------- #
 # SET INCLUDE PATHS
@@ -66,7 +65,6 @@ include_directories(include
   ${CERES_INCLUDE_DIRS}
   ${CUDA_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
 )
 
 # ---------------------------------------------------------------------------- #
