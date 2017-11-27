@@ -36,6 +36,9 @@ private:
     std::shared_ptr<Warpfield> warpfield;
     std::shared_ptr<Solver<float>> solver;
 
+    /* Get weight of node on point for DQB */
+    float getWeight(std::shared_ptr<Node> node, cv::Vec3f point);
+
     /* Convert the cloud to opencv matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
     /* Convert the normals to opencv matrix */
