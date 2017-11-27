@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/filesystem.hpp>
 #include <dynfu/warp_field.hpp>
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>

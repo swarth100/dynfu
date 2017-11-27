@@ -8,4 +8,5 @@ target_link_libraries(app
     ${CUDA_LIBRARIES}
     ${CUDA_CUDA_LIBRARY}
     ${OpenCV_LIBS}
+    ${Boost_LIBRARIES}
 )

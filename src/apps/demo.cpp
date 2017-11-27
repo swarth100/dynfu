@@ -11,9 +11,9 @@ struct DynFuApp {
         kinfu_             = KinFu::Ptr(new KinFu(params));
     }
 
-    void show_raycasted(KinFu &kinfu) {
+    void show_raycasted(KinFu *kinfu) {
         const int mode = 3;
-        kinfu.renderImage(view_device_, mode);
+        (*kinfu).renderImage(view_device_, mode);
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
@@ -23,17 +23,27 @@ struct DynFuApp {
         }
     }
 
-    void take_cloud(KinFu &kinfu) {
-        cuda::DeviceArray<Point> cloud = kinfu.tsdf().fetchCloud(cloud_buffer);
-        cv::Mat cloud_host(1, (int) cloud.size(), CV_32FC4);
+    void take_cloud(KinFu *kinfu) {
+        cuda::DeviceArray<Point> cloud = (*kinfu).tsdf().fetchCloud(cloud_buffer);
+        cv::Mat cloud_host(1, static_cast<int>(cloud.size()), CV_32FC4);
         cloud.download(cloud_host.ptr<Point>());
     }
 
-    void loadFiles(std::vector<cv::String> &depths, std::vector<cv::String> &images) {
-        cv::glob(filePath_ + "/depth", depths);
-        cv::glob(filePath_ + "/color", images);
-        std::sort(depths.begin(), depths.end());
-        std::sort(images.begin(), images.end());
+    void loadFiles(std::vector<cv::String> *depths, std::vector<cv::String> *images) {
+        if (!boost::filesystem::exists(filePath_)) {
+            std::cerr << "Error: Directory '" << filePath_ << "' does not exist. Exiting..." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        if (!boost::filesystem::exists(filePath_ + "/depth") || !boost::filesystem::exists(filePath_ + "/color")) {
+            std::cerr << "Error: Directory should contain 'color' and 'depth' directories. Exiting..." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        cv::glob(filePath_ + "/depth", *depths);
+        cv::glob(filePath_ + "/color", *images);
+        std::sort((*depths).begin(), (*depths).end());
+        std::sort((*images).begin(), (*images).end());
     }
 
     bool execute() {
@@ -48,10 +58,17 @@ struct DynFuApp {
         }
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
-        loadFiles(depths, images);
+        loadFiles(&depths, &images);
         for (int i = 0; i < depths.size(); ++i) {
             auto depth = cv::imread(depths[i], CV_LOAD_IMAGE_ANYDEPTH);
             auto image = cv::imread(images[i], CV_LOAD_IMAGE_COLOR);
+
+            if (!image.data || !depth.data) {
+                std::cerr << "Error: Image could not be read. Check for improper"
+                          << " permissions, or invalid formats. Exiting..." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
             depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
             {
                 SampledScopeTime fps(time_ms);
@@ -59,7 +76,7 @@ struct DynFuApp {
                 has_image = kinfu(depth_device_);
             }
             if (has_image) {
-                show_raycasted(kinfu);
+                show_raycasted(&kinfu);
             }
             // show_depth(depth);
             if (visualizer_) {
@@ -117,10 +134,26 @@ int main(int argc, char *argv[]) {
                   << std::endl;
         return 1;
     }
+
+    /* Program requires at least one argument - the path to the directory where the source files are */
+    if (argc < 2) {
+        return std::cerr << "Error: incorrect number of arguments. Please supply path to source data. Exiting..."
+                         << std::endl,
+               -1;
+    }
+
     std::vector<std::string> args(argv + 1, argv + argc);
     std::string filePath;
     bool visualizer = false;
     parseFlags(args, &filePath, &visualizer);
+
+    /* Disable the visualiser when running over SSH */
+    if (visualizer && getenv("SSH_CLIENT")) {
+        return std::cerr << "Error: cannot run visualiser while in SSH environment. Please run locally or disable "
+                            "visualiser. Exiting..."
+                         << std::endl,
+               -1;
+    }
 
     DynFuApp app(filePath, visualizer);
 
