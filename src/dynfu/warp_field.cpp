@@ -55,9 +55,7 @@ void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
 /*
  * Returns a vector of all nodes in the warp field.
  */
-std::vector<std::shared_ptr<Node>> Warpfield::getNodes() {
-	return this->nodes;
-}
+std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
 /* Find the nodes index of k closest neighbour for the given point */
 std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv::Vec3f vertex) {
@@ -106,7 +104,11 @@ void Warpfield::saveToPcl(std::vector<cv::Vec3f> vectors) {
 
     /* Save to PCL */
     std::string filenameStr = ("files/PCLFrame" + std::to_string(this->getFrameNum()) + ".pcd");
-    pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+    try {
+        pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+    } catch (...) {
+        std::cout << "Could not save to " + filenameStr << std::endl;
+    }
 
     /* Print out to stderr when after successful save */
     std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
