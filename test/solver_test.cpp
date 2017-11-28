@@ -42,7 +42,7 @@ protected:
     /* Objects declared here can be used by all tests in the test case for Solver. */
     float max_error = 1e-3;
 
-    std::vector<std::shared_ptr<Node>> nodes;
+    // std::vector<std::shared_ptr<Node>> nodes;
 
     std::shared_ptr<DualQuaternion<float>> dg_se3 =
         std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
@@ -61,6 +61,74 @@ protected:
 
 /* */
 TEST_F(SolverTest, SingleVertexTest) {
+    cv::Vec3f dg_v = {1.f, 1.f, 1.f};
+
+    std::vector<std::shared_ptr<Node>> nodes;
+
+    std::shared_ptr<Node> node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    printf("ptr: %p\n", node);
+    nodes.push_back(node);
+    printf("size: %d\n", nodes.size());
+    printf("ptr0: %p\n", nodes[0]);
+
+    dg_v = {1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    printf("ptr: %p\n", node);
+    nodes.push_back(node);
+    printf("size: %d\n", nodes.size());
+    printf("ptr0: %p\n", nodes[0]);
+    printf("ptr1: %p\n", nodes[1]);
+
+    dg_v = {1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    printf("ptr: %p\n", node);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    printf("ptr: %p\n", node);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    printf("ptr: %p\n", node);
+    nodes.push_back(node);
+
+    warpfield.init(nodes);
+
+    cv::Vec3f sourceVertex(0, 0, 0);
+    sourceVertices.emplace_back(sourceVertex);
+
+    canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
+
+    cv::Vec3f targetVertex(0.05, 0.05, 0.05);
+    targetVertices.emplace_back(targetVertex);
+
+    liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
+
+    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
+    options.minimizer_progress_to_stdout = true;
+
+    WarpProblem warpProblem(options);
+    warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
+}
+
+/* */
+TEST_F(SolverTest, MultipleVerticesTest) {
+    std::vector<std::shared_ptr<Node>> nodes;
+
     cv::Vec3f dg_v = {1.f, 1.f, 1.f};
 
     auto node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
@@ -96,13 +164,19 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     warpfield.init(nodes);
 
-    cv::Vec3f sourceVertex(0, 0, 0);
-    sourceVertices.emplace_back(sourceVertex);
+    sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
+    sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
+    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
+    sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
 
     canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
 
-    cv::Vec3f targetVertex(0.05, 0.05, 0.05);
-    targetVertices.emplace_back(targetVertex);
+    targetVertices.emplace_back(cv::Vec3f(-2.95f, -2.95f, -2.95f));
+    targetVertices.emplace_back(cv::Vec3f(-1.95f, -1.95f, -1.95f));
+    targetVertices.emplace_back(cv::Vec3f(0.05, 0.05, 0.05));
+    targetVertices.emplace_back(cv::Vec3f(2.05, 2.05, 2.05));
+    targetVertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
 
     liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
 
@@ -112,63 +186,3 @@ TEST_F(SolverTest, SingleVertexTest) {
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
 }
-
-// /* */
-// TEST_F(SolverTest, MultipleVerticesTest) {
-//     cv::Vec3f dg_v = {1.f, 1.f, 1.f};
-//
-//     auto node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     dg_v = {1.f, 1.f, -1.f};
-//     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     dg_v = {1.f, -1.f, 1.f};
-//     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     dg_v = {-1.f, 1.f, 1.f};
-//     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     dg_v = {-1.f, -1.f, 1.f};
-//     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     dg_v = {-1.f, -1.f, -1.f};
-//     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     dg_v = {1.f, -1.f, -1.f};
-//     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     dg_v = {-1.f, 1.f, -1.f};
-//     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-//     nodes.emplace_back(node);
-//
-//     warpfield.init(nodes);
-//
-//     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
-//     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
-//     sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
-//     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
-//     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
-//
-//     canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
-//
-//     targetVertices.emplace_back(cv::Vec3f(-2.95f, -2.95f, -2.95f));
-//     targetVertices.emplace_back(cv::Vec3f(-1.95f, -1.95f, -1.95f));
-//     targetVertices.emplace_back(cv::Vec3f(0.05, 0.05, 0.05));
-//     targetVertices.emplace_back(cv::Vec3f(2.05, 2.05, 2.05));
-//     targetVertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
-//
-//     liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
-//
-//     options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
-//     options.minimizer_progress_to_stdout = true;
-//
-//     Solver solver(options);
-//     solver.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
-// }
