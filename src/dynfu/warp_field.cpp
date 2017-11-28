@@ -10,15 +10,12 @@
 #include <pcl/point_types.h>
 
 /* TODO: Add comment */
-Warpfield::Warpfield() { cloud = nullptr; }
+Warpfield::Warpfield() = default;
 
 /* TODO: Add comment */
-Warpfield::~Warpfield() {
-    // FIXME (dig15): for some reason we cannot delete the cloud
-    /*if (cloud) {
-        delete cloud;
-    }*/
-}
+Warpfield::~Warpfield() = default;
+
+Warpfield::Warpfield(const Warpfield& w) { init(w.nodes); }
 
 /* TODO: Add comment */
 void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
@@ -35,7 +32,7 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
     /* Save the deformation Nodes to PCL format */
     this->saveToPcl(deformationNodesPosition);
 
-    cloud      = new PointCloud;
+    cloud      = std::make_shared<PointCloud>();
     cloud->pts = deformationNodesPosition;
     kdTree     = std::make_shared<kd_tree_t>(3, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
     kdTree->buildIndex();
