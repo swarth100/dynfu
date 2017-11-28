@@ -9,8 +9,8 @@
 #include <dynfu/warp_field.hpp>
 
 /* sys headers */
-#include <tgmath.h>
 #include <cmath>
+#include <ctgmath>
 #include <iostream>
 #include <memory>
 
@@ -110,8 +110,10 @@ TEST_F(SolverTest, SingleVertexTest) {
     options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
     options.minimizer_progress_to_stdout = true;
 
+    std::cout << "warpung in of test 1" << std::endl;
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
+    std::cout << "End of test 1" << std::endl;
 }
 
 /* */
