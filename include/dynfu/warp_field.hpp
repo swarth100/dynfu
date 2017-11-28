@@ -31,6 +31,7 @@ class Warpfield {
 public:
     Warpfield();
     ~Warpfield();
+    Warpfield(const Warpfield& w);
 
     /* Initialises the warpfield's canonical Frame*/
     void init(std::vector<std::shared_ptr<Node>> nodes);
@@ -62,8 +63,8 @@ private:
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;
 
-    /* TODO(rm3115) Not sure why but shared ptr doesn't work */
-    PointCloud* cloud;
+    /* Holds cloud data */
+    std::shared_ptr<PointCloud> cloud;
 };
 
 /* DYNFU_WARP_FIELD_HPP */
