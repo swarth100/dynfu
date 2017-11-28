@@ -67,15 +67,27 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     liveFrame = std::make_shared<Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
-std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f /*point */) {
+/* Calculate Dual Quaternion Blending */
+/* Get the dg_se3 from each of the nodes, time it by the weight and calculate the sum */
+/* Before returning, normalise the dual quaternion */
+std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f point) {
     /* From the warp field get the k (8) closest points */
-
+    Warpfield warpfield;
+    auto nearestNeighbors = warpfield.findNeighbors(KNN, point);
     /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
     /* Apply the formula to get w(x) */
+    DualQuaternion<float> transformationSum(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+    for (auto node : nearestNeighbors) {
+        float nodeWeight = getWeight(node, point);
 
-    /* Get the dg_se3 from each of the nodes, (dual quaternion), time it by the w(x) and calculate the sum */
-    /* Before returning, normalise the dual quaternion (there should be function for this */
-    return std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+        DualQuaternion<float> dg_se3                  = *node->getTransformation();
+        DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
+        transformationSum += weighted_transformation;
+    }
+    /*Normalise the sum */
+    DualQuaternion<float> dual_quaternion_blending = transformationSum.normalize();
+
+    return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
 }
 
 cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {
@@ -103,4 +115,10 @@ std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
         }
     }
     return vector;
+}
+
+/* Calculate the weight using the position in the canonical frame and the radial weight of the node */
+float DynFusion::getWeight(std::shared_ptr<Node> node, cv::Vec3f point) {
+    float distance_norm = cv::norm(node->getPosition() - point);
+    return exp((-1 * pow(distance_norm, 2)) / (2 * pow(node->getWeight(), 2)));
 }
