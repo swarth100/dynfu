@@ -48,11 +48,6 @@ protected:
         std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     float dg_w = 2.f;
 
-    Warpfield warpfield;
-
-    std::vector<cv::Vec3f> sourceVertices;
-    std::vector<cv::Vec3f> targetVertices;
-
     std::shared_ptr<Frame> canonicalFrameWarpedToLive;
     std::shared_ptr<Frame> liveFrame;
 
@@ -61,32 +56,27 @@ protected:
 
 /* */
 TEST_F(SolverTest, SingleVertexTest) {
+    Warpfield warpfield;
+    std::vector<cv::Vec3f> sourceVertices;
+    std::vector<cv::Vec3f> targetVertices;
+
     cv::Vec3f dg_v = {1.f, 1.f, 1.f};
 
     std::vector<std::shared_ptr<Node>> nodes;
 
     std::shared_ptr<Node> node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-    printf("ptr: %p\n", node);
     nodes.push_back(node);
-    printf("size: %d\n", nodes.size());
-    printf("ptr0: %p\n", nodes[0]);
 
     dg_v = {1.f, 1.f, -1.f};
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-    printf("ptr: %p\n", node);
     nodes.push_back(node);
-    printf("size: %d\n", nodes.size());
-    printf("ptr0: %p\n", nodes[0]);
-    printf("ptr1: %p\n", nodes[1]);
 
     dg_v = {1.f, -1.f, 1.f};
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-    printf("ptr: %p\n", node);
     nodes.push_back(node);
 
     dg_v = {-1.f, 1.f, 1.f};
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-    printf("ptr: %p\n", node);
     nodes.push_back(node);
 
     dg_v = {-1.f, -1.f, 1.f};
@@ -103,7 +93,6 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     dg_v = {-1.f, 1.f, -1.f};
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
-    printf("ptr: %p\n", node);
     nodes.push_back(node);
 
     warpfield.init(nodes);
@@ -127,6 +116,10 @@ TEST_F(SolverTest, SingleVertexTest) {
 
 /* */
 TEST_F(SolverTest, MultipleVerticesTest) {
+    Warpfield warpfield;
+    std::vector<cv::Vec3f> sourceVertices;
+    std::vector<cv::Vec3f> targetVertices;
+
     std::vector<std::shared_ptr<Node>> nodes;
 
     cv::Vec3f dg_v = {1.f, 1.f, 1.f};
