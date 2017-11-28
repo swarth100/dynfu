@@ -100,8 +100,6 @@ public:
             auto neighbours = warpfield.findNeighbors(8, vertex);
 
             for (auto neighbour : neighbours) {
-                printf("neigh: %p; pos: %f\n", neighbour, neighbour->getPosition()[0]);
-                printf("params: %p\n", neighbour->getParams());
                 values.emplace_back(neighbour->getParams());
             }
 
@@ -125,6 +123,5 @@ public:
 
 private:
     ceres::Solver::Options options;
-
     std::vector<double*> parameters;
 };
