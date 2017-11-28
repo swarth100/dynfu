@@ -167,8 +167,9 @@ make:
   script:
     - source setup.sh --make
 
-# > docker_build <
-# The docker_build stage creates the Docker image on a docker-compatible runner
+# > docker_image_build <
+# The docker_image_build stage creates the Docker image for an EC2 instance 
+# on a docker-compatible runner
 docker_image_build:
   stage: Build
   tags:
@@ -178,6 +179,9 @@ docker_image_build:
   except:
     - master
 
+# > docker_image_build_master <
+# The docker_image_build_master stage creates the Docker image for all architectures
+# on a docker-compatible runner
 docker_image_build_master:
   stage: Build
   tags:
@@ -264,7 +268,7 @@ depoy:
   script:
     - cp -R build/bin/* /data/dynfu
 
-# > docker_deploy_dev <
+# > docker_image__deploy_dev <
 # Deploys to Docker Hub
 docker_image_deploy_dev:
   stage: Deploy
@@ -277,7 +281,7 @@ docker_image_deploy_dev:
   only:
     - dev
 
-# > docker_deploy <
+# > docker_image_deploy <
 # Deploys to Docker Hub
 docker_image_deploy:
   stage: Deploy
