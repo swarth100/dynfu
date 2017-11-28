@@ -35,6 +35,8 @@ public:
     cv::Vec3f getPosition();
     float getWeight();
 
+    double* getParams();
+
     std::shared_ptr<DualQuaternion<float>>& getTransformation();
 
     void setWeight();
@@ -44,6 +46,8 @@ private:
     cv::Vec3f dg_v;
     std::shared_ptr<DualQuaternion<float>> dg_se3;
     float dg_w;
+
+    double* params;
 };
 
 /* DYNFU_NODE_HPP */
