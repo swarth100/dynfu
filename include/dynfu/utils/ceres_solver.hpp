@@ -33,17 +33,13 @@ public:
     bool operator()(T const* const* transformationParameters, T* residual) {
         T total_translation[3] = {T(0), T(0), T(0)};
 
-        int i = 0;
         for (auto node : liveVertexNeighbours) {
-            std::cout << "i: " << i << std::endl;
             T temp[4] = {T(*transformationParameters[0]), T(*transformationParameters[1]),
                          T(*transformationParameters[2]), T(*transformationParameters[3])};
 
             total_translation[0] += T(sourceVertex[0]) + T(temp[1] * temp[0]);
             total_translation[1] += T(sourceVertex[1]) + T(temp[2] * temp[0]);
             total_translation[2] += T(sourceVertex[2]) + T(temp[3] * temp[0]);
-
-            i++;
         }
 
         residual[0] = T(liveVertex[0]) - total_translation[0];
@@ -98,10 +94,9 @@ public:
 
         ceres::CostFunction* cost_function;
 
-        std::vector<double*> values;
-
         int i = 0;
         for (auto vertex : liveFrame->getVertices()) {
+            std::vector<double*> values;
             auto neighbours = warpfield.findNeighbors(8, vertex);
 
             for (auto neighbour : neighbours) {
@@ -110,17 +105,15 @@ public:
                 values.emplace_back(neighbour->getParams());
             }
 
+            std::cout << values.size() << std::endl;
+
             cost_function = Energy::Create(warpfield, vertex, canonicalFrame->getVertices()[i]);
             problem.AddResidualBlock(cost_function, NULL, values);
 
             i++;
         }
 
-        std::cout << "Dan's fault" << std::endl;
-
         Solve(options, &problem, &summary);
-
-        std::cout << "----- FULL REPORT -------" << std::endl;
         std::cout << summary.FullReport() << "\n";
 
         problem.GetParameterBlocks(&parameters);
