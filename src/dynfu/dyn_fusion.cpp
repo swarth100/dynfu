@@ -110,7 +110,6 @@ std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
 }
 
 /* Calculate the weight using the position in the canonical frame and the radial weight of the node */
-float DynFusion::getWeight(std::shared_ptr<Node> node, cv::Vec3f point) {
-    float distance_norm = cv::norm(node->getPosition() - point);
-    return exp((-1 * pow(distance_norm, 2)) / (2 * pow(node->getWeight(), 2)));
+static float DynFusion::getWeight(std::shared_ptr<Node> node, cv::Vec3f point) {
+    return getWeightT<cv::Vec3f, float>(node->getPosition(), node->getWeight(), point);
 }

@@ -27,15 +27,20 @@ public:
     std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
     /* Update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
+    /* Get weight of node on point for DQB */
+    static float getWeight(std::shared_ptr<Node> node, cv::Vec3f point);
+
+    template <typename T, typename S>
+    static S getWeightT(T position, S weight, T point) {
+        float distance_norm = cv::norm(position - point);
+        return exp((-1 * pow(distance_norm, 2)) / (2 * pow(weight, 2)));
+    }
 
 private:
     std::shared_ptr<Frame> canonicalFrame;
     std::shared_ptr<Frame> liveFrame;
     std::shared_ptr<Frame> canonicalWarpedToLive;
     std::shared_ptr<Warpfield> warpfield;
-
-    /* Get weight of node on point for DQB */
-    float getWeight(std::shared_ptr<Node> node, cv::Vec3f point);
 
     /* Convert the cloud to opencv matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);

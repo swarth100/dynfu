@@ -4,6 +4,7 @@
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
 
+#include <dynfu/dyn_fusion.hpp>
 #include <dynfu/warp_field.hpp>
 
 /* ceres includes */
@@ -41,16 +42,20 @@ public:
     template <typename T>
     bool operator()(T const* const* transformationParameters, T* residual) {
         T total_translation[3] = {T(0), T(0), T(0)};
-        int i                  = 0;
-        for (auto node : liveVertexNeighbours) {
+        for (int i = 0; i < liveVertexNeighbours.size(); ++i) {
             T temp[4] = {T(transformationParameters[i][0]), T(transformationParameters[i][1]),
                          T(transformationParameters[i][2]), T(transformationParameters[i][3])};
             /* In order of weight, x, y, z translation */
-            auto prev = node->getParams();
+            auto neighborNode = liveVertexNeighbours[i];
+            auto prev         = neighborNode->getParams();
+            auto prevWeight   = DynFusion::getWeight(neighborNode, sourceVertex);
+
+            cv::Vec3f position(temp[1], temp[2], temp[3]);
+            auto currWeight = DynFusion::getWeight(position, sourceVertex);
+
             total_translation[0] += T(((prev[1] * prev[0]) + temp[1]) * temp[0]);
             total_translation[1] += T(((prev[2] * prev[0]) + temp[2]) * temp[0]);
             total_translation[2] += T(((prev[3] * prev[0]) + temp[3]) * temp[0]);
-            i++;
         }
 
         total_translation[0] /= 8;
