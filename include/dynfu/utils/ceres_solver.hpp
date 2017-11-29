@@ -20,8 +20,16 @@ public:
     Energy(Warpfield warpfield, cv::Vec3f sourceVertex, cv::Vec3f liveVertex) {
         warpfield = warpfield;
 
-        sourceVertex = sourceVertex;
-        liveVertex   = liveVertex;
+        this->sourceVertex = sourceVertex;
+        this->liveVertex   = liveVertex;
+
+        std::cout << "--------------------- INIT ---------------------------" << std::endl;
+
+        std::cout << "SOURCE VALUES: " << sourceVertex[0] << " " << sourceVertex[1] << " " << sourceVertex[2]
+                  << std::endl;
+        std::cout << "LIVE VALUES: " << liveVertex[0] << " " << liveVertex[1] << " " << liveVertex[2] << std::endl;
+
+        std::cout << "--------------------- END INIT ---------------------------" << std::endl;
 
         liveVertexNeighbours = warpfield.findNeighbors(KNN, liveVertex);
     }
@@ -34,17 +42,28 @@ public:
         T total_translation[3] = {T(0), T(0), T(0)};
 
         for (auto node : liveVertexNeighbours) {
-            T temp[4] = {T(*transformationParameters[0]), T(*transformationParameters[1]),
-                         T(*transformationParameters[2]), T(*transformationParameters[3])};
+            T temp[4] = {T(transformationParameters[0][0]), T(transformationParameters[0][1]),
+                         T(transformationParameters[0][2]), T(transformationParameters[0][3])};
 
             total_translation[0] += T(sourceVertex[0]) + T(temp[1] * temp[0]);
             total_translation[1] += T(sourceVertex[1]) + T(temp[2] * temp[0]);
             total_translation[2] += T(sourceVertex[2]) + T(temp[3] * temp[0]);
         }
 
-        residual[0] = T(liveVertex[0]) - total_translation[0];
-        residual[1] = T(liveVertex[1]) - total_translation[1];
-        residual[2] = T(liveVertex[2]) - total_translation[2];
+        residual[0] = T(sourceVertex[0]) - T(liveVertex[0]) - total_translation[0];
+        residual[1] = T(sourceVertex[1]) - T(liveVertex[1]) - total_translation[1];
+        residual[2] = T(sourceVertex[2]) - T(liveVertex[2]) - total_translation[2];
+
+        /* Debugging the Solver */
+        /*std::cout << "Input Parameters: " << transformationParameters[0][0] << " " << transformationParameters[0][1]
+                  << " " << transformationParameters[0][2] << " " << transformationParameters[0][3] << std::endl;
+        std::cout << "SOURCE VALUES: " << sourceVertex[0] << " " << sourceVertex[1] << " " << sourceVertex[2]
+                  << std::endl;
+        std::cout << "LIVE VALUES: " << liveVertex[0] << " " << liveVertex[1] << " " << liveVertex[2] << std::endl;
+        std::cout << "TRANSLATION VALUES: " << total_translation[0] << " " << total_translation[1] << " "
+                  << total_translation[2] << std::endl;
+        std::cout << "Solving for residuals: " << residual[0] << " " << residual[1] << " " << residual[2] << std::endl;
+      */
 
         return true;
     }
@@ -104,7 +123,9 @@ public:
             }
 
             std::cout << values.size() << std::endl;
-
+            std::cout << "Vertex coords: " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
+            std::cout << "Canonical coords: " << canonicalFrame->getVertices()[i][0] << " "
+                      << canonicalFrame->getVertices()[i][1] << " " << canonicalFrame->getVertices()[i][2] << std::endl;
             cost_function = Energy::Create(warpfield, vertex, canonicalFrame->getVertices()[i]);
             problem.AddResidualBlock(cost_function, NULL, values);
 
@@ -114,14 +135,33 @@ public:
         Solve(options, &problem, &summary);
         std::cout << summary.FullReport() << "\n";
 
+        /* get parameter blocks */
         problem.GetParameterBlocks(&parameters);
 
         for (auto parameter : parameters) {
-            std::cout << *parameter << std::endl;
+            std::cout << parameter[0] << " " << parameter[1] << " " << parameter[2] << " " << parameter[3] << std::endl;
         }
+
+        /* get IDs of residual blocks */
+        /*
+        problem.GetResidualBlocks(&blockIds);
+
+        for (auto blockId : blockIds) {
+            std::cout << "- - - - - -" << std::endl << "Block ID: " << blockId << std::endl;
+
+            problem.GetParameterBlocksForResidualBlock(blockId, &residual_blocks);
+
+            for (auto residual : residual_blocks) {
+                std::cout << "Residual Data: " << residual[0] << " " << residual[1] << " " << residual[2] << std::endl;
+            }
+        }
+        */
     }
 
 private:
     ceres::Solver::Options options;
     std::vector<double*> parameters;
+
+    std::vector<ceres::ResidualBlockId> blockIds;
+    std::vector<double*> residual_blocks;
 };
