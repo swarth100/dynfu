@@ -19,13 +19,11 @@ Node::~Node() = default;
 
 cv::Vec3f Node::getPosition() { return dg_v; }
 
-double* Node::getParams() { return params; }
-
-float Node::getWeight() { return dg_w; }
-
 std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
 
-void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
+float Node::getRadialBasisWeight() { return dg_w; }
+
+double* Node::getParams() { return params; }
 
 void Node::setTranslation(cv::Vec3f translation) {
     auto real = dg_se3->getReal();
@@ -37,9 +35,6 @@ void Node::setRotation(boost::math::quaternion<float> real) {
     dg_se3    = std::make_shared<DualQuaternion<float>>(real, dual);
 }
 
-// TODO(dig15): finish once nearest neighbours have been initialised
-void Node::setWeight() {
-    float weight = 0;
-    float sum    = 0;
-    weight       = exp(-0.f / (2 * pow(sum, 2)));
-}
+void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
+
+void Node::setRadialBasisWeight(float newWeight) { dg_w = newWeight; }
