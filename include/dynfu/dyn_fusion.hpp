@@ -14,7 +14,6 @@
 class DynFusion {
 public:
     DynFusion();
-    DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     ~DynFusion();
 
     void init(kfusion::cuda::Cloud &vertices);
@@ -25,24 +24,24 @@ public:
 
     /* Returns a dual quaternion which represents the dual quaternion blending for a point */
     std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
+
     /* Update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
-    /* Get weight of node on point for DQB */
-    static float getWeight(std::shared_ptr<Node> node, cv::Vec3f point);
+
+    /* Get transformation weight of a node and point pair for DQB */
+    static float getTransformationWeight(std::shared_ptr<Node> node, cv::Vec3f point);
 
     template <typename T>
-    static T getWeightT(cv::Vec<T, 3> position, T weight, cv::Vec3f point) {
+    static T getTransformationWeightT(cv::Vec<T, 3> position, T weight, cv::Vec3f point) {
         cv::Vec<T, 3> distance_vec = cv::Vec<T, 3>(abs(T(position[0]) - T(point[0])), abs(T(position[1]) - T(point[1])),
                                                    abs(T(position[2]) - T(point[2])));
-        std::cout << "DIST VEC: " << distance_vec[0] << " " << distance_vec[1] << " " << distance_vec[2] << std::endl;
         T distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
 
+        // if the node and the vertex are in the same place, return 1
         if (distance_norm == T(0.0)) {
             return T(1.0);
         }
-        std::cout << "Got norm: " << distance_norm << std::endl;
-        std::cout << "Inner Value: " << (-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)) << std::endl;
-        std::cout << "Exponential: " << exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2))) << std::endl;
+
         return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
     }
 
