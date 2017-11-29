@@ -29,8 +29,6 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
         deformationNodesPosition.push_back(node->getPosition());
     }
 
-    std::cout << "called init" << std::endl;
-
     /* Save the deformation Nodes to PCL format */
     this->saveToPcl(deformationNodesPosition);
 
