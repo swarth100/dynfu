@@ -27,6 +27,16 @@ std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se
 
 void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
 
+void Node::setTranslation(cv::Vec3f translation) {
+    auto real = dg_se3->getReal();
+    dg_se3    = std::make_shared<DualQuaternion<float>>(real, translation);
+}
+
+void Node::setRotation(boost::math::quaternion<float> real) {
+    auto dual = dg_se3->getDual();
+    dg_se3    = std::make_shared<DualQuaternion<float>>(real, dual);
+}
+
 // TODO(dig15): finish once nearest neighbours have been initialised
 void Node::setWeight() {
     float weight = 0;
