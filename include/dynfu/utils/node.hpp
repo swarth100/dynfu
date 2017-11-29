@@ -35,6 +35,10 @@ public:
     cv::Vec3f getPosition();
     std::shared_ptr<DualQuaternion<float>>& getTransformation();
     float getRadialBasisWeight();
+    /* get transformation weight for a point */
+    float getTransformationWeight(cv::Vec3f vertexPosition);
+    template <typename T>
+    T getTransformationWeightT(cv::Vec3f vertexPosition);
 
     double* getParams();
 
