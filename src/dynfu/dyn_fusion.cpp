@@ -96,7 +96,7 @@ std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
     return vector;
 }
 
-/* Calculate the weight using the position in the canonical frame and the radial weight of the node */
+/* calculate the transformation weight using the position in the canonical frame and the radial weight of the node */
 float DynFusion::getWeight(std::shared_ptr<Node> node, cv::Vec3f point) {
-    return getWeightT<float>(node->getPosition(), node->getWeight(), point);
+    return getWeightT<float>(node->getPosition(), node->getRadialBasisWeight(), point);
 }
