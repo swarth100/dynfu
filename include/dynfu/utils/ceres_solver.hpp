@@ -50,8 +50,8 @@ public:
             auto prev         = neighborNode->getParams();
             auto prevWeight   = DynFusion::getWeight(neighborNode, sourceVertex);
 
-            cv::Vec3f position(temp[1], temp[2], temp[3]);
-            auto currWeight = DynFusion::getWeight(position, sourceVertex);
+            cv::Vec<T, 3> position(temp[1], temp[2], temp[3]);
+            auto currWeight = DynFusion::getWeightT(position, temp[0], sourceVertex);
 
             total_translation[0] += T(((prev[1] * prev[0]) + temp[1]) * temp[0]);
             total_translation[1] += T(((prev[2] * prev[0]) + temp[2]) * temp[0]);

@@ -30,10 +30,13 @@ public:
     /* Get weight of node on point for DQB */
     static float getWeight(std::shared_ptr<Node> node, cv::Vec3f point);
 
-    template <typename T, typename S>
-    static S getWeightT(T position, S weight, T point) {
-        float distance_norm = cv::norm(position - point);
-        return exp((-1 * pow(distance_norm, 2)) / (2 * pow(weight, 2)));
+    template <typename T>
+    static T getWeightT(cv::Vec<T, 3> position, T weight, cv::Vec3f point) {
+        cv::Vec<T, 3> distance_vec =
+            cv::Vec<T, 3>(T(position[0]) - T(point[0]), T(position[1]) - T(point[1]), T(position[2]) - T(point[3]));
+
+        T distance_norm = pow(pow(distance_vec[0], 2) + pow(distance_vec[1], 2) + pow(distance_vec[2], 2), 0.5);
+        return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
     }
 
 private:
