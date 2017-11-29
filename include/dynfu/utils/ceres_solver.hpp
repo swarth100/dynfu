@@ -109,7 +109,6 @@ public:
 
         ceres::CostFunction* cost_function;
 
-        /* TODO(rm3115) Warp the canonical frame to live frame */
         int i = 0;
         for (auto vertex : liveFrame->getVertices()) {
             std::vector<double*> values;
