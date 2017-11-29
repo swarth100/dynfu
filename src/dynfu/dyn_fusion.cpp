@@ -58,7 +58,7 @@ std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f point) {
     /* Apply the formula to get w(x) */
     DualQuaternion<float> transformationSum(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     for (auto node : nearestNeighbors) {
-        float nodeWeight = getTransformationWeight(node, point);
+        float nodeWeight = node->getTransformationWeight(point);
 
         DualQuaternion<float> dg_se3                  = *node->getTransformation();
         DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
@@ -95,9 +95,4 @@ std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
         }
     }
     return vector;
-}
-
-/* calculate the transformation weight using the position in the canonical frame and the radial weight of the node */
-float DynFusion::getTransformationWeight(std::shared_ptr<Node> node, cv::Vec3f point) {
-    return getTransformationWeightT<float>(node->getPosition(), node->getRadialBasisWeight(), point);
 }
