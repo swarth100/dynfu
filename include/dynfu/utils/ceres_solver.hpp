@@ -129,24 +129,9 @@ public:
         /* get parameter blocks */
         problem.GetParameterBlocks(&parameters);
 
-        for (auto parameter : parameters) {
-            std::cout << parameter[0] << " " << parameter[1] << " " << parameter[2] << " " << parameter[3] << std::endl;
-        }
-
-        /* get IDs of residual blocks */
-        /*
-        problem.GetResidualBlocks(&blockIds);
-
-        for (auto blockId : blockIds) {
-            std::cout << "- - - - - -" << std::endl << "Block ID: " << blockId << std::endl;
-
-            problem.GetParameterBlocksForResidualBlock(blockId, &residual_blocks);
-
-            for (auto residual : residual_blocks) {
-                std::cout << "Residual Data: " << residual[0] << " " << residual[1] << " " << residual[2] << std::endl;
-            }
-        }
-        */
+        // for (auto parameter : parameters) {
+        // std::cout << parameter[0] << " " << parameter[1] << " " << parameter[2] << " " << parameter[3] << std::endl;
+        //}
     }
 
     std::vector<double*> getParameters() { return parameters; }
