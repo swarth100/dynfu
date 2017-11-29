@@ -130,6 +130,8 @@ TEST_F(SolverTest, SingleVertexTest) {
         totalTranslation += translation * calcWeight(neighbour->getPosition(), parameters[i][0], sourceVertex);
         i++;
     }
+
+    std::cout << sourceVertex + totalTranslation << std::endl;
 }
 /* */
 TEST_F(SolverTest, MultipleVerticesTest) {
