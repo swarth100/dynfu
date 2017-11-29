@@ -39,6 +39,9 @@ public:
     /* Finds a set amount of closest neighbours */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);
 
+    /* Finds index of set amount of closest neighbours */
+    std::vector<size_t> findNeighborsIndex(int numNeighbor, cv::Vec3f vertex);
+
     /* Warps the given field according to the solver's deformation node data */
     void warp(std::shared_ptr<Frame> liveFrame);
 
