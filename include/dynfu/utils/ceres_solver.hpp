@@ -27,29 +27,34 @@ public:
 
         liveVertexNeighbours = warpfield.findNeighbors(KNN, liveVertex);
     }
+
     template <typename T>
-    static T calcWeight(cv::Vec3f position, T weight, cv::Vec3f point) {
+    static T calcTransformationWeight(cv::Vec3f position, T weight, cv::Vec3f point) {
         cv::Vec<T, 3> distance_vec = cv::Vec<T, 3>(abs(T(position[0]) - T(point[0])), abs(T(position[1]) - T(point[1])),
                                                    abs(T(position[2]) - T(point[2])));
         T distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
 
+        // if the distance between the node and the vertex is 0, return 1 for the transformation weight
         if (distance_norm == T(0.0)) {
             return T(1.0);
         }
+
         return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
     }
+
     /*
      * calculates the residual of the linear system after applying weighted translation
      */
     template <typename T>
     bool operator()(T const* const* transformationParameters, T* residual) {
         T total_translation[3] = {T(0), T(0), T(0)};
-        int i                  = 0;
+
+        int i = 0;
         for (auto node : liveVertexNeighbours) {
             T temp[4] = {T(transformationParameters[i][0]), T(transformationParameters[i][1]),
                          T(transformationParameters[i][2]), T(transformationParameters[i][3])};
 
-            T weight = calcWeight(node->getPosition(), temp[0], liveVertex);
+            T weight = calcTransformationWeight(node->getPosition(), temp[0], liveVertex);
 
             total_translation[0] += T(temp[1] * weight);
             total_translation[1] += T(temp[2] * weight);
@@ -82,12 +87,12 @@ public:
     }
 
 private:
+    Warpfield warpfield;
+
     cv::Vec3f sourceVertex;
     cv::Vec3f liveVertex;
 
     std::vector<std::shared_ptr<Node>> liveVertexNeighbours;
-
-    Warpfield warpfield;
 
     double const* const*
         transformationParameters;  // field to store the 3 components of the translation vector and the weight
@@ -128,10 +133,6 @@ public:
 
         /* get parameter blocks */
         problem.GetParameterBlocks(&parameters);
-
-        // for (auto parameter : parameters) {
-        // std::cout << parameter[0] << " " << parameter[1] << " " << parameter[2] << " " << parameter[3] << std::endl;
-        //}
     }
 
     std::vector<double*> getParameters() { return parameters; }
@@ -139,7 +140,4 @@ public:
 private:
     ceres::Solver::Options options;
     std::vector<double*> parameters;
-
-    std::vector<ceres::ResidualBlockId> blockIds;
-    std::vector<double*> residual_blocks;
 };
