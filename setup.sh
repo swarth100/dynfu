@@ -74,9 +74,9 @@ then
     echo "Running CMake ..."
     if ! $QUIET
     then
-        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. || (cd ../ && return 1)
+        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_TESTS=ON .. || (cd ../ && return 1)
     else
-        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. >/dev/null 2>&1 || (cd ../ && return 1)
+        cmake -DCMAKE_PREFIX_PATH="/vol/project/2017/362/g1736211/share/OpenCV" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_TESTS=ON .. >/dev/null 2>&1 || (cd ../ && return 1)
     fi
 fi
 

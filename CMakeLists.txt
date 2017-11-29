@@ -14,7 +14,9 @@ project(kfusion C CXX)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 include(Utils)
 include(Targets)
-include(CodeCoverage)
+if(BUILD_TESTS)
+  include(CodeCoverage)
+endif()
 
 # ---------------------------------------------------------------------------- #
 # CMAKE SETTINGS
@@ -26,10 +28,20 @@ SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
 FILE(MAKE_DIRECTORY "files")
 
 # Set CXX to compile with C++11 standard
-LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive")
 
-# Add Flags for coverage report
-APPEND_COVERAGE_COMPILER_FLAGS()
+if(BUILD_TESTS)
+  # Add Flags for coverage report
+  APPEND_COVERAGE_COMPILER_FLAGS()
+endif()
+
+# ---------------------------------------------------------------------------- #
+# DEPENDENCIES
+# ---------------------------------------------------------------------------- #
+find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
+find_package(Ceres REQUIRED)
+find_package(CUDA REQUIRED)
+find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -44,19 +56,9 @@ LIST(APPEND CUDA_NVCC_FLAGS
    --prec-sqrt=false"
  )
 
-# Apple settings
 if(UNIX OR APPLE)
   LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
 endif()
-
-# ---------------------------------------------------------------------------- #
-# DEPENDENCIES
-# ---------------------------------------------------------------------------- #
-find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
-find_package(Ceres REQUIRED)
-find_package(CUDA REQUIRED)
-find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
-find_package(PCL 1.2 REQUIRED COMPONENTS io)
 
 # ---------------------------------------------------------------------------- #
 # SET INCLUDE PATHS
@@ -66,7 +68,6 @@ include_directories(include
   ${CERES_INCLUDE_DIRS}
   ${CUDA_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
 )
 
 # ---------------------------------------------------------------------------- #
@@ -77,5 +78,7 @@ add_subdirectory(src)
 # ---------------------------------------------------------------------------- #
 # BUILD TESTS
 # ---------------------------------------------------------------------------- #
-enable_testing()
-add_subdirectory(test)
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()

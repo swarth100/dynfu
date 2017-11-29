@@ -31,6 +31,11 @@ stages:
 .env_setup: &env_setup |
   source setup.sh --set-paths
 
+# Variables for use in script
+variables:
+  CONTAINER_IMAGE: g1736211/dynfu
+  DEV_IMAGE: g1736211/dynfu:dev
+  TAG_IMAGE: g1736211/dynfu:${CI_COMMIT_REF_SLUG}
 # ---------------------------------------------------------------------------- #
 #                                     SETUP                                    #
 # ---------------------------------------------------------------------------- #
@@ -162,6 +167,29 @@ make:
   script:
     - source setup.sh --make
 
+# > docker_image_build <
+# The docker_image_build stage creates the Docker image for an EC2 instance 
+# on a docker-compatible runner
+docker_image_build:
+  stage: Build
+  tags:
+    - docker
+  script:
+    - docker build --build-arg CUDA_GENERATION=Maxwell -t $TAG_IMAGE .
+  except:
+    - master
+
+# > docker_image_build_master <
+# The docker_image_build_master stage creates the Docker image for all architectures
+# on a docker-compatible runner
+docker_image_build_master:
+  stage: Build
+  tags:
+    - docker
+  script:
+    - docker build --build-arg CUDA_GENERATION=Auto -t $TAG_IMAGE .
+  only:
+    - master
 
 # ---------------------------------------------------------------------------- #
 #                                    TEST                                      #
@@ -240,6 +268,31 @@ depoy:
   script:
     - cp -R build/bin/* /data/dynfu
 
+# > docker_image__deploy_dev <
+# Deploys to Docker Hub
+docker_image_deploy_dev:
+  stage: Deploy
+  tags:
+    - docker
+  script:
+    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
+    - docker tag $TAG_IMAGE $DEV_IMAGE
+    - docker push $DEV_IMAGE
+  only:
+    - dev
+
+# > docker_image_deploy <
+# Deploys to Docker Hub
+docker_image_deploy:
+  stage: Deploy
+  tags:
+    - docker
+  script:
+    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
+    - docker tag $TAG_IMAGE $CONTAINER_IMAGE
+    - docker push $CONTAINER_IMAGE
+  only:
+    - master
 # ---------------------------------------------------------------------------- #
 #                                   CLEANUP                                    #
 # ---------------------------------------------------------------------------- #
