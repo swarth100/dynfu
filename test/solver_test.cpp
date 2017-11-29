@@ -127,12 +127,16 @@ TEST_F(SolverTest, SingleVertexTest) {
     cv::Vec3f totalTranslation;
     for (auto neighbour : nodes) {
         cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
+        neighbour->setRadialBasisWeight(parameters[i][0]);
+        neighbour->setTranslation(translation);
+
         totalTranslation += translation * calcWeight(neighbour->getPosition(), parameters[i][0], sourceVertex);
         i++;
     }
 
     std::cout << sourceVertex + totalTranslation << std::endl;
 }
+
 /* */
 TEST_F(SolverTest, MultipleVerticesTest) {
     Warpfield warpfield;
@@ -205,6 +209,9 @@ TEST_F(SolverTest, MultipleVerticesTest) {
         cv::Vec3f totalTranslation;
         for (auto neighbour : nodes) {
             cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
+            neighbour->setRadialBasisWeight(parameters[i][0]);
+            neighbour->setTranslation(translation);
+
             totalTranslation += translation * calcWeight(neighbour->getPosition(), parameters[i][0], vertex);
             i++;
         }
