@@ -33,16 +33,15 @@ public:
     ~Node();
 
     cv::Vec3f getPosition();
-    float getWeight();
+    std::shared_ptr<DualQuaternion<float>>& getTransformation();
+    float getRadialBasisWeight();
 
     double* getParams();
 
-    std::shared_ptr<DualQuaternion<float>>& getTransformation();
-    void setTraslation(cv::Vec3f translation);
-    void setWeight();
-    void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
     void setTranslation(cv::Vec3f translation);
     void setRotation(boost::math::quaternion<float> real);
+    void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
+    void setRadialBasisWeight(float newWeight);
 
 private:
     cv::Vec3f dg_v;
