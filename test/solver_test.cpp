@@ -97,12 +97,12 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     warpfield.init(nodes);
 
-    cv::Vec3f sourceVertex(0, 0, 0);
+    cv::Vec3f sourceVertex(0, 0.5, 1);
     sourceVertices.emplace_back(sourceVertex);
 
     canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
 
-    cv::Vec3f targetVertex(0.05, 0.05, 0.05);
+    cv::Vec3f targetVertex(1.0, 0.0, 1.0);
     targetVertices.emplace_back(targetVertex);
 
     liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);

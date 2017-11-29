@@ -31,6 +31,7 @@ public:
 
         std::cout << "--------------------- END INIT ---------------------------" << std::endl;
 
+        /* TODO(rm3115) The warpfield is not warped, so the closest neighbours maybe wrong */
         liveVertexNeighbours = warpfield.findNeighbors(KNN, liveVertex);
     }
 
@@ -40,19 +41,25 @@ public:
     template <typename T>
     bool operator()(T const* const* transformationParameters, T* residual) {
         T total_translation[3] = {T(0), T(0), T(0)};
-
+        int i                  = 0;
         for (auto node : liveVertexNeighbours) {
-            T temp[4] = {T(transformationParameters[0][0]), T(transformationParameters[0][1]),
-                         T(transformationParameters[0][2]), T(transformationParameters[0][3])};
-
-            total_translation[0] += T(sourceVertex[0]) + T(temp[1] * temp[0]);
-            total_translation[1] += T(sourceVertex[1]) + T(temp[2] * temp[0]);
-            total_translation[2] += T(sourceVertex[2]) + T(temp[3] * temp[0]);
+            T temp[4] = {T(transformationParameters[i][0]), T(transformationParameters[i][1]),
+                         T(transformationParameters[i][2]), T(transformationParameters[i][3])};
+            /* In order of weight, x, y, z translation */
+            auto prev = node->getParams();
+            total_translation[0] += T(((prev[1] * prev[0]) + temp[1]) * temp[0]);
+            total_translation[1] += T(((prev[2] * prev[0]) + temp[2]) * temp[0]);
+            total_translation[2] += T(((prev[3] * prev[0]) + temp[3]) * temp[0]);
+            i++;
         }
 
-        residual[0] = T(sourceVertex[0]) - T(liveVertex[0]) - total_translation[0];
-        residual[1] = T(sourceVertex[1]) - T(liveVertex[1]) - total_translation[1];
-        residual[2] = T(sourceVertex[2]) - T(liveVertex[2]) - total_translation[2];
+        total_translation[0] /= 8;
+        total_translation[1] /= 8;
+        total_translation[2] /= 8;
+
+        residual[0] = T(liveVertex[0]) + total_translation[0] - T(sourceVertex[0]);
+        residual[1] = T(liveVertex[1]) + total_translation[1] - T(sourceVertex[1]);
+        residual[2] = T(liveVertex[2]) + total_translation[2] - T(sourceVertex[2]);
 
         /* Debugging the Solver */
         /*std::cout << "Input Parameters: " << transformationParameters[0][0] << " " << transformationParameters[0][1]
@@ -113,6 +120,7 @@ public:
 
         ceres::CostFunction* cost_function;
 
+        /* TODO(rm3115) Warp the canonical frame to live frame */
         int i = 0;
         for (auto vertex : liveFrame->getVertices()) {
             std::vector<double*> values;
@@ -126,9 +134,9 @@ public:
             std::cout << "Vertex coords: " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
             std::cout << "Canonical coords: " << canonicalFrame->getVertices()[i][0] << " "
                       << canonicalFrame->getVertices()[i][1] << " " << canonicalFrame->getVertices()[i][2] << std::endl;
+            /* TODO(rm3115) We probably need to free the energy */
             cost_function = Energy::Create(warpfield, vertex, canonicalFrame->getVertices()[i]);
             problem.AddResidualBlock(cost_function, NULL, values);
-
             i++;
         }
 
