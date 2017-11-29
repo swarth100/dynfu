@@ -38,9 +38,11 @@ public:
     double* getParams();
 
     std::shared_ptr<DualQuaternion<float>>& getTransformation();
-
+    void setTraslation(cv::Vec3f translation);
     void setWeight();
     void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
+    void setTranslation(cv::Vec3f translation);
+    void setRotation(boost::math::quaternion<float> real);
 
 private:
     cv::Vec3f dg_v;
