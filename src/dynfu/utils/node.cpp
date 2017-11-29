@@ -3,16 +3,16 @@
 /* sys headers */
 #include <cmath>
 
-Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float weight) {
+Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight) {
     this->dg_v   = position;
     this->dg_se3 = transformation;
-    this->dg_w   = weight;
+    this->dg_w   = radialBasisWeight;
 
     double temp1 = transformation->getTranslation()[0];
     double temp2 = transformation->getTranslation()[1];
     double temp3 = transformation->getTranslation()[2];
 
-    this->params = new double[4]{weight, temp1, temp2, temp3};
+    this->params = new double[4]{radialBasisWeight, temp1, temp2, temp3};
 }
 
 Node::~Node() = default;
