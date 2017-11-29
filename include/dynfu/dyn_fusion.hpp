@@ -32,10 +32,17 @@ public:
 
     template <typename T>
     static T getWeightT(cv::Vec<T, 3> position, T weight, cv::Vec3f point) {
-        cv::Vec<T, 3> distance_vec =
-            cv::Vec<T, 3>(T(position[0]) - T(point[0]), T(position[1]) - T(point[1]), T(position[2]) - T(point[3]));
+        cv::Vec<T, 3> distance_vec = cv::Vec<T, 3>(abs(T(position[0]) - T(point[0])), abs(T(position[1]) - T(point[1])),
+                                                   abs(T(position[2]) - T(point[2])));
+        std::cout << "DIST VEC: " << distance_vec[0] << " " << distance_vec[1] << " " << distance_vec[2] << std::endl;
+        T distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
 
-        T distance_norm = pow(pow(distance_vec[0], 2) + pow(distance_vec[1], 2) + pow(distance_vec[2], 2), 0.5);
+        if (distance_norm == T(0.0)) {
+            return T(1.0);
+        }
+        std::cout << "Got norm: " << distance_norm << std::endl;
+        std::cout << "Inner Value: " << (-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)) << std::endl;
+        std::cout << "Exponential: " << exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2))) << std::endl;
         return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
     }
 
