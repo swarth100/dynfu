@@ -11,6 +11,7 @@
 #include <ceres/ceres.h>
 
 /* sys headers */
+#include <cmath>
 #include <iostream>
 #include <memory>
 
@@ -24,58 +25,41 @@ public:
         this->sourceVertex = sourceVertex;
         this->liveVertex   = liveVertex;
 
-        std::cout << "--------------------- INIT ---------------------------" << std::endl;
-
-        std::cout << "SOURCE VALUES: " << sourceVertex[0] << " " << sourceVertex[1] << " " << sourceVertex[2]
-                  << std::endl;
-        std::cout << "LIVE VALUES: " << liveVertex[0] << " " << liveVertex[1] << " " << liveVertex[2] << std::endl;
-
-        std::cout << "--------------------- END INIT ---------------------------" << std::endl;
-
-        /* TODO(rm3115) The warpfield is not warped, so the closest neighbours maybe wrong */
         liveVertexNeighbours = warpfield.findNeighbors(KNN, liveVertex);
     }
+    template <typename T>
+    static T calcWeight(cv::Vec3f position, T weight, cv::Vec3f point) {
+        cv::Vec<T, 3> distance_vec = cv::Vec<T, 3>(abs(T(position[0]) - T(point[0])), abs(T(position[1]) - T(point[1])),
+                                                   abs(T(position[2]) - T(point[2])));
+        T distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
 
+        if (distance_norm == T(0.0)) {
+            return T(1.0);
+        }
+        return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
+    }
     /*
      * calculates the residual of the linear system after applying weighted translation
      */
     template <typename T>
     bool operator()(T const* const* transformationParameters, T* residual) {
         T total_translation[3] = {T(0), T(0), T(0)};
-        for (int i = 0; i < liveVertexNeighbours.size(); ++i) {
+        int i                  = 0;
+        for (auto node : liveVertexNeighbours) {
             T temp[4] = {T(transformationParameters[i][0]), T(transformationParameters[i][1]),
                          T(transformationParameters[i][2]), T(transformationParameters[i][3])};
-            /* In order of weight, x, y, z translation */
-            auto neighborNode = liveVertexNeighbours[i];
-            auto prev         = neighborNode->getParams();
-            auto prevWeight   = DynFusion::getWeight(neighborNode, sourceVertex);
 
-            cv::Vec<T, 3> position(temp[1], temp[2], temp[3]);
-            auto currWeight = DynFusion::getWeightT(position, temp[0], sourceVertex);
+            T weight = calcWeight(node->getPosition(), temp[0], liveVertex);
 
-            total_translation[0] += T(((prev[1] * prev[0]) + temp[1]) * temp[0]);
-            total_translation[1] += T(((prev[2] * prev[0]) + temp[2]) * temp[0]);
-            total_translation[2] += T(((prev[3] * prev[0]) + temp[3]) * temp[0]);
+            total_translation[0] += T(temp[1] * weight);
+            total_translation[1] += T(temp[2] * weight);
+            total_translation[2] += T(temp[3] * weight);
+            i++;
         }
-
-        total_translation[0] /= 8;
-        total_translation[1] /= 8;
-        total_translation[2] /= 8;
 
         residual[0] = T(liveVertex[0]) + total_translation[0] - T(sourceVertex[0]);
         residual[1] = T(liveVertex[1]) + total_translation[1] - T(sourceVertex[1]);
         residual[2] = T(liveVertex[2]) + total_translation[2] - T(sourceVertex[2]);
-
-        /* Debugging the Solver */
-        /*std::cout << "Input Parameters: " << transformationParameters[0][0] << " " << transformationParameters[0][1]
-                  << " " << transformationParameters[0][2] << " " << transformationParameters[0][3] << std::endl;
-        std::cout << "SOURCE VALUES: " << sourceVertex[0] << " " << sourceVertex[1] << " " << sourceVertex[2]
-                  << std::endl;
-        std::cout << "LIVE VALUES: " << liveVertex[0] << " " << liveVertex[1] << " " << liveVertex[2] << std::endl;
-        std::cout << "TRANSLATION VALUES: " << total_translation[0] << " " << total_translation[1] << " "
-                  << total_translation[2] << std::endl;
-        std::cout << "Solving for residuals: " << residual[0] << " " << residual[1] << " " << residual[2] << std::endl;
-      */
 
         return true;
     }
@@ -113,7 +97,7 @@ private:
 class WarpProblem {
 public:
     /* constructor; takes as argument options for the solver */
-    WarpProblem(ceres::Solver::Options options) { options = options; }
+    WarpProblem(ceres::Solver::Options& options) { this->options = options; }
 
     /* destructor */
     ~WarpProblem() {}
@@ -135,11 +119,6 @@ public:
                 values.emplace_back(neighbour->getParams());
             }
 
-            std::cout << values.size() << std::endl;
-            std::cout << "Vertex coords: " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
-            std::cout << "Canonical coords: " << canonicalFrame->getVertices()[i][0] << " "
-                      << canonicalFrame->getVertices()[i][1] << " " << canonicalFrame->getVertices()[i][2] << std::endl;
-            /* TODO(rm3115) We probably need to free the energy */
             cost_function = Energy::Create(warpfield, vertex, canonicalFrame->getVertices()[i]);
             problem.AddResidualBlock(cost_function, NULL, values);
             i++;
@@ -170,6 +149,8 @@ public:
         }
         */
     }
+
+    std::vector<double*> getParameters() { return parameters; }
 
 private:
     ceres::Solver::Options options;

@@ -8,7 +8,7 @@ DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* 
     std::vector<std::shared_ptr<Node>> deformationNodes;
     for (int i = 0; i < vertices.size(); i += steps) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        deformationNodes.push_back(std::make_shared<Node>(vertices[i], dq, 0.f));
+        deformationNodes.push_back(std::make_shared<Node>(vertices[i], dq, 1.f));
     }
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
@@ -33,7 +33,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
     std::vector<std::shared_ptr<Node>> deformationNodes;
     for (int i = 0; i < canonical.size() - steps; i += steps) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        deformationNodes.push_back(std::make_shared<Node>(canonical[i], dq, 0.f));
+        deformationNodes.push_back(std::make_shared<Node>(canonical[i], dq, 1.f));
     }
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();

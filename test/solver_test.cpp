@@ -54,6 +54,14 @@ protected:
     ceres::Solver::Options options;
 };
 
+static float calcWeight(cv::Vec3f position, float weight, cv::Vec3f point) {
+    cv::Vec3f distance_vec =
+        cv::Vec3f(abs((position[0]) - (point[0])), abs((position[1]) - (point[1])), abs((position[2]) - (point[2])));
+    float distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
+
+    return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
+}
+
 /* */
 TEST_F(SolverTest, SingleVertexTest) {
     Warpfield warpfield;
@@ -97,7 +105,7 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     warpfield.init(nodes);
 
-    cv::Vec3f sourceVertex(0, 0.5, 1);
+    cv::Vec3f sourceVertex(1.05, 0.05, 1);
     sourceVertices.emplace_back(sourceVertex);
 
     canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
@@ -112,8 +120,17 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
-}
 
+    auto parameters = warpProblem.getParameters();
+
+    int i = 0;
+    cv::Vec3f totalTranslation;
+    for (auto neighbour : nodes) {
+        cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
+        totalTranslation += translation * calcWeight(neighbour->getPosition(), parameters[i][0], sourceVertex);
+        i++;
+    }
+}
 /* */
 TEST_F(SolverTest, MultipleVerticesTest) {
     Warpfield warpfield;
@@ -175,7 +192,21 @@ TEST_F(SolverTest, MultipleVerticesTest) {
 
     options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
     options.minimizer_progress_to_stdout = true;
+    options.max_num_iterations           = 1000;
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
+    auto parameters = warpProblem.getParameters();
+
+    int i = 0;
+    for (auto vertex : sourceVertices) {
+        cv::Vec3f totalTranslation;
+        for (auto neighbour : nodes) {
+            cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
+            totalTranslation += translation * calcWeight(neighbour->getPosition(), parameters[i][0], vertex);
+            i++;
+        }
+        std::cout << vertex + totalTranslation << std::endl;
+        i = 0;
+    }
 }
