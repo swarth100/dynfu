@@ -56,9 +56,18 @@ void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
  */
 std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
-/* Find the nodes index of k closest neighbour for the given point */
+/* Find the nodes of k closest neighbour for the given point */
 std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv::Vec3f vertex) {
-    // std::cout << "point" << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
+    auto retIndex = findNeighborsIndex(numNeighbor, vertex);
+    std::vector<std::shared_ptr<Node>> neighborNodes;
+    for (auto index : retIndex) {
+        neighborNodes.push_back(nodes[index]);
+    }
+    return neighborNodes;
+}
+
+/* Find the nodes index of k closest neighbour for the given point */
+std::vector<size_t> Warpfield::findNeighborsIndex(int numNeighbor, cv::Vec3f vertex) {
     /* Not used, ignores the distance to the nodes for now */
     std::vector<float> outDistSqr(numNeighbor);
     std::vector<size_t> retIndex(numNeighbor);
@@ -66,11 +75,7 @@ std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv:
     std::vector<float> query = {vertex[0], vertex[1], vertex[2]};
     int n                    = kdTree->knnSearch(&query[0], numNeighbor, &retIndex[0], &outDistSqr[0]);
     retIndex.resize(n);
-    std::vector<std::shared_ptr<Node>> neighborNodes;
-    for (auto index : retIndex) {
-        neighborNodes.push_back(nodes[index]);
-    }
-    return neighborNodes;
+    return retIndex;
 }
 
 /* -------------------------------------------------------------------------- */
