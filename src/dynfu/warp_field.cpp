@@ -1,6 +1,7 @@
+/* dynfu includes */
 #include <dynfu/warp_field.hpp>
 
-/* Sys Headers */
+/* sys headers */
 #include <cmath>
 #include <ctgmath>
 #include <string>
@@ -8,6 +9,9 @@
 /* PCL Headers */
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+
+/* -------------------------------------------------------------------------- */
+/* PUBLIC METHODS */
 
 /* TODO: Add comment */
 Warpfield::Warpfield() = default;
@@ -38,6 +42,13 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
     kdTree->buildIndex();
 }
 
+/*
+ * return a vector of all nodes in the warp field
+ */
+std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
+
+// void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }
+
 void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
     // calculate DQB for all points
     // warps all points
@@ -48,11 +59,6 @@ void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
         // point->setTransformation(transformation);
     }
 }
-
-/*
- * Returns a vector of all nodes in the warp field.
- */
-std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
 /* Find the nodes of k closest neighbour for the given point */
 std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv::Vec3f vertex) {
@@ -115,5 +121,3 @@ void Warpfield::saveToPcl(std::vector<cv::Vec3f> vectors) {
     /* Print out to stderr when after successful save */
     std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
 }
-
-// void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }
