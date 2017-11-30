@@ -86,7 +86,7 @@ public:
 
     /* TODO allow 0,5 * dq to be used */
 
-    DualQuaternion<T> operator*(T scale) { return DualQuaternion<T>(real * scale, real * scale); }
+    DualQuaternion<T> operator*(T scale) { return DualQuaternion<T>(real * scale, dual * scale); }
 
     DualQuaternion<T>& operator*=(T scale) {
         real *= scale;
