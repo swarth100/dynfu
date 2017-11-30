@@ -1,3 +1,4 @@
+/* dynfu includes */
 #include <dynfu/utils/node.hpp>
 
 /* sys headers */
@@ -32,8 +33,9 @@ T Node::getTransformationWeightT(cv::Vec3f vertexPosition) {
     auto position = this->getPosition();
     auto weight   = this->getRadialBasisWeight();
 
-    cv::Vec<T, 3> distance_vec = cv::Vec<T, 3>(abs(T(position[0]) - T(vertexPosition[0])), abs(T(position[1]) - T(vertexPosition[1])),
-                                               abs(T(position[2]) - T(vertexPosition[2])));
+    cv::Vec<T, 3> distance_vec =
+        cv::Vec<T, 3>(abs(T(position[0]) - T(vertexPosition[0])), abs(T(position[1]) - T(vertexPosition[1])),
+                      abs(T(position[2]) - T(vertexPosition[2])));
     T distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
 
     // if the node and the vertex are in the same place, return 1
