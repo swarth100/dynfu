@@ -79,7 +79,7 @@ TEST_F(DualQuaternionTest, TestDual) {
     ASSERT_NEAR(dq30.getDual().R_component_4(), 48.2962, MAXERROR);
 }
 
-/* */
+/* This test checks that the sum + between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestSum) {
 
     DualQuaternion<float> dqSum = dq45 + dq30;
@@ -101,7 +101,7 @@ TEST_F(DualQuaternionTest, TestSum) {
     ASSERT_NEAR(dqSum.getDual().R_component_4(), 48.2963, MAXERROR);
 }
 
-
+/* This test checks that the sum and assign += between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestSumAssign) {
 
     DualQuaternion<float> dqSum = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
@@ -123,5 +123,52 @@ TEST_F(DualQuaternionTest, TestSumAssign) {
     ASSERT_NEAR(dqSum.getDual().R_component_2(), -0.3683, MAXERROR);
     ASSERT_NEAR(dqSum.getDual().R_component_3(), 7.5233, MAXERROR);
     ASSERT_NEAR(dqSum.getDual().R_component_4(), 57.6655, MAXERROR);
+}
+
+
+/* This test checks that the diff - between two DualQuaternion is computed correctly */
+TEST_F(DualQuaternionTest, TestDiff) {
+
+    DualQuaternion<float> dqDiff = dq45 - dq30;
+
+    /* Diff should be:
+     *     Real:
+     *     (-0.1213, 0.1913, 0.2031, 0.1913)
+     *     Dual:
+     *     (0, 12.9410, 0, 48.2962)
+     */
+    ASSERT_NEAR(dqDiff.getReal().R_component_1(), -0.1213, MAXERROR);
+    ASSERT_NEAR(dqDiff.getReal().R_component_2(), 0.1913, MAXERROR);
+    ASSERT_NEAR(dqDiff.getReal().R_component_3(), 0.2031, MAXERROR);
+    ASSERT_NEAR(dqDiff.getReal().R_component_4(), 0.1913, MAXERROR);
+
+    ASSERT_NEAR(dqDiff.getDual().R_component_1(), 0.0f, MAXERROR);
+    ASSERT_NEAR(dqDiff.getDual().R_component_2(), 12.9410, MAXERROR);
+    ASSERT_NEAR(dqDiff.getDual().R_component_3(), 0.0f, MAXERROR);
+    ASSERT_NEAR(dqDiff.getDual().R_component_4(), -48.2963, MAXERROR);
+}
+
+/* This test checks that the diff and assign -= between two DualQuaternion is computed correctly */
+TEST_F(DualQuaternionTest, TestDiffAssign) {
+
+    DualQuaternion<float> dqDiff = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
+
+    dqDiff -= dq30;
+
+    /* Diff should be:
+     *     Real:
+     *     (-0.0783, 0.1353, 0.1601, 0.1353)
+     *     Dual:
+     *     (-6.8953, 25.5137, 7.5233, -38.9271)
+     */
+    ASSERT_NEAR(dqDiff.getReal().R_component_1(), -0.0783, MAXERROR);
+    ASSERT_NEAR(dqDiff.getReal().R_component_2(), 0.1353, MAXERROR);
+    ASSERT_NEAR(dqDiff.getReal().R_component_3(), 0.1601, MAXERROR);
+    ASSERT_NEAR(dqDiff.getReal().R_component_4(), 0.1353, MAXERROR);
+
+    ASSERT_NEAR(dqDiff.getDual().R_component_1(), -6.8953, MAXERROR);
+    ASSERT_NEAR(dqDiff.getDual().R_component_2(), 25.5137, MAXERROR);
+    ASSERT_NEAR(dqDiff.getDual().R_component_3(), 7.5233, MAXERROR);
+    ASSERT_NEAR(dqDiff.getDual().R_component_4(), -38.9271, MAXERROR);
 }
 
