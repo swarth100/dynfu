@@ -16,7 +16,7 @@
 
 #define KNN 8
 
-/* The fixture for testing class Quaternion. */
+/* fixture for testing class WarpProblem */
 class SolverTest : public ::testing::Test {
 protected:
     /* You can remove any or all of the following functions if its body
@@ -53,14 +53,6 @@ protected:
 
     ceres::Solver::Options options;
 };
-
-static float calcWeight(cv::Vec3f position, float weight, cv::Vec3f point) {
-    cv::Vec3f distance_vec =
-        cv::Vec3f(abs((position[0]) - (point[0])), abs((position[1]) - (point[1])), abs((position[2]) - (point[2])));
-    float distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
-
-    return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
-}
 
 /* */
 TEST_F(SolverTest, SingleVertexTest) {
@@ -130,7 +122,7 @@ TEST_F(SolverTest, SingleVertexTest) {
         neighbour->setRadialBasisWeight(parameters[i][0]);
         neighbour->setTranslation(translation);
 
-        totalTranslation += translation * calcWeight(neighbour->getPosition(), parameters[i][0], sourceVertex);
+        totalTranslation += translation * neighbour->getTransformationWeight(sourceVertices[i]);
         i++;
     }
 
@@ -212,7 +204,7 @@ TEST_F(SolverTest, MultipleVerticesTest) {
             neighbour->setRadialBasisWeight(parameters[i][0]);
             neighbour->setTranslation(translation);
 
-            totalTranslation += translation * calcWeight(neighbour->getPosition(), parameters[i][0], vertex);
+            totalTranslation += translation * neighbour->getTransformationWeight(sourceVertices[i]);
             i++;
         }
         std::cout << vertex + totalTranslation << std::endl;
