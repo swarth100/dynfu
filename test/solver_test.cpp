@@ -115,8 +115,8 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     auto parameters = warpProblem.getParameters();
 
-    int i = 0;
     cv::Vec3f totalTranslation;
+    int i = 0;
     for (auto neighbour : nodes) {
         cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
         neighbour->setRadialBasisWeight(parameters[i][0]);
@@ -126,7 +126,9 @@ TEST_F(SolverTest, SingleVertexTest) {
         i++;
     }
 
-    std::cout << sourceVertex + totalTranslation << std::endl;
+    ASSERT_NEAR((sourceVertex + totalTranslation)[0], targetVertices[0][0], max_error);
+    ASSERT_NEAR((sourceVertex + totalTranslation)[1], targetVertices[0][1], max_error);
+    ASSERT_NEAR((sourceVertex + totalTranslation)[2], targetVertices[0][2], max_error);
 }
 
 /* */
@@ -197,17 +199,24 @@ TEST_F(SolverTest, MultipleVerticesTest) {
     auto parameters = warpProblem.getParameters();
 
     int i = 0;
+    int j = 0;
     for (auto vertex : sourceVertices) {
         cv::Vec3f totalTranslation;
+
         for (auto neighbour : nodes) {
             cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
             neighbour->setRadialBasisWeight(parameters[i][0]);
             neighbour->setTranslation(translation);
 
-            totalTranslation += translation * neighbour->getTransformationWeight(sourceVertices[i]);
+            totalTranslation += translation * neighbour->getTransformationWeight(vertex);
             i++;
         }
-        std::cout << vertex + totalTranslation << std::endl;
+
+        ASSERT_NEAR((vertex + totalTranslation)[0], targetVertices[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], targetVertices[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], targetVertices[j][2], max_error);
+
         i = 0;
+        j++;
     }
 }
