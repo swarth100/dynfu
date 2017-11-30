@@ -61,13 +61,9 @@ std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(cv::Vec3f point) {
     for (auto node : nearestNeighbors) {
         float nodeWeight = node->getTransformationWeight(point);
 
-        DualQuaternion<float> dg_se3 = *node->getTransformation();
-        std::cout << "total translation from the node in dqb: " << nodeWeight << " " << dg_se3.getTranslation()[0]
-                  << " " << dg_se3.getTranslation()[1] << " " << dg_se3.getTranslation()[2] << std::endl;
+        DualQuaternion<float> dg_se3                  = *node->getTransformation();
         DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
-        std::cout << "total translation dqb: " << weighted_transformation.getTranslation()[0] << " "
-                  << weighted_transformation.getTranslation()[1] << " " << weighted_transformation.getTranslation()[2]
-                  << std::endl;
+
         transformationSum += weighted_transformation;
     }
     /*Normalise the sum */
