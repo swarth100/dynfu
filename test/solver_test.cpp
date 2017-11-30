@@ -122,13 +122,16 @@ TEST_F(SolverTest, SingleVertexTest) {
         neighbour->setRadialBasisWeight(parameters[i][0]);
         neighbour->setTranslation(translation);
 
-        totalTranslation += translation * neighbour->getTransformationWeight(sourceVertices[i]);
+        totalTranslation += translation * neighbour->getTransformationWeight(sourceVertex);
         i++;
     }
 
-    ASSERT_NEAR((sourceVertex + totalTranslation)[0], targetVertices[0][0], max_error);
-    ASSERT_NEAR((sourceVertex + totalTranslation)[1], targetVertices[0][1], max_error);
-    ASSERT_NEAR((sourceVertex + totalTranslation)[2], targetVertices[0][2], max_error);
+    auto result = sourceVertex + totalTranslation;
+
+    max_error = 0.1;
+    ASSERT_NEAR(result[0], targetVertices[0][0], max_error);
+    ASSERT_NEAR(result[1], targetVertices[0][1], max_error);
+    ASSERT_NEAR(result[2], targetVertices[0][2], max_error);
 }
 
 /* */
