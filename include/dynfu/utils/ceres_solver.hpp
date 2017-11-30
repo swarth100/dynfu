@@ -129,7 +129,7 @@ public:
         }
 
         Solve(options, &problem, &summary);
-        std::cout << summary.FullReport() << "\n";
+        std::cout << summary.BriefReport() << "\n";
 
         /* get parameter blocks */
         problem.GetParameterBlocks(&parameters);
