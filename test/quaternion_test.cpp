@@ -79,7 +79,7 @@ TEST_F(DualQuaternionTest, TestDual) {
     ASSERT_NEAR(dq30.getDual().R_component_4(), 48.2962, MAXERROR);
 }
 
-/* This test checks that the sum + between two DualQuaternion is computed correctly */
+/* Test that the sum + between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestSum) {
 
     DualQuaternion<float> dqSum = dq45 + dq30;
@@ -101,7 +101,7 @@ TEST_F(DualQuaternionTest, TestSum) {
     ASSERT_NEAR(dqSum.getDual().R_component_4(), 48.2963, MAXERROR);
 }
 
-/* This test checks that the sum and assign += between two DualQuaternion is computed correctly */
+/* Test that the sum and assign += between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestSumAssign) {
 
     DualQuaternion<float> dqSum = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
@@ -126,7 +126,7 @@ TEST_F(DualQuaternionTest, TestSumAssign) {
 }
 
 
-/* This test checks that the diff - between two DualQuaternion is computed correctly */
+/* Test that the diff - between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestDiff) {
 
     DualQuaternion<float> dqDiff = dq45 - dq30;
@@ -148,7 +148,7 @@ TEST_F(DualQuaternionTest, TestDiff) {
     ASSERT_NEAR(dqDiff.getDual().R_component_4(), -48.2963, MAXERROR);
 }
 
-/* This test checks that the diff and assign -= between two DualQuaternion is computed correctly */
+/* Test that the diff and assign -= between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestDiffAssign) {
 
     DualQuaternion<float> dqDiff = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
@@ -171,4 +171,54 @@ TEST_F(DualQuaternionTest, TestDiffAssign) {
     ASSERT_NEAR(dqDiff.getDual().R_component_3(), 7.5233, MAXERROR);
     ASSERT_NEAR(dqDiff.getDual().R_component_4(), -38.9271, MAXERROR);
 }
+
+/* Test that the scaling between a DualQuaternion and a scalar is computed correctly */
+TEST_F(DualQuaternionTest, TestScale) {
+
+    float scale = 0.30;
+    DualQuaternion<float> dqScale = dq30 * scale;
+
+    /* Scaled dq should be:
+     *     Real:
+     *     (0.2898, 0, 0.0776, 0)
+     *     Dual:
+     *     (0, -3.8823, 0, 14.4889)
+     */
+    ASSERT_NEAR(dqScale.getReal().R_component_1(), 0.2898, MAXERROR);
+    ASSERT_NEAR(dqScale.getReal().R_component_2(), 0.0f, MAXERROR);
+    ASSERT_NEAR(dqScale.getReal().R_component_3(), 0.0776, MAXERROR);
+    ASSERT_NEAR(dqScale.getReal().R_component_4(), 0.0f, MAXERROR);
+
+    ASSERT_NEAR(dqScale.getDual().R_component_1(), 0.0f, MAXERROR);
+    ASSERT_NEAR(dqScale.getDual().R_component_2(), -3.8823, MAXERROR);
+    ASSERT_NEAR(dqScale.getDual().R_component_3(), 0.0f, MAXERROR);
+    ASSERT_NEAR(dqScale.getDual().R_component_4(), 14.4889, MAXERROR);
+}
+
+/* Test that the scale and assign *= between a DualQuaternion and a scalar is computed correctly */
+TEST_F(DualQuaternionTest, TestScaleAssign) {
+
+    float scale = 0.30;
+    DualQuaternion<float> dqScale = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
+
+    dqScale *= scale;
+
+    /* Scaled dq should be:
+     *     Real:
+     *     (0.2663, 0.0406, 0.1257, 0.0406)
+     *     Dual:
+     *     (-2.0686, 3.7718, 2.2570, 2.8108)
+     */
+    ASSERT_NEAR(dqScale.getReal().R_component_1(), 0.2663, MAXERROR);
+    ASSERT_NEAR(dqScale.getReal().R_component_2(), 0.0406, MAXERROR);
+    ASSERT_NEAR(dqScale.getReal().R_component_3(), 0.1257, MAXERROR);
+    ASSERT_NEAR(dqScale.getReal().R_component_4(), 0.0406, MAXERROR);
+
+    ASSERT_NEAR(dqScale.getDual().R_component_1(), -2.0686, MAXERROR);
+    ASSERT_NEAR(dqScale.getDual().R_component_2(), 3.7718, MAXERROR);
+    ASSERT_NEAR(dqScale.getDual().R_component_3(), 2.2570, MAXERROR);
+    ASSERT_NEAR(dqScale.getDual().R_component_4(), 2.8108, MAXERROR);
+}
+
+
 
