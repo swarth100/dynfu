@@ -81,7 +81,10 @@ CREATE_TEST(dynfu_test)
 # Link all libraries for testing
 target_link_libraries(dynfu_test
   dynfu
+  ceres
+  ${Boost_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
 # Generate coverage commands
-SETUP_TARGET_FOR_COVERAGE(NAME "coverage" EXECUTABLE dynfu_test)
+SETUP_TARGET_FOR_COVERAGE(NAME coverage EXECUTABLE dynfu_test)

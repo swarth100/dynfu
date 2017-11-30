@@ -1,21 +1,21 @@
 #ifndef DYNFU_DYNFUSION_HPP
 #define DYNFU_DYNFUSION_HPP
 
+/* dynfu includes */
 #include <dynfu/utils/dual_quaternion.hpp>
 #include <dynfu/utils/frame.hpp>
-#include <dynfu/utils/solver.hpp>
 #include <dynfu/warp_field.hpp>
 
-/* Typedefs */
+/* typedefs */
 #include <kfusion/types.hpp>
 
+/* sys headers */
 #include <math.h>
 
 /* */
 class DynFusion {
 public:
     DynFusion();
-    DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     ~DynFusion();
 
     void init(kfusion::cuda::Cloud &vertices);
@@ -24,9 +24,10 @@ public:
     // void updateCanonicalFrame();
     void warpCanonicalToLive();
 
-    /* Returns a dual quaternion which represents the dual quaternion blending for a point */
+    /* return a dual quaternion which represents the dual quaternion blending for a point */
     std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
-    /* Update the current live frame */
+
+    /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
 private:
@@ -34,10 +35,6 @@ private:
     std::shared_ptr<Frame> liveFrame;
     std::shared_ptr<Frame> canonicalWarpedToLive;
     std::shared_ptr<Warpfield> warpfield;
-    std::shared_ptr<Solver<float>> solver;
-
-    /* Get weight of node on point for DQB */
-    float getWeight(std::shared_ptr<Node> node, cv::Vec3f point);
 
     /* Convert the cloud to opencv matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);

@@ -1,6 +1,9 @@
 #ifndef DYNFU_WARP_FIELD_HPP
 #define DYNFU_WARP_FIELD_HPP
 
+/* kinfu includes */
+#include <kfusion/types.hpp>
+
 /* dynfu includes */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
@@ -28,42 +31,44 @@ class Warpfield {
 public:
     Warpfield();
     ~Warpfield();
+    Warpfield(const Warpfield& w);
 
-    /* Initialises the warpfield's canonical Frame*/
-    void init(std::vector<std::shared_ptr<Node>> &nodes);
+    /* initialise the warp field */
+    void init(std::vector<std::shared_ptr<Node>> nodes);
 
-    /* Finds a set amount of closest neighbours */
-    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, std::shared_ptr<Node> node);
-
-    /* Finds a set amount of closest neighbours */
-    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f point);
-
-    /* Warps the given field according to the solver's deformation node data */
-    void warp(std::shared_ptr<Frame> liveFrame);
-
-    /* Returns a vector of all nodes in the warp field. */
-    std::vector<std::shared_ptr<Node>> getNodes();
-
+    /* add new deformation node to the warp field */
     void addNode(Node newNode);
 
+    /* return a vector of all nodes in the warp field */
+    std::vector<std::shared_ptr<Node>> getNodes();
+
+    /* warp a canonical frame according to the data stored in the warpfield */
+    void warp(std::shared_ptr<Frame> liveFrame);
+
+    /* Find a set amount of closest neighbours */
+    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);
+
+    /* Find index of set amount of closest neighbours */
+    std::vector<size_t> findNeighborsIndex(int numNeighbor, cv::Vec3f vertex);
+
 private:
-    /* Save the given vec3s to PCL format */
-    void saveToPcl(std::vector<cv::Vec3f> vectors);
-
-    /* Getter for pcl cloud counter */
-    int getFrameNum();
-
-    /* PCL Frame counter */
+    /* PCL frame counter */
     int frameNum = 0;
 
-    /* List of currently held deformation nodes */
+    /* list of currently held deformation nodes */
     std::vector<std::shared_ptr<Node>> nodes;
+
+    /* cloud data */
+    std::shared_ptr<PointCloud> cloud;
 
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;
 
-    /* TODO(rm3115) Not sure why but shared ptr doesn't work */
-    PointCloud *cloud;
+    /* Getter for pcl cloud counter */
+    int getFrameNum();
+
+    /* Save the given vec3s to PCL format */
+    void saveToPcl(std::vector<cv::Vec3f> vectors);
 };
 
 /* DYNFU_WARP_FIELD_HPP */

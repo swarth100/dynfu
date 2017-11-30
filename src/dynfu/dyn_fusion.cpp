@@ -1,24 +1,8 @@
 #include <dynfu/dyn_fusion.hpp>
 
 DynFusion::DynFusion() = default;
-/* We initialise the dynamic fusion with the initals vertices and normals */
-DynFusion::DynFusion(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* normals */) {
-    /* Sample the deformation nodes */
-    int steps = 50;
-    std::vector<std::shared_ptr<Node>> deformationNodes;
-    for (int i = 0; i < vertices.size(); i += steps) {
-        auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        deformationNodes.push_back(std::make_shared<Node>(vertices[i], dq, 0.f));
-    }
-    /* Initialise the warp field with the inital frames vertices */
-    warpfield = std::make_shared<Warpfield>();
-    warpfield->init(deformationNodes);
 
-    for (auto node : deformationNodes) {
-        node->setNeighbours(warpfield->findNeighbors(KNN, node));
-    }
-}
-
+/* initialise dynamicfusion with the initals vertices and normals */
 void DynFusion::init(kfusion::cuda::Cloud &vertices) {
     cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonical(cloudHost.rows * cloudHost.cols);
@@ -37,15 +21,11 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
     std::vector<std::shared_ptr<Node>> deformationNodes;
     for (int i = 0; i < canonical.size() - steps; i += steps) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        deformationNodes.push_back(std::make_shared<Node>(canonical[i], dq, 0.f));
+        deformationNodes.push_back(std::make_shared<Node>(canonical[i], dq, 1.f));
     }
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
     warpfield->init(deformationNodes);
-
-    for (auto node : deformationNodes) {
-        node->setNeighbours(warpfield->findNeighbors(KNN, node));
-    }
 }
 
 /* TODO: Add comment */
@@ -78,7 +58,7 @@ std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f point) {
     /* Apply the formula to get w(x) */
     DualQuaternion<float> transformationSum(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     for (auto node : nearestNeighbors) {
-        float nodeWeight = getWeight(node, point);
+        float nodeWeight = node->getTransformationWeight(point);
 
         DualQuaternion<float> dg_se3                  = *node->getTransformation();
         DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
@@ -115,10 +95,4 @@ std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
         }
     }
     return vector;
-}
-
-/* Calculate the weight using the position in the canonical frame and the radial weight of the node */
-float DynFusion::getWeight(std::shared_ptr<Node> node, cv::Vec3f point) {
-    float distance_norm = cv::norm(node->getPosition() - point);
-    return exp((-1 * pow(distance_norm, 2)) / (2 * pow(node->getWeight(), 2)));
 }

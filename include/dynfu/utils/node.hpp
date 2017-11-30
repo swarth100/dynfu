@@ -29,24 +29,30 @@
  */
 class Node {
 public:
-    Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float weight);
+    Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight);
     ~Node();
 
-    const cv::Vec3f getPosition();
-    const float getWeight();
+    cv::Vec3f getPosition();
+    std::shared_ptr<DualQuaternion<float>>& getTransformation();
+    float getRadialBasisWeight();
+    /* get transformation weight for a point */
+    float getTransformationWeight(cv::Vec3f vertexPosition);
+    template <typename T>
+    T getTransformationWeightT(cv::Vec3f vertexPosition);
 
-    const std::shared_ptr<DualQuaternion<float>>& getTransformation();
-    const std::vector<std::shared_ptr<Node>>& getNearestNeighbours();
+    double* getParams();
 
-    void setWeight();
-    void setNeighbours(std::vector<std::shared_ptr<Node>> nodes);
+    void setTranslation(cv::Vec3f translation);
+    void setRotation(boost::math::quaternion<float> real);
+    void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
+    void setRadialBasisWeight(float newWeight);
 
 private:
     cv::Vec3f dg_v;
     std::shared_ptr<DualQuaternion<float>> dg_se3;
     float dg_w;
 
-    std::vector<std::shared_ptr<Node>> nearestNeighbours;
+    double* params;
 };
 
 /* DYNFU_NODE_HPP */
