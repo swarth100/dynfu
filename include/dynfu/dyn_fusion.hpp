@@ -24,9 +24,6 @@ public:
     // void updateCanonicalFrame();
     void warpCanonicalToLive();
 
-    /* return a dual quaternion which represents the dual quaternion blending for a point */
-    std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
-
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 

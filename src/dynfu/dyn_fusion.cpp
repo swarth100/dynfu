@@ -47,29 +47,6 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     liveFrame = std::make_shared<Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
-/* Calculate Dual Quaternion Blending */
-/* Get the dg_se3 from each of the nodes, time it by the weight and calculate the sum */
-/* Before returning, normalise the dual quaternion */
-std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f point) {
-    /* From the warp field get the k (8) closest points */
-    Warpfield warpfield;
-    auto nearestNeighbors = warpfield.findNeighbors(KNN, point);
-    /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
-    /* Apply the formula to get w(x) */
-    DualQuaternion<float> transformationSum(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    for (auto node : nearestNeighbors) {
-        float nodeWeight = node->getTransformationWeight(point);
-
-        DualQuaternion<float> dg_se3                  = *node->getTransformation();
-        DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
-        transformationSum += weighted_transformation;
-    }
-    /*Normalise the sum */
-    DualQuaternion<float> dual_quaternion_blending = transformationSum.normalize();
-
-    return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
-}
-
 cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {
     cv::Mat cloudHost;
     cloudHost.create(cloud.rows(), cloud.cols(), CV_32FC4);

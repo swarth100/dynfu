@@ -49,13 +49,13 @@ T Node::getTransformationWeightT(cv::Vec3f vertexPosition) {
 double* Node::getParams() { return params; }
 
 void Node::setTranslation(cv::Vec3f translation) {
-    auto real = dg_se3->getReal();
-    dg_se3    = std::make_shared<DualQuaternion<float>>(real, translation);
+    auto real    = dg_se3->getReal();
+    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
 }
 
 void Node::setRotation(boost::math::quaternion<float> real) {
-    auto dual = dg_se3->getDual();
-    dg_se3    = std::make_shared<DualQuaternion<float>>(real, dual);
+    auto dual    = dg_se3->getDual();
+    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, dual);
 }
 
 void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
