@@ -115,20 +115,44 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     auto parameters = warpProblem.getParameters();
 
-    cv::Vec3f totalTranslation;
+    // cv::Vec3f totalTranslation;
+    // int i = 0;
+    // for (auto neighbour : nodes) {
+    //     cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
+    //     neighbour->setRadialBasisWeight(parameters[i][0]);
+    //     neighbour->setTranslation(translation);
+    //
+    //     totalTranslation += translation * neighbour->getTransformationWeight(sourceVertex);
+    //     i++;
+    // }
+    //
+    // auto result = sourceVertex + totalTranslation;
+    //
+    // max_error = 0.1;
+    // ASSERT_NEAR(result[0], targetVertices[0][0], max_error);
+    // ASSERT_NEAR(result[1], targetVertices[0][1], max_error);
+    // ASSERT_NEAR(result[2], targetVertices[0][2], max_error);
+
     int i = 0;
     for (auto neighbour : nodes) {
         cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
         neighbour->setRadialBasisWeight(parameters[i][0]);
         neighbour->setTranslation(translation);
-
-        totalTranslation += translation * neighbour->getTransformationWeight(sourceVertex);
         i++;
     }
 
-    auto result = sourceVertex + totalTranslation;
+    std::cout << "total translation from a node: " << nodes[0]->getTransformation()->getTranslation()[0] << " "
+              << nodes[0]->getTransformation()->getTranslation()[1] << " "
+              << nodes[0]->getTransformation()->getTranslation()[2] << " " << std::endl;
 
-    max_error = 0.1;
+    auto totalTransformation = warpfield.calcDQB(sourceVertex);
+    auto result              = sourceVertex + totalTransformation->getTranslation();
+
+    std::cout << "total translation from the quaternion: " << totalTransformation->getTranslation()[0] << " "
+              << totalTransformation->getTranslation()[1] << " " << totalTransformation->getTranslation()[2] << " "
+              << std::endl;
+
+    max_error = 0.01;
     ASSERT_NEAR(result[0], targetVertices[0][0], max_error);
     ASSERT_NEAR(result[1], targetVertices[0][1], max_error);
     ASSERT_NEAR(result[2], targetVertices[0][2], max_error);
