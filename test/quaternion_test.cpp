@@ -95,13 +95,33 @@ TEST_F(DualQuaternionTest, TestSum) {
     ASSERT_NEAR(dqSum.getReal().R_component_3(), 0.7208, MAXERROR);
     ASSERT_NEAR(dqSum.getReal().R_component_4(), 0.1913, MAXERROR);
 
-    /* Dual should be:
-     *     [0.5 * (0, 0, 0, 100)](0.9659, 0, 0.2588, 0) =
-     *     (0, -12.9410, 0, 48.2963)
-     */
     ASSERT_NEAR(dqSum.getDual().R_component_1(), 0.0f, MAXERROR);
     ASSERT_NEAR(dqSum.getDual().R_component_2(), -12.9410, MAXERROR);
     ASSERT_NEAR(dqSum.getDual().R_component_3(), 0.0f, MAXERROR);
     ASSERT_NEAR(dqSum.getDual().R_component_4(), 48.2963, MAXERROR);
-    // ASSERT_FLOAT_EQ(dqSum.getReal().R_component_1(), dqRes.getReal().R_component_1());
 }
+
+
+TEST_F(DualQuaternionTest, TestSumAssign) {
+
+    DualQuaternion<float> dqSum = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
+
+    dqSum += dq30;
+
+    /* Sum should be:
+     *     Real:
+     *     (1.8536, 0.1353, 0.6778, 0.1353)
+     *     Dual:
+     *     (-6.8953, -0.3683, 7.5233, 57.6655)
+     */
+    ASSERT_NEAR(dqSum.getReal().R_component_1(), 1.8536, MAXERROR);
+    ASSERT_NEAR(dqSum.getReal().R_component_2(), 0.1353, MAXERROR);
+    ASSERT_NEAR(dqSum.getReal().R_component_3(), 0.6778, MAXERROR);
+    ASSERT_NEAR(dqSum.getReal().R_component_4(), 0.1353, MAXERROR);
+
+    ASSERT_NEAR(dqSum.getDual().R_component_1(), -6.8953, MAXERROR);
+    ASSERT_NEAR(dqSum.getDual().R_component_2(), -0.3683, MAXERROR);
+    ASSERT_NEAR(dqSum.getDual().R_component_3(), 7.5233, MAXERROR);
+    ASSERT_NEAR(dqSum.getDual().R_component_4(), 57.6655, MAXERROR);
+}
+
