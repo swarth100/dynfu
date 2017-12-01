@@ -46,7 +46,9 @@ protected:
 /* This test checks that the Real part of Dual Quaternions is computed correctly
  * We check the results against an online calculator */
 TEST_F(DualQuaternionTest, TestReal) {
-    /* */
+    /* Real should be:
+     *     (0.8446, 0.1913, 0.4619, 0.1913)
+     */
     ASSERT_NEAR(dq45.getReal().R_component_1(), 0.8446231020115715, MAXERROR);
     ASSERT_NEAR(dq45.getReal().R_component_2(), 0.19134170284356308, MAXERROR);
     ASSERT_NEAR(dq45.getReal().R_component_3(), 0.4619399539487806, MAXERROR);
@@ -220,5 +222,25 @@ TEST_F(DualQuaternionTest, TestScaleAssign) {
     ASSERT_NEAR(dqScale.getDual().R_component_4(), 2.8108, MAXERROR);
 }
 
+/* Test that the normalization of a DualQuaternion is computed correctly */
+TEST_F(DualQuaternionTest, TestNormalize) {
 
+    DualQuaternion<float> dqSum = dq45 + dq30;
+    DualQuaternion<float> dqSumNormalized = dqSum.normalize();
 
+    /* Normalized dq should be:
+     *     Real:
+     *     (0.9203, 0.0973, 0.3663, 0.0973)
+     *     Dual:
+     *     (0, -12.9410, 0, 48.2963)
+     */
+    ASSERT_NEAR(dqSumNormalized.getReal().R_component_1(), 0.9203, MAXERROR);
+    ASSERT_NEAR(dqSumNormalized.getReal().R_component_2(), 0.0973, MAXERROR);
+    ASSERT_NEAR(dqSumNormalized.getReal().R_component_3(), 0.3663, MAXERROR);
+    ASSERT_NEAR(dqSumNormalized.getReal().R_component_4(), 0.0973, MAXERROR);
+
+    ASSERT_NEAR(dqSumNormalized.getDual().R_component_1(), 0.0f, MAXERROR);
+    ASSERT_NEAR(dqSumNormalized.getDual().R_component_2(), -12.9410, MAXERROR);
+    ASSERT_NEAR(dqSumNormalized.getDual().R_component_3(), 0.0f, MAXERROR);
+    ASSERT_NEAR(dqSumNormalized.getDual().R_component_4(), 48.2963, MAXERROR);
+}
