@@ -2,9 +2,13 @@
 #define DYNFU_DYNFUSION_HPP
 
 /* dynfu includes */
+#include <dynfu/utils/ceres_solver.hpp>
 #include <dynfu/utils/dual_quaternion.hpp>
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/warp_field.hpp>
+
+/* ceres includes */
+#include <ceres/ceres.h>
 
 /* typedefs */
 #include <kfusion/types.hpp>
