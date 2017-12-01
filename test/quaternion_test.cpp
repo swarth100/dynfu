@@ -215,6 +215,49 @@ TEST_F(DualQuaternionTest, TestScaleAssign) {
     ASSERT_NEAR(dqScale.getDual().R_component_4(), 2.8108, MAXERROR);
 }
 
+/* Test that the multiplication between two DualQuaternions is computed correctly */
+TEST_F(DualQuaternionTest, TestMul) {
+    DualQuaternion<float> dqMul = dq30 * dq45;
+
+    /* Multiplied dq should be:
+     *     Real:
+     *     (0.6963, 0.2343, 0.6648, 0.1353)
+     *     Dual:
+     *     (-6.7650, -33.2402, 11.7172, 34.8142)
+     */
+    ASSERT_NEAR(dqMul.getReal().R_component_1(), 0.6963, MAXERROR);
+    ASSERT_NEAR(dqMul.getReal().R_component_2(), 0.2343, MAXERROR);
+    ASSERT_NEAR(dqMul.getReal().R_component_3(), 0.6648, MAXERROR);
+    ASSERT_NEAR(dqMul.getReal().R_component_4(), 0.1353, MAXERROR);
+
+    ASSERT_NEAR(dqMul.getDual().R_component_1(), -6.7650, MAXERROR);
+    ASSERT_NEAR(dqMul.getDual().R_component_2(), -33.2402, MAXERROR);
+    ASSERT_NEAR(dqMul.getDual().R_component_3(), 11.7172, MAXERROR);
+    ASSERT_NEAR(dqMul.getDual().R_component_4(), 34.8142, MAXERROR);
+}
+
+/* Test that the multiplication and assign *= between two DualQuaternions is computed correctly */
+TEST_F(DualQuaternionTest, TestMulAssign) {
+    DualQuaternion<float> dqMul = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
+    dqMul *= dq30;
+
+    /* Multiplied dq should be:
+     *     Real:
+     *     (0.7490, 0.0957, 0.6344, 0.1657)
+     *     Dual:
+     *     (-13.3911, 18.4657, -2.8031, 60.5945)
+     */
+    ASSERT_NEAR(dqMul.getReal().R_component_1(), 0.7490, MAXERROR);
+    ASSERT_NEAR(dqMul.getReal().R_component_2(), 0.0957, MAXERROR);
+    ASSERT_NEAR(dqMul.getReal().R_component_3(), 0.6344, MAXERROR);
+    ASSERT_NEAR(dqMul.getReal().R_component_4(), 0.1657, MAXERROR);
+
+    ASSERT_NEAR(dqMul.getDual().R_component_1(), -13.3911, MAXERROR);
+    ASSERT_NEAR(dqMul.getDual().R_component_2(), 18.4657, MAXERROR);
+    ASSERT_NEAR(dqMul.getDual().R_component_3(), -2.8031, MAXERROR);
+    ASSERT_NEAR(dqMul.getDual().R_component_4(), 60.5945, MAXERROR);
+}
+
 /* Test that the normalization of a DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestNormalize) {
     DualQuaternion<float> dqSum           = dq45 + dq30;
@@ -235,4 +278,10 @@ TEST_F(DualQuaternionTest, TestNormalize) {
     ASSERT_NEAR(dqSumNormalized.getDual().R_component_2(), -12.9410, MAXERROR);
     ASSERT_NEAR(dqSumNormalized.getDual().R_component_3(), 0.0f, MAXERROR);
     ASSERT_NEAR(dqSumNormalized.getDual().R_component_4(), 48.2963, MAXERROR);
+}
+
+TEST_F(DualQuaternionTest, TestToString) {
+    std::ostringstream dqString;
+    dqString << dq30;
+    ASSERT_EQ("R: (0.965926,0,0.258819,0) D:(0,-12.941,0,48.2963)\n", dqString.str());
 }
