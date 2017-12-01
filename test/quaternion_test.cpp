@@ -83,7 +83,6 @@ TEST_F(DualQuaternionTest, TestDual) {
 
 /* Test that the sum + between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestSum) {
-
     DualQuaternion<float> dqSum = dq45 + dq30;
 
     /* Sum should be:
@@ -105,7 +104,6 @@ TEST_F(DualQuaternionTest, TestSum) {
 
 /* Test that the sum and assign += between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestSumAssign) {
-
     DualQuaternion<float> dqSum = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
 
     dqSum += dq30;
@@ -127,10 +125,8 @@ TEST_F(DualQuaternionTest, TestSumAssign) {
     ASSERT_NEAR(dqSum.getDual().R_component_4(), 57.6655, MAXERROR);
 }
 
-
 /* Test that the diff - between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestDiff) {
-
     DualQuaternion<float> dqDiff = dq45 - dq30;
 
     /* Diff should be:
@@ -152,7 +148,6 @@ TEST_F(DualQuaternionTest, TestDiff) {
 
 /* Test that the diff and assign -= between two DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestDiffAssign) {
-
     DualQuaternion<float> dqDiff = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
 
     dqDiff -= dq30;
@@ -176,8 +171,7 @@ TEST_F(DualQuaternionTest, TestDiffAssign) {
 
 /* Test that the scaling between a DualQuaternion and a scalar is computed correctly */
 TEST_F(DualQuaternionTest, TestScale) {
-
-    float scale = 0.30;
+    float scale                   = 0.30;
     DualQuaternion<float> dqScale = dq30 * scale;
 
     /* Scaled dq should be:
@@ -199,8 +193,7 @@ TEST_F(DualQuaternionTest, TestScale) {
 
 /* Test that the scale and assign *= between a DualQuaternion and a scalar is computed correctly */
 TEST_F(DualQuaternionTest, TestScaleAssign) {
-
-    float scale = 0.30;
+    float scale                   = 0.30;
     DualQuaternion<float> dqScale = DualQuaternion<float>(RAD30, RAD45, RAD30, 30, 20, 10);
 
     dqScale *= scale;
@@ -224,8 +217,7 @@ TEST_F(DualQuaternionTest, TestScaleAssign) {
 
 /* Test that the normalization of a DualQuaternion is computed correctly */
 TEST_F(DualQuaternionTest, TestNormalize) {
-
-    DualQuaternion<float> dqSum = dq45 + dq30;
+    DualQuaternion<float> dqSum           = dq45 + dq30;
     DualQuaternion<float> dqSumNormalized = dqSum.normalize();
 
     /* Normalized dq should be:
