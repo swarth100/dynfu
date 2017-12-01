@@ -3,6 +3,7 @@ add_application(app)
 
 # Link to all libraries
 target_link_libraries(app
+    ceres
     dynfu
     kfusion
     ${Boost_LIBRARIES}

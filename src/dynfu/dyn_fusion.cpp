@@ -36,8 +36,32 @@ void DynFusion::initCanonicalFrame() {}
 
 /* TODO: Add comment */
 void DynFusion::warpCanonicalToLive() {
-    // query the solver passing to it the canonicalFrame, liveFrame, and
-    // prevwarpField
+    ceres::Solver::Options options;
+    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
+    options.minimizer_progress_to_stdout = true;
+    options.max_num_iterations           = 256;
+
+    WarpProblem warpProblem(options);
+    warpProblem.optimiseWarpField(*warpfield, this->canonicalFrame, this->liveFrame);
+
+    auto parameters = warpProblem.getParameters();
+
+    int i = 0;
+    int j = 0;
+    for (auto vertex : canonicalFrame->getVertices()) {
+        cv::Vec3f totalTranslation;
+
+        for (auto neighbour : this->warpfield->getNodes()) {
+            cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
+            neighbour->setRadialBasisWeight(parameters[i][0]);
+            neighbour->setTranslation(translation);
+
+            totalTranslation += translation * neighbour->getTransformationWeight(vertex);
+            i++;
+        }
+        i = 0;
+        j++;
+    }
 }
 
 void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
