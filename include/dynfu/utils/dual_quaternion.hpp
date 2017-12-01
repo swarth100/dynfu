@@ -94,9 +94,6 @@ public:
         return *this;
     }
 
-    /* TODO confirm this
-     * http://wscg.zcu.cz/wscg2012/short/A29-full.pdf */
-
     DualQuaternion<T> operator*(const DualQuaternion<T>& other) {
         return DualQuaternion<T>(real * other.getReal(), real * other.getDual() + dual * other.getReal());
     }
