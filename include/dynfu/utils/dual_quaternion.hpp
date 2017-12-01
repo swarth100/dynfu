@@ -107,6 +107,7 @@ public:
         real *= other.getReal();
     }
 
+    /* TODO Conferm no scaling needs to be done for dual */
     DualQuaternion<T>& normalize() {
         T magnitude = sqrtf(dotProduct(real, real));
         assert(magnitude > epsilon);
