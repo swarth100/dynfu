@@ -108,7 +108,7 @@ public:
     }
 
     DualQuaternion<T>& normalize() {
-        T magnitude = dotProduct(real, dual);
+        T magnitude = sqrtf(dotProduct(real, real));
         assert(magnitude > epsilon);
         real *= (1.0f / magnitude);
         return *this;
