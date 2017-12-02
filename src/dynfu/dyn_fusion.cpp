@@ -45,6 +45,9 @@ void DynFusion::warpCanonicalToLive() {
     options.minimizer_progress_to_stdout = true;
     options.max_num_iterations           = 64;
 
+    int noCores         = sysconf(_SC_NPROCESSORS_ONLN);
+    options.num_threads = noCores;
+
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(*warpfield, this->canonicalFrame, this->liveFrame);
 

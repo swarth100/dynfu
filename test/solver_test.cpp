@@ -33,7 +33,14 @@ protected:
 
     /* Code here will be called immediately after the constructor (right
      * before each test). */
-    void SetUp() override {}
+    void SetUp() override {
+        options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
+        options.minimizer_progress_to_stdout = true;
+        options.max_num_iterations           = 64;
+
+        int noCores         = sysconf(_SC_NPROCESSORS_ONLN);
+        options.num_threads = noCores;
+    }
 
     /* Code here will be called immediately after each test (right
      * before the destructor). */
@@ -106,9 +113,6 @@ TEST_F(SolverTest, SingleVertexTest) {
     targetVertices.emplace_back(targetVertex);
 
     liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
-
-    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
-    options.minimizer_progress_to_stdout = true;
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
@@ -190,10 +194,6 @@ TEST_F(SolverTest, MultipleVerticesTest) {
     targetVertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
 
     liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
-
-    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
-    options.minimizer_progress_to_stdout = true;
-    options.max_num_iterations           = 1000;
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
