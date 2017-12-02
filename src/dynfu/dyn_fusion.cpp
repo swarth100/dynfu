@@ -16,6 +16,8 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
         }
     }
 
+    initCanonicalFrame(canonical, canonical);
+
     /* Sample the deformation nodes */
     int steps = 50;
     std::vector<std::shared_ptr<Node>> deformationNodes;
@@ -32,7 +34,9 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
 DynFusion::~DynFusion() = default;
 
 /* TODO: Add comment */
-void DynFusion::initCanonicalFrame() {}
+void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals) {
+    this->canonicalFrame = std::make_shared<Frame>(0, vertices, vertices);
+}
 
 /* TODO: Add comment */
 void DynFusion::warpCanonicalToLive() {

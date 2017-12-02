@@ -24,7 +24,7 @@ public:
 
     void init(kfusion::cuda::Cloud &vertices);
 
-    void initCanonicalFrame();
+    void initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     // void updateCanonicalFrame();
     void warpCanonicalToLive();
 
