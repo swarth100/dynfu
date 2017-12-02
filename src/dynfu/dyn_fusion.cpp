@@ -34,7 +34,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
 DynFusion::~DynFusion() = default;
 
 /* TODO: Add comment */
-void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals) {
+void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* normals */) {
     this->canonicalFrame = std::make_shared<Frame>(0, vertices, vertices);
 }
 
@@ -43,7 +43,7 @@ void DynFusion::warpCanonicalToLive() {
     ceres::Solver::Options options;
     options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
     options.minimizer_progress_to_stdout = true;
-    options.max_num_iterations           = 256;
+    options.max_num_iterations           = 64;
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(*warpfield, this->canonicalFrame, this->liveFrame);
