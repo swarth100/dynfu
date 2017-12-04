@@ -284,19 +284,5 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     params.useOptLM      = true;
     params.earlyOut      = true;
 
-    // kfusion::WarpFieldOptimiser optimiser(&warp_field, params);
-    //
-    // optimiser.optimiseWarpData(source_vertices, canonical_normals, target_vertices, target_normals);
-    // warp_field.warp(source_vertices, canonical_normals);
-    //
-    // for (int i = 0; i < warp_field.getNodes()->size(); i++) {
-    //     auto t = warp_field.getNodes()->at(i).transform.getTranslation();
-    //     std::cout << t << std::endl;
-    // }
-    //
-    // for (size_t i = 0; i < source_vertices.size(); i++) {
-    //     ASSERT_NEAR(source_vertices[i][0], target_vertices[i][0], max_error);
-    //     ASSERT_NEAR(source_vertices[i][1], target_vertices[i][1], max_error);
-    //     ASSERT_NEAR(source_vertices[i][2], target_vertices[i][2], max_error);
-    // }
+    CombinedSolver combinedSolver(warpfield, params);
 }

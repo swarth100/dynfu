@@ -7,15 +7,15 @@ cmake_minimum_required(VERSION 2.8.8)
 # ADD OPT AND TERRA DEPNEDENCIES
 # ---------------------------------------------------------------------------- #
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/terra)
-    set(TERRA_LIBRARIES ${CMAKE_SOURCE_DIR}/terra/lib/libterra.a)
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/terra)
+    set(TERRA_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/terra/lib/libterra.a)
 else()
     message(FATAL_ERROR "Please run setup script to install terra.")
 endif()
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/Opt)
-    set(OPT_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/Opt/examples/external/mLib/include ${CMAKE_SOURCE_DIR}/Opt/examples/shared/ ${CMAKE_SOURCE_DIR}/Opt/API/release/include)
-    set(OPT_LIBRARIES ${CMAKE_SOURCE_DIR}/Opt/API/release/lib/libOptDev.a)
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Opt)
+    set(OPT_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/Opt/examples/external/mLib/include ${CMAKE_CURRENT_BINARY_DIR}/Opt/examples/shared/ ${CMAKE_CURRENT_BINARY_DIR}/Opt/API/release/include)
+    set(OPT_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/Opt/API/release/lib/libOptDev.a)
 else()
     message(FATAL_ERROR "Please run setup script to install Opt.")
 endif()

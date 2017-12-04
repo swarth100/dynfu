@@ -84,6 +84,8 @@ target_link_libraries(dynfu_test
   ceres
   ${Boost_LIBRARIES}
   ${PCL_LIBRARIES}
+  ${OPT_LIBRARIES}
+  ${TERRA_LIBRARIES}
 )
 
 # Generate coverage commands

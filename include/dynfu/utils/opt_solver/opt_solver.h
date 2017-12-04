@@ -53,7 +53,7 @@ public:
     void initializeConnectivity(const std::vector<cv::Vec3f> canonicalVertices) {
         unsigned int N = (unsigned int) canonicalVertices.size();
 
-        std::vector<std::vector<int>> graphVector(8 /* KNN */ + 1, vector<int>(N));
+        std::vector<std::vector<int>> graphVector(8 /* KNN */ + 1, std::vector<int>(N));
         std::vector<float[8]> weights(N);
 
         for (int count = 0; count < canonicalVertices.size(); count++) {

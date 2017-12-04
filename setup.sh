@@ -4,6 +4,7 @@ RUN_CMAKE=false
 RUN_MAKE=false
 RUN_COVERAGE=false
 RUN_SET_PATHS=false
+RUN_INSTALL_DEPENDENCIES=false
 QUIET=false
 
 usage() {
@@ -18,29 +19,6 @@ usage() {
     echo "\t--all                  -a: Run all the settings"
 }
 
-if [ ! -d terra ]
-then
-    # Install terra
-    echo "Installing terra..."
-    wget https://github.com/zdevito/terra/releases/download/release-2016-03-25/terra-Linux-x86_64-332a506.zip
-    unzip terra-Linux-x86_64-332a506.zip
-    mv terra-Linux-x86_64-332a506 terra
-    export PATH=$PATH:$(pwd)/terra/bin
-    echo "Successfully installed terra!"
-fi
-
-if [ ! -d Opt ]
-then
-    # Install Opt
-    echo "Installing Opt..."
-    cp -r /vol/project/2017/362/g1736211/DynamicFusionOpt .
-    mv DynamicFusionOpt Opt
-    cd Opt/API
-    make
-    cd ../..
-    echo "Successfully installed Opt!"
-fi
-
 # Parse through the arguments and check if any relavant flag exists
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
@@ -51,6 +29,9 @@ while [ "$1" != "" ]; do
             ;;
         -p | --set-paths)
             RUN_SET_PATHS=true
+            ;;
+        -i | --install-dependencies)
+            RUN_INSTALL_DEPENDENCIES=true
             ;;
         -c | --cmake)
             RUN_CMAKE=true
@@ -63,6 +44,7 @@ while [ "$1" != "" ]; do
             ;;
         -a | --all)
             RUN_SET_PATHS=true
+            RUN_INSTALL_DEPENDENCIES=true
             RUN_CMAKE=true
             RUN_MAKE=true
             ;;
@@ -90,6 +72,45 @@ then
     source /vol/cuda/8.0.44/setup.sh
     export CUDA_HOME=$CUDA_PATH
     echo "CUDA_HOME set to $CUDA_HOME"
+fi
+
+if $RUN_INSTALL_DEPENDENCIES &&  [ ! -d terra ]
+then
+    # Install terra dependency
+    echo "Missing terra dependency, installing terra ..."
+
+    if ! $QUIET
+    then
+        wget https://github.com/zdevito/terra/releases/download/release-2016-03-25/terra-Linux-x86_64-332a506.zip
+        unzip terra-Linux-x86_64-332a506.zip
+    else
+        wget https://github.com/zdevito/terra/releases/download/release-2016-03-25/terra-Linux-x86_64-332a506.zip >/dev/null 2>&1
+        unzip terra-Linux-x86_64-332a506.zip >/dev/null 2>&1
+    fi
+
+    # Save the binary files into appropiate name and reference it in a PATH
+    mv terra-Linux-x86_64-332a506 terra
+    export PATH=$PATH:$(pwd)/terra/bin
+    echo "Installing terra complete"
+fi
+
+if $RUN_INSTALL_DEPENDENCIES && [ ! -d Opt ]
+then
+    # Install Opt dependency
+    echo "Missing Opt, installing Opt ..."
+    # TODO use sed to automatically fix Opt
+    # Currently uses local file stored in shared drive, customised for the lab machine
+    cp -r /vol/project/2017/362/g1736211/DynamicFusionOpt .
+    mv DynamicFusionOpt Opt
+    cd Opt/API
+    if ! $QUIET
+    then
+        make  || (cd ../ && return 1)
+    else
+        make >/dev/null 2>&1 || (cd ../ && return 1)
+    fi
+    cd ../..
+    echo "Installing Opt complete"
 fi
 
 if $RUN_CMAKE
