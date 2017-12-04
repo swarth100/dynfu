@@ -18,6 +18,29 @@ usage() {
     echo "\t--all                  -a: Run all the settings"
 }
 
+if [ ! -d terra ]
+then
+    # Install terra
+    echo "Installing terra..."
+    wget https://github.com/zdevito/terra/releases/download/release-2016-03-25/terra-Linux-x86_64-332a506.zip
+    unzip terra-Linux-x86_64-332a506.zip
+    mv terra-Linux-x86_64-332a506 terra
+    export PATH=$PATH:$(pwd)/terra/bin
+    echo "Successfully installed terra!"
+fi
+
+if [ ! -d Opt ]
+then
+    # Install Opt
+    echo "Installing Opt..."
+    cp -r /vol/project/2017/362/g1736211/DynamicFusionOpt .
+    mv DynamicFusionOpt Opt
+    cd Opt/API
+    make
+    cd ../..
+    echo "Successfully installed Opt!"
+fi
+
 # Parse through the arguments and check if any relavant flag exists
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
