@@ -5,6 +5,9 @@
  */
 
 #include <kfusion/types.hpp>
+
+namespace nanoflann {
+
 struct PointCloud {
     std::vector<cv::Vec3f> pts;
     /* Must return the number of data points */
@@ -39,3 +42,4 @@ struct PointCloud {
         return false;
     }
 };
+}  // namespace nanoflann

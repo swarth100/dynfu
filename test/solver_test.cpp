@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 /* dynfu includes */
+#include <dynfu/utils/opt_solver/opt_solver.h>
 #include <dynfu/utils/ceres_solver.hpp>
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
@@ -220,4 +221,82 @@ TEST_F(SolverTest, MultipleVerticesTest) {
         i = 0;
         j++;
     }
+}
+
+/* */
+TEST_F(SolverTest, SingleVertexTestOpt) {
+    Warpfield warpfield;
+    std::vector<cv::Vec3f> sourceVertices;
+    std::vector<cv::Vec3f> targetVertices;
+
+    cv::Vec3f dg_v = {1.f, 1.f, 1.f};
+
+    std::vector<std::shared_ptr<Node>> nodes;
+
+    std::shared_ptr<Node> node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    warpfield.init(nodes);
+
+    cv::Vec3f sourceVertex(1.05, 0.05, 1);
+    sourceVertices.emplace_back(sourceVertex);
+
+    canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
+
+    cv::Vec3f targetVertex(1.0, 0.0, 1.0);
+    targetVertices.emplace_back(targetVertex);
+
+    liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
+
+    CombinedSolverParameters params;
+    params.numIter       = 20;
+    params.nonLinearIter = 15;
+    params.linearIter    = 250;
+    params.useOpt        = false;
+    params.useOptLM      = true;
+    params.earlyOut      = true;
+
+    // kfusion::WarpFieldOptimiser optimiser(&warp_field, params);
+    //
+    // optimiser.optimiseWarpData(source_vertices, canonical_normals, target_vertices, target_normals);
+    // warp_field.warp(source_vertices, canonical_normals);
+    //
+    // for (int i = 0; i < warp_field.getNodes()->size(); i++) {
+    //     auto t = warp_field.getNodes()->at(i).transform.getTranslation();
+    //     std::cout << t << std::endl;
+    // }
+    //
+    // for (size_t i = 0; i < source_vertices.size(); i++) {
+    //     ASSERT_NEAR(source_vertices[i][0], target_vertices[i][0], max_error);
+    //     ASSERT_NEAR(source_vertices[i][1], target_vertices[i][1], max_error);
+    //     ASSERT_NEAR(source_vertices[i][2], target_vertices[i][2], max_error);
+    // }
 }

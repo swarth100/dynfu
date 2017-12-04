@@ -36,7 +36,7 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
     /* Save the deformation Nodes to PCL format */
     this->saveToPcl(deformationNodesPosition);
 
-    cloud      = std::make_shared<PointCloud>();
+    cloud      = std::make_shared<nanoflann::PointCloud>();
     cloud->pts = deformationNodesPosition;
     kdTree     = std::make_shared<kd_tree_t>(3, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
     kdTree->buildIndex();
