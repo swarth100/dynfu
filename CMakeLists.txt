@@ -59,6 +59,7 @@ find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
+find_package(OpenMesh REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -82,10 +83,11 @@ endif()
 # SET INCLUDE PATHS
 # ---------------------------------------------------------------------------- #
 include_directories(include
-  ${OpenCV_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
   ${CUDA_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+  ${OPENMESH_INCLUDE_DIRS}
   ${OPT_INCLUDE_DIRS}
 )
 

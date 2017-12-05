@@ -6,7 +6,7 @@
 #include <OptGraph.h>
 #include <SolverIteration.h>
 #include <cudaUtil.h>
-#include <dynfu/utils/opt_solver/opt/mLibInclude.h>
+// #include <dynfu/utils/opt_solver/opt/mLibInclude.h>
 
 /* cuda includes */
 #include <cuda_profiler_api.h>
@@ -57,14 +57,18 @@ public:
         std::vector<float[8]> weights(N);
 
         for (int count = 0; count < canonicalVertices.size(); count++) {
+            std::cout << "adding sth to graph vector" << std::endl;
             graphVector[0].push_back(count);
 
-            for (int i = 1; i < graphVector.size(); i++)
+            for (int i = 1; i < graphVector.size() - 2; i++) {
+                std::cout << "adding more" << std::endl;
                 graphVector[i].push_back(1);
-        }
+            }
 
-        m_transformationWeights->update(weights);
-        m_dataGraph = std::make_shared<OptGraph>(graphVector);
+            std::cout << "exit loop" << std::endl;
+            // m_transformationWeights->update(weights);
+            m_dataGraph = std::make_shared<OptGraph>(graphVector);
+        }
     }
 
     virtual void combinedSolveInit() override {
@@ -204,8 +208,6 @@ private:
     std::shared_ptr<OptImage> m_transformationWeights;
 
     std::vector<unsigned int> m_dims;  // curent index in the solver
-
-    ml::Timer m_timer;
 
     CombinedSolverParameters m_solverParameters;
 

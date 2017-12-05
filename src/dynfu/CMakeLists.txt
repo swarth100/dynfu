@@ -12,4 +12,7 @@ target_link_libraries(dynfu
     gcov
     ${Boost_LIBRARIES}
     ${PCL_LIBRARIES}
+    ${OPENMESH_LIBRARIES}
+    ${OPT_LIBRARIES}
+    ${TERRA_LIBRARIES}
 )
