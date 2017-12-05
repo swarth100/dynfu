@@ -44,7 +44,11 @@ set_target_properties(libgmock PROPERTIES
 
 # I couldn't make it work with INTERFACE_INCLUDE_DIRECTORIES
 include_directories("${source_dir}/googletest/include"
-                    "${source_dir}/googlemock/include")
+                    "${source_dir}/googlemock/include"
+                    ${CUDA_INCLUDE_DIRS}
+                    ${OPENMESH_INCLUDE_DIRS}
+                    ${OPT_INCLUDE_DIRS}
+                    ${TERRA_INCLUDE_DIRS})
 
 # ---------------------------------------------------------------------------- #
 # CODE COVERAGE (GCOV) SETTINGS
@@ -83,9 +87,11 @@ target_link_libraries(dynfu_test
   dynfu
   ceres
   ${Boost_LIBRARIES}
+  ${CUDA_LIBRARIES}
   ${PCL_LIBRARIES}
   ${OPT_LIBRARIES}
   ${TERRA_LIBRARIES}
+  ${OPENMESH_LIBRARIES}
 )
 
 # Generate coverage commands
