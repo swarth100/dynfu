@@ -2,10 +2,10 @@
 #include <gtest/gtest.h>
 
 /* dynfu includes */
-#include <dynfu/utils/opt_solver/opt_solver.h>
 #include <dynfu/utils/ceres_solver.hpp>
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
+#include <dynfu/utils/opt_solver.hpp>
 
 #include <dynfu/warp_field.hpp>
 
@@ -285,4 +285,5 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     params.earlyOut      = true;
 
     CombinedSolver combinedSolver(warpfield, params);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
 }
