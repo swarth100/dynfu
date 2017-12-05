@@ -1,6 +1,10 @@
 /* gtest includes */
 #include <gtest/gtest.h>
 
+/* cuda includes */
+#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
+
 /* dynfu includes */
 #include <dynfu/utils/ceres_solver.hpp>
 #include <dynfu/utils/frame.hpp>
@@ -286,4 +290,5 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
 
     CombinedSolver combinedSolver(warpfield, params);
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.solveAll();
 }

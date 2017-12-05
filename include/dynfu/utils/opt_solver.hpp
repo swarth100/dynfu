@@ -18,6 +18,7 @@
 #include <OptGraph.h>
 #include <OptImage.h>
 #include <OptSolver.h>
+#include <OptUtils.h>
 #include <SolverBase.h>
 #include <SolverIteration.h>
 #include <cudaUtil.h>
@@ -65,7 +66,7 @@ public:
         for (int count = 0; count < canonicalVertices.size(); count++) {
             graphVector[0].push_back(count);
 
-            for (int i = 1; i < graphVector.size() - 2; i++) {
+            for (int i = 1; i < graphVector.size() - 3; i++) {
                 graphVector[i].push_back(1);
             }
 

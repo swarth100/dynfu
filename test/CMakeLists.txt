@@ -88,6 +88,8 @@ target_link_libraries(dynfu_test
   ceres
   ${Boost_LIBRARIES}
   ${CUDA_LIBRARIES}
+  ${CUDA_CUDA_LIBRARY}
+  ${CUDA_CUDART_LIBRARY}
   ${PCL_LIBRARIES}
   ${OPT_LIBRARIES}
   ${TERRA_LIBRARIES}

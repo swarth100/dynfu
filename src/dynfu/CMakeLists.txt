@@ -15,6 +15,8 @@ target_link_libraries(dynfu
     gcov
     ${Boost_LIBRARIES}
     ${CUDA_LIBRARIES}
+    ${CUDA_CUDA_LIBRARY}
+    ${CUDA_CUDART_LIBRARY}
     ${OPENMESH_LIBRARIES}
     ${OPT_LIBRARIES}
     ${PCL_LIBRARIES}
