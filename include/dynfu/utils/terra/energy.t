@@ -30,4 +30,4 @@ for _,i in ipairs(nodes) do
     totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i])
 end
 
-Energy(LiveVertices(G.v) - CanonicalVertices(G.v) - weightedTranslation)
+Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)

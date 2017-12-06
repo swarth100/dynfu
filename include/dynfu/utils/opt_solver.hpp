@@ -17,7 +17,7 @@ class CombinedSolver : public CombinedSolverBase {
 public:
     CombinedSolver(Warpfield warpfield, CombinedSolverParameters params);
 
-    void initializeProblemInstance(std::shared_ptr<Frame> canonicalFrame, std::shared_ptr<Frame> liveFrame);
+    void initializeProblemInstance(const std::shared_ptr<Frame> canonicalFrame, const std::shared_ptr<Frame> liveFrame);
 
     void initializeConnectivity(const std::vector<cv::Vec3f> canonicalVertices);
 
@@ -52,21 +52,14 @@ private:
     std::shared_ptr<OptImage> m_liveVertices;
     std::shared_ptr<OptImage> m_liveNormals;
 
-    std::vector<cv::Vec3f> m_results;
+    std::vector<unsigned int> m_dims;  // curent index in the solver
 
     std::shared_ptr<OptGraph> m_dataGraph;
-    std::shared_ptr<OptGraph> m_regGraph;
 
     std::shared_ptr<OptImage> m_rotation;
     std::shared_ptr<OptImage> m_translation;
 
     std::shared_ptr<OptImage> m_transformationWeights;
 
-    std::vector<unsigned int> m_dims;  // curent index in the solver
-
-    CombinedSolverParameters m_solverParameters;
-
-    float m_functionTolerance;
-    float m_paramTolerance;
-    float m_trust_region_radius;
+    std::vector<cv::Vec3f> m_results;
 };

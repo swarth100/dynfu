@@ -8,6 +8,7 @@ cmake_minimum_required(VERSION 2.8.8)
 # ---------------------------------------------------------------------------- #
 
 if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/terra)
+    set(TERRA_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/terra/include)
     set(TERRA_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/terra/lib/libterra.a)
 else()
     message(FATAL_ERROR "Please run setup script to install terra.")
@@ -45,7 +46,7 @@ SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
 FILE(MAKE_DIRECTORY "files")
 
 # Set CXX to compile with C++11 standard
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -MP -MD -pthread -fpermissive")
 
 if(BUILD_TESTS)
   # Add Flags for coverage report
@@ -59,6 +60,8 @@ find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
+find_package(Threads REQUIRED)
+find_package(OpenMesh REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -87,6 +90,8 @@ include_directories(include
   ${CERES_INCLUDE_DIRS}
   ${CUDA_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${OPENMESH_INCLUDE_DIRS}
+  ${TERRA_INCLUDE_DIRS}
   ${OPT_INCLUDE_DIRS}
 )
 
