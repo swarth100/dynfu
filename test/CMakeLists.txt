@@ -42,13 +42,6 @@ set_target_properties(libgmock PROPERTIES
     "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
 )
 
-# I couldn't make it work with INTERFACE_INCLUDE_DIRECTORIES
-include_directories("${source_dir}/googletest/include"
-                    "${source_dir}/googlemock/include"
-                    ${CUDA_INCLUDE_DIRS}
-                    ${OPENMESH_INCLUDE_DIRS}
-                    ${OPT_INCLUDE_DIRS}
-                    ${TERRA_INCLUDE_DIRS})
 
 # ---------------------------------------------------------------------------- #
 # CODE COVERAGE (GCOV) SETTINGS
@@ -71,7 +64,18 @@ SET(COVERAGE_EXCLUDES
   '/tmp/*'
   '/vol/project/*'
   '/vol/cuda/*'
+  'build/*'
 )
+
+# ---------------------------------------------------------------------------- #
+# TEST INCLUDE DIRECTORIES
+# ---------------------------------------------------------------------------- #
+include_directories("${source_dir}/googletest/include"
+                    "${source_dir}/googlemock/include"
+                    ${CUDA_INCLUDE_DIRS}
+                    ${OPENMESH_INCLUDE_DIRS}
+                    ${OPT_INCLUDE_DIRS}
+                    ${TERRA_INCLUDE_DIRS})
 
 # ---------------------------------------------------------------------------- #
 # CREATE TESTS

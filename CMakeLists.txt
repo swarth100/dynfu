@@ -69,11 +69,12 @@ LIST(APPEND CUDA_NVCC_FLAGS
   "-gencode;arch=compute_30,code=sm_30;
    -gencode;arch=compute_35,code=sm_35;
    -gencode;arch=compute_50,code=sm_50;
-   -gencode;arch=compute_61,code=sm_61
+   -gencode;arch=compute_61,code=sm_61;
    --ftz=true;
    --prec-div=false;
-   --prec-sqrt=false"
- )
+   --prec-sqrt=false;
+   --expt-relaxed-constexpr"
+)
 
 if(UNIX OR APPLE)
   LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-fPIC;")
