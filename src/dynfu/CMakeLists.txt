@@ -6,7 +6,6 @@ include_directories(
   ${CUDA_INCLUDE_DIRS}
   ${OPT_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-  ${TERRA_INCLUDE_DIRS}
 )
 # Link to dynfu library
 target_link_libraries(dynfu
@@ -17,7 +16,6 @@ target_link_libraries(dynfu
     ${CUDA_LIBRARIES}
     ${CUDA_CUDA_LIBRARY}
     ${CUDA_CUDART_LIBRARY}
-    ${OPENMESH_LIBRARIES}
     ${OPT_LIBRARIES}
     ${PCL_LIBRARIES}
     ${TERRA_LIBRARIES}

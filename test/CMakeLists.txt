@@ -73,9 +73,7 @@ SET(COVERAGE_EXCLUDES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include"
                     ${CUDA_INCLUDE_DIRS}
-                    ${OPENMESH_INCLUDE_DIRS}
-                    ${OPT_INCLUDE_DIRS}
-                    ${TERRA_INCLUDE_DIRS})
+                    ${OPT_INCLUDE_DIRS})
 
 # ---------------------------------------------------------------------------- #
 # CREATE TESTS
@@ -97,7 +95,6 @@ target_link_libraries(dynfu_test
   ${PCL_LIBRARIES}
   ${OPT_LIBRARIES}
   ${TERRA_LIBRARIES}
-  ${OPENMESH_LIBRARIES}
 )
 
 # Generate coverage commands
