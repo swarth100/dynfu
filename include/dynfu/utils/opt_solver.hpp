@@ -10,6 +10,7 @@
 /* opt includes */
 #include <CombinedSolverBase.h>
 #include <CombinedSolverParameters.h>
+#include <CudaArray.h>
 #include <OptGraph.h>
 #include <OptImage.h>
 
@@ -41,6 +42,7 @@ public:
 
 private:
     Warpfield m_warpfield;
+    CombinedSolverParameters m_solverParameters;
 
     std::vector<unsigned int> m_dims;  // curent index in the solver
 

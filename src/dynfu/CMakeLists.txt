@@ -19,6 +19,7 @@ target_link_libraries(dynfu
     Threads::Threads
     ${Boost_LIBRARIES}
     ${PCL_LIBRARIES}
+    ${OPT_LIBRARIES}
     ${TERRA_LIBRARIES}
     ${OPENMESH_LIBRARIES}
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl

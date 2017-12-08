@@ -93,6 +93,7 @@ include_directories(include
   ${OPENMESH_INCLUDE_DIRS}
   ${TERRA_INCLUDE_DIRS}
   ${OPT_INCLUDE_DIRS}
+  ${TERRA_INCLUDE_DIRS}
 )
 
 # ---------------------------------------------------------------------------- #

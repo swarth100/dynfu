@@ -1,15 +1,15 @@
 local D,N = Dim("D",0), Dim("N",1)
 
-local rotation = Unknown("rotation", opt_float3,{D},0)
-local translation = Unknown("translation", opt_float3,{D}, 1)
+local rotation = Unknown("rotation",opt_float3,{D},0)
+local translation = Unknown("translation",opt_float3,{D},1)
 
-local canonicalVertices = Array("canonicalVertices", opt_float3,{N}, 2)
-local canonicalNormals = Array("canonicalNormals", opt_float3,{N}, 3)
+local canonicalVertices = Array("canonicalVertices",opt_float3,{N},2)
+local canonicalNormals = Array("canonicalNormals",opt_float3,{N},3)
 
-local liveVertices = Array("liveVertices", opt_float3,{N},4)
-local liveNormals = Array("liveNormals", opt_float3,{N},5)
+local liveVertices = Array("liveVertices",opt_float3,{N},4)
+local liveNormals = Array("liveNormals",opt_float3,{N},5)
 
-local transformationWeights = Array("weights", opt_float8, {N}, 6)
+local transformationWeights = Array("transformationWeights",opt_float8,{N},6)
 
 local G = Graph("dataGraph", 7,
                     "v", {N}, 8,
@@ -27,7 +27,8 @@ local totalTranslation = 0
 nodes = {0,1,2,3,4,5,6,7}
 
 for _,i in ipairs(nodes) do
-    totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i])
+    totalTranslation = totalTranslation + 1
+    -- totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i])
 end
 
 Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
