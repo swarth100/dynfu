@@ -42,6 +42,8 @@ public:
 private:
     Warpfield m_warpfield;
 
+    std::vector<unsigned int> m_dims;  // curent index in the solver
+
     std::vector<cv::Vec3f> m_canonicalVerticesOpenCV;
     std::vector<cv::Vec3f> m_liveVerticesOpenCV;
     std::vector<cv::Vec3f> m_canonicalNormalsOpenCV;
@@ -51,8 +53,6 @@ private:
     std::shared_ptr<OptImage> m_canonicalNormals;
     std::shared_ptr<OptImage> m_liveVertices;
     std::shared_ptr<OptImage> m_liveNormals;
-
-    std::vector<unsigned int> m_dims;  // curent index in the solver
 
     std::shared_ptr<OptGraph> m_dataGraph;
 

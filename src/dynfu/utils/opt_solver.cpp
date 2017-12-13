@@ -1,12 +1,12 @@
 #include <dynfu/utils/opt_solver.hpp>
 
 CombinedSolver::CombinedSolver(Warpfield warpfield, CombinedSolverParameters params) {
-    m_warpfield        = warpfield;
-    m_solverParameters = params;
+    m_warpfield                = warpfield;
+    m_combinedSolverParameters = params;
 }
 
-void CombinedSolver::initializeProblemInstance(std::shared_ptr<Frame> canonicalFrame,
-                                               std::shared_ptr<Frame> liveFrame) {
+void CombinedSolver::initializeProblemInstance(const std::shared_ptr<Frame> canonicalFrame,
+                                               const std::shared_ptr<Frame> liveFrame) {
     m_canonicalVerticesOpenCV = canonicalFrame->getVertices();
     m_canonicalNormalsOpenCV  = canonicalFrame->getNormals();
     m_liveVerticesOpenCV      = liveFrame->getVertices();
@@ -28,32 +28,33 @@ void CombinedSolver::initializeProblemInstance(std::shared_ptr<Frame> canonicalF
     m_transformationWeights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 8, OptImage::GPU, true);
 
     resetGPUMemory();
-
     initializeConnectivity(m_canonicalVerticesOpenCV);
-    addOptSolvers(m_dims, std::string("include/dynfu/utils/terra/energy.t"));
+    addOptSolvers(m_dims, std::string("/homes/dig15/df/dynfu/include/dynfu/utils/terra/energy.t"));
 }
 
 void CombinedSolver::initializeConnectivity(const std::vector<cv::Vec3f> canonicalVertices) {
     unsigned int N = (unsigned int) canonicalVertices.size();
 
-    std::vector<std::vector<int>> graphVector(8 /* KNN */ + 1, std::vector<int>(N));
-    std::vector<float[8]> weights(N);
+    std::vector<std::vector<int>> indices(9, std::vector<int>(N));
+    std::vector<float[8]> transformationWeights(N);
 
     for (int count = 0; count < canonicalVertices.size(); count++) {
-        graphVector[0].push_back(count);
-
-        for (int i = 1; i < graphVector.size() - 3; i++) {
-            graphVector[i].push_back(1);
+        indices[0].push_back(count);
+        for (int i = 1; i < indices.size(); i++) {
+            indices[i].push_back((int) m_warpfield.findNeighborsIndex(8, canonicalVertices[0]).at(i - 1));
         }
-
-        // m_transformationWeights->update(weights);
-        m_dataGraph = std::make_shared<OptGraph>(graphVector);
     }
+
+    m_transformationWeights->update(transformationWeights);
+    m_dataGraph = std::make_shared<OptGraph>(indices);
 }
 
 void CombinedSolver::combinedSolveInit() {
-    m_functionTolerance = 1e-5f;
-    m_paramTolerance    = 1e-5f;
+    m_solverParams.set("nIterations", &m_combinedSolverParameters.nonLinearIter);
+    m_solverParams.set("lIterations", &m_combinedSolverParameters.linearIter);
+
+    m_problemParams.set("rotation", m_rotation);
+    m_problemParams.set("translation", m_translation);
 
     m_problemParams.set("canonicalVertices", m_canonicalVertices);
     m_problemParams.set("canonicalNormals", m_canonicalNormals);
@@ -61,18 +62,9 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("liveVertices", m_liveVertices);
     m_problemParams.set("liveNormals", m_liveNormals);
 
-    m_problemParams.set("dataGraph", m_dataGraph);
-    //        m_problemParams.set("regGraph", m_regGraph);
-
-    m_problemParams.set("rotation", m_rotation);
-    m_problemParams.set("translation", m_translation);
-
     m_problemParams.set("transformationWeights", m_transformationWeights);
 
-    m_solverParams.set("lIterations", &m_combinedSolverParameters.linearIter);
-    m_solverParams.set("nIterations", &m_combinedSolverParameters.nonLinearIter);
-
-    m_solverParams.set("function_tolerance", &m_functionTolerance);
+    m_problemParams.set("dataGraph", m_dataGraph);
 }
 
 void CombinedSolver::preSingleSolve() {}
@@ -84,12 +76,12 @@ void CombinedSolver::preNonlinearSolve(int) {}
 void CombinedSolver::postNonlinearSolve(int) {}
 
 void CombinedSolver::combinedSolveFinalize() {
-    reportFinalCosts("Robust Mesh Deformation", m_combinedSolverParameters, getCost("Opt(GN)"), getCost("Opt(LM)"),
+    reportFinalCosts("warp field optimisation", m_combinedSolverParameters, getCost("Opt(GN)"), getCost("Opt(LM)"),
                      nan(""));
 }
 
 void CombinedSolver::resetGPUMemory() {
-    uint N = (uint) m_canonicalVerticesOpenCV.size();
+    auto N = m_dims[1];
 
     std::vector<float3> h_canonicalVertices(N);
     std::vector<float3> h_canonicalNormals(N);
@@ -98,22 +90,6 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float3> h_liveNormals(N);
 
     for (int i = 0; i < N; i++) {
-        if (std::isnan(m_canonicalVerticesOpenCV[i][0]) || std::isnan(m_canonicalVerticesOpenCV[i][1]) ||
-            std::isnan(m_canonicalVerticesOpenCV[i][2]))
-            continue;
-
-        if (std::isnan(m_canonicalNormalsOpenCV[i][0]) || std::isnan(m_canonicalNormalsOpenCV[i][1]) ||
-            std::isnan(m_canonicalNormalsOpenCV[i][2]))
-            continue;
-
-        if (std::isnan(m_liveVerticesOpenCV[i][0]) || std::isnan(m_liveVerticesOpenCV[i][1]) ||
-            std::isnan(m_liveVerticesOpenCV[i][2]))
-            continue;
-
-        if (std::isnan(m_liveNormalsOpenCV[i][0]) || std::isnan(m_liveNormalsOpenCV[i][1]) ||
-            std::isnan(m_liveNormalsOpenCV[i][2]))
-            continue;
-
         h_canonicalVertices[i] = make_float3(m_canonicalVerticesOpenCV[i][0], m_canonicalVerticesOpenCV[i][1],
                                              m_canonicalVerticesOpenCV[i][2]);
         h_canonicalNormals[i] =
@@ -130,35 +106,34 @@ void CombinedSolver::resetGPUMemory() {
     m_liveVertices->update(h_liveVertices);
     m_liveNormals->update(h_liveNormals);
 
-    uint D = (uint) m_warpfield.getNodes().size();
+    auto D = m_dims[0];
 
     std::vector<float3> h_translation(D);
     std::vector<float3> h_rotation(D);
 
     for (int i = 0; i < m_warpfield.getNodes().size(); i++) {
         auto nodeTransformation = m_warpfield.getNodes()[i]->getTransformation();
+        auto nodeTranslation    = nodeTransformation->getTranslation();
+        auto nodeRotation       = nodeTransformation->getRotation();
 
-        auto nodeTranslation = nodeTransformation->getTranslation();
-        h_translation[i]     = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
-
-        auto nodeRotation = nodeTransformation->getRotation();
-        h_rotation[i]     = make_float3(0.f, 0.f, 0.f);  // TODO (dig15): set this properly
+        h_translation[i] = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
+        h_rotation[i]    = make_float3(0.f, 0.f, 0.f);  // FIXME (dig15): set the rotations
     }
 
-    m_rotation->update(h_rotation);
     m_translation->update(h_translation);
+    m_rotation->update(h_rotation);
 }
 
-std::vector<cv::Vec3f> getResult() {}  // FIXME (dig15): return the result properly
+std::vector<cv::Vec3f> getResult() {}  // FIXME (dig15): return the result
 
 void CombinedSolver::copyResultToCPUFromFloat3() {
-    unsigned int N = (unsigned int) m_warpfield.getNodes().size();
-
-    std::vector<float3> h_translation(N);
+    auto D = m_dims[0];
+    std::vector<float3> h_translation(D);
 
     m_translation->copyTo(h_translation);
 
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < D; i++) {
         m_warpfield.getNodes()[i]->setTranslation(
             cv::Vec3f(h_translation[i].x, h_translation[i].y, h_translation[i].z));
+    }
 }

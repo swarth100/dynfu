@@ -5,8 +5,6 @@
 # Implementation heavily based upon:
 # https://github.com/kaizouman/gtest-cmake-example
 
-find_package(Threads REQUIRED)
-
 # Enable ExternalProject CMake module
 include(ExternalProject)
 
@@ -71,9 +69,7 @@ SET(COVERAGE_EXCLUDES
 # TEST INCLUDE DIRECTORIES
 # ---------------------------------------------------------------------------- #
 include_directories("${source_dir}/googletest/include"
-                    "${source_dir}/googlemock/include"
-                    ${CUDA_INCLUDE_DIRS}
-                    ${OPT_INCLUDE_DIRS})
+                    "${source_dir}/googlemock/include")
 
 # ---------------------------------------------------------------------------- #
 # CREATE TESTS
@@ -84,17 +80,21 @@ set(gtest_build_samples ON)
 # Add quaternion Test
 CREATE_TEST(dynfu_test)
 
+message(CUDA_LIBRARIES ${CUDA_LIBRARIES})
+message(CUDA_CUDART_LIBRARY ${CUDA_CUDART_LIBRARY})
+
+
 # Link all libraries for testing
 target_link_libraries(dynfu_test
   dynfu
   ceres
+  Threads::Threads
   ${Boost_LIBRARIES}
-  ${CUDA_LIBRARIES}
-  ${CUDA_CUDA_LIBRARY}
   ${CUDA_CUDART_LIBRARY}
   ${PCL_LIBRARIES}
-  ${OPT_LIBRARIES}
   ${TERRA_LIBRARIES}
+  ${OPENMESH_LIBRARIES}
+  ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
 )
 
 # Generate coverage commands

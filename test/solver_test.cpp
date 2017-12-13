@@ -1,10 +1,6 @@
 /* gtest includes */
 #include <gtest/gtest.h>
 
-/* cuda includes */
-#include <cuda_runtime.h>
-#include <cuda_runtime_api.h>
-
 /* dynfu includes */
 #include <dynfu/utils/ceres_solver.hpp>
 #include <dynfu/utils/frame.hpp>
