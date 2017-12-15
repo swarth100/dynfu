@@ -1,15 +1,15 @@
 #include <dynfu/utils/frame.hpp>
 
-Frame::Frame(int id, std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals) {
+dynfu::Frame::Frame(int id, std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals) {
     this->id       = id;
     this->vertices = vertices;
     this->normals  = normals;
 }
 
-Frame::~Frame() = default;
+dynfu::Frame::~Frame() = default;
 
-int Frame::getId() { return this->id; }
+int dynfu::Frame::getId() { return this->id; }
 
-std::vector<cv::Vec3f> Frame::getVertices() { return this->vertices; }
+std::vector<cv::Vec3f> dynfu::Frame::getVertices() { return this->vertices; }
 
-std::vector<cv::Vec3f> Frame::getNormals() { return this->normals; }
+std::vector<cv::Vec3f> dynfu::Frame::getNormals() { return this->normals; }

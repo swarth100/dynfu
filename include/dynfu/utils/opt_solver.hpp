@@ -18,9 +18,10 @@ class CombinedSolver : public CombinedSolverBase {
 public:
     CombinedSolver(Warpfield warpfield, CombinedSolverParameters params);
 
-    void initializeProblemInstance(const std::shared_ptr<Frame> canonicalFrame, const std::shared_ptr<Frame> liveFrame);
+    void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
+                                   const std::shared_ptr<dynfu::Frame> liveFrame);
 
-    void initializeConnectivity(const std::vector<cv::Vec3f> canonicalVertices);
+    void initializeConnectivity(std::vector<cv::Vec3f> canonicalVertices);
 
     void combinedSolveInit() override;
 
@@ -28,9 +29,9 @@ public:
 
     void postSingleSolve() override;
 
-    void preNonlinearSolve(int) override;
+    virtual void preNonlinearSolve(int iteration) override;
 
-    void postNonlinearSolve(int) override;
+    virtual void postNonlinearSolve(int iteration) override;
 
     void combinedSolveFinalize() override;
 

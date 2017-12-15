@@ -72,7 +72,7 @@ std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(cv::Vec3f point) {
     return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
 }
 
-void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
+void Warpfield::warp(std::shared_ptr<dynfu::Frame> liveFrame) {
     // calculate DQB for all points
     // warps all points
     auto points = liveFrame->getVertices();

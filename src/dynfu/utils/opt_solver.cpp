@@ -5,8 +5,8 @@ CombinedSolver::CombinedSolver(Warpfield warpfield, CombinedSolverParameters par
     m_combinedSolverParameters = params;
 }
 
-void CombinedSolver::initializeProblemInstance(const std::shared_ptr<Frame> canonicalFrame,
-                                               const std::shared_ptr<Frame> liveFrame) {
+void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
+                                               const std::shared_ptr<dynfu::Frame> liveFrame) {
     m_canonicalVerticesOpenCV = canonicalFrame->getVertices();
     m_canonicalNormalsOpenCV  = canonicalFrame->getNormals();
     m_liveVerticesOpenCV      = liveFrame->getVertices();
@@ -32,17 +32,26 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<Frame> cano
     addOptSolvers(m_dims, std::string("/homes/dig15/df/dynfu/include/dynfu/utils/terra/energy.t"));
 }
 
-void CombinedSolver::initializeConnectivity(const std::vector<cv::Vec3f> canonicalVertices) {
+void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVertices) {
     int N = canonicalVertices.size();
 
     std::vector<std::vector<int>> indices(9, std::vector<int>(N));
-    std::vector<float[8]> transformationWeights(N);
+    std::vector<std::array<float, 8>> transformationWeights(N);
+    std::array<float, 8> transformationWeightsArray{};
 
     for (int count = 0; count < canonicalVertices.size(); count++) {
         indices[0].push_back(count);
+
+        auto vertexNeighbours    = m_warpfield.findNeighbors(8, canonicalVertices[count]);
+        auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(8, canonicalVertices[count]);
+
         for (int i = 1; i < indices.size(); i++) {
-            indices[i].push_back((int) m_warpfield.findNeighborsIndex(8, canonicalVertices[0]).at(i - 1));
+            transformationWeightsArray[i - 1] =
+                vertexNeighbours[i - 1]->getTransformationWeight(canonicalVertices[count]);
+            indices[i].push_back(vertexNeighboursIdx[i - 1]);
         }
+
+        transformationWeights.push_back(transformationWeightsArray);
     }
 
     m_transformationWeights->update(transformationWeights);
@@ -73,9 +82,9 @@ void CombinedSolver::preSingleSolve() {}
 
 void CombinedSolver::postSingleSolve() { copyResultToCPUFromFloat3(); }
 
-void CombinedSolver::preNonlinearSolve(int) {}
+void CombinedSolver::preNonlinearSolve(int /* iteration */) {}
 
-void CombinedSolver::postNonlinearSolve(int) {}
+void CombinedSolver::postNonlinearSolve(int /* iteration */) {}
 
 void CombinedSolver::combinedSolveFinalize() {
     reportFinalCosts("warp field optimisation", m_combinedSolverParameters, getCost("Opt(GN)"), getCost("Opt(LM)"),
@@ -113,7 +122,7 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float3> h_translation(D);
     std::vector<float3> h_rotation(D);
 
-    for (int i = 0; i < m_warpfield.getNodes().size(); i++) {
+    for (int i = 0; i < D; i++) {
         auto nodeTransformation = m_warpfield.getNodes()[i]->getTransformation();
         auto nodeTranslation    = nodeTransformation->getTranslation();
         auto nodeRotation       = nodeTransformation->getRotation();

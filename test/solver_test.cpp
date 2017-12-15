@@ -56,8 +56,8 @@ protected:
         std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     float dg_w = 2.f;
 
-    std::shared_ptr<Frame> canonicalFrameWarpedToLive;
-    std::shared_ptr<Frame> liveFrame;
+    std::shared_ptr<dynfu::Frame> canonicalFrameWarpedToLive;
+    std::shared_ptr<dynfu::Frame> liveFrame;
 
     ceres::Solver::Options options;
 };
@@ -108,12 +108,12 @@ TEST_F(SolverTest, SingleVertexTest) {
     cv::Vec3f sourceVertex(1.05, 0.05, 1);
     sourceVertices.emplace_back(sourceVertex);
 
-    canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
+    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceVertices);
 
     cv::Vec3f targetVertex(1.0, 0.0, 1.0);
     targetVertices.emplace_back(targetVertex);
 
-    liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
+    liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetVertices);
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
@@ -132,9 +132,9 @@ TEST_F(SolverTest, SingleVertexTest) {
     auto result              = sourceVertex + totalTransformation->getTranslation();
 
     max_error = 0.01;
-    ASSERT_NEAR(result[0], targetVertices[0][0], max_error);
-    ASSERT_NEAR(result[1], targetVertices[0][1], max_error);
-    ASSERT_NEAR(result[2], targetVertices[0][2], max_error);
+    ASSERT_NEAR(result[0], liveFrame->getVertices()[0][0], max_error);
+    ASSERT_NEAR(result[1], liveFrame->getVertices()[0][1], max_error);
+    ASSERT_NEAR(result[2], liveFrame->getVertices()[0][2], max_error);
 }
 
 /* */
@@ -186,7 +186,7 @@ TEST_F(SolverTest, MultipleVerticesTest) {
     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
 
-    canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
+    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceVertices);
 
     targetVertices.emplace_back(cv::Vec3f(-2.95f, -2.95f, -2.95f));
     targetVertices.emplace_back(cv::Vec3f(-1.95f, -1.95f, -1.95f));
@@ -194,7 +194,7 @@ TEST_F(SolverTest, MultipleVerticesTest) {
     targetVertices.emplace_back(cv::Vec3f(2.05, 2.05, 2.05));
     targetVertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
 
-    liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
+    liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetVertices);
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
@@ -202,7 +202,7 @@ TEST_F(SolverTest, MultipleVerticesTest) {
 
     int i = 0;
     int j = 0;
-    for (auto vertex : sourceVertices) {
+    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
         for (auto neighbour : nodes) {
@@ -214,9 +214,9 @@ TEST_F(SolverTest, MultipleVerticesTest) {
             i++;
         }
 
-        ASSERT_NEAR((vertex + totalTranslation)[0], targetVertices[j][0], max_error);
-        ASSERT_NEAR((vertex + totalTranslation)[1], targetVertices[j][1], max_error);
-        ASSERT_NEAR((vertex + totalTranslation)[2], targetVertices[j][2], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
 
         i = 0;
         j++;
@@ -269,17 +269,17 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     cv::Vec3f sourceVertex(1.05, 0.05, 1);
     sourceVertices.emplace_back(sourceVertex);
 
-    canonicalFrameWarpedToLive = std::make_shared<Frame>(0, sourceVertices, sourceVertices);
+    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceVertices);
 
     cv::Vec3f targetVertex(1.0, 0.0, 1.0);
     targetVertices.emplace_back(targetVertex);
 
-    liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
+    liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetVertices);
 
     CombinedSolverParameters params;
-    params.numIter       = 20;
-    params.nonLinearIter = 15;
-    params.linearIter    = 250;
+    params.numIter       = 32;
+    params.nonLinearIter = 16;
+    params.linearIter    = 256;
     params.useOpt        = false;
     params.useOptLM      = true;
     params.earlyOut      = true;
@@ -290,18 +290,236 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
 
     int i = 0;
     int j = 0;
-    for (auto vertex : sourceVertices) {
+    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        for (auto neighbour : nodes) {
+        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+
+        for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-            totalTranslation += translation * neighbour->getTransformationWeight(vertex);
+            totalTranslation += translation;
             i++;
         }
 
-        ASSERT_NEAR((vertex + totalTranslation)[0], targetVertices[j][0], max_error);
-        ASSERT_NEAR((vertex + totalTranslation)[1], targetVertices[j][1], max_error);
-        ASSERT_NEAR((vertex + totalTranslation)[2], targetVertices[j][2], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
+
+        i = 0;
+        j++;
+    }
+}
+
+/* */
+TEST_F(SolverTest, MultipleVerticesTestOpt) {
+    Warpfield warpfield;
+    std::vector<cv::Vec3f> sourceVertices;
+    std::vector<cv::Vec3f> targetVertices;
+
+    cv::Vec3f dg_v = {1.f, 1.f, 1.f};
+
+    std::vector<std::shared_ptr<Node>> nodes;
+
+    std::shared_ptr<Node> node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    warpfield.init(nodes);
+
+    sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
+    sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
+    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
+    sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
+
+    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceVertices);
+
+    targetVertices.emplace_back(cv::Vec3f(-2.95f, -2.95f, -2.95f));
+    targetVertices.emplace_back(cv::Vec3f(-1.95f, -1.95f, -1.95f));
+    targetVertices.emplace_back(cv::Vec3f(0.05, 0.05, 0.05));
+    targetVertices.emplace_back(cv::Vec3f(2.05, 2.05, 2.05));
+    targetVertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
+
+    liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetVertices);
+
+    CombinedSolverParameters params;
+    params.numIter       = 32;
+    params.nonLinearIter = 16;
+    params.linearIter    = 256;
+    params.useOpt        = false;
+    params.useOptLM      = true;
+    params.earlyOut      = true;
+
+    CombinedSolver combinedSolver(warpfield, params);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.solveAll();
+
+    int i = 0;
+    int j = 0;
+    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+        cv::Vec3f totalTranslation;
+
+        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+
+        for (auto neighbour : neighbourNodes) {
+            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+            totalTranslation += translation;
+            i++;
+        }
+
+        ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
+
+        i = 0;
+        j++;
+    }
+}
+
+/* */
+TEST_F(SolverTest, WarpAndReverseTestOpt) {
+    Warpfield warpfield;
+    std::vector<cv::Vec3f> sourceVertices;
+    std::vector<cv::Vec3f> targetVertices;
+
+    cv::Vec3f dg_v = {1.f, 1.f, 1.f};
+
+    std::vector<std::shared_ptr<Node>> nodes;
+
+    std::shared_ptr<Node> node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, 1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {1.f, -1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    dg_v = {-1.f, 1.f, -1.f};
+    node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+    nodes.push_back(node);
+
+    warpfield.init(nodes);
+
+    sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
+    sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
+    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
+    sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
+
+    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceVertices);
+
+    targetVertices.emplace_back(cv::Vec3f(-2.95f, -2.95f, -2.95f));
+    targetVertices.emplace_back(cv::Vec3f(-1.95f, -1.95f, -1.95f));
+    targetVertices.emplace_back(cv::Vec3f(0.05, 0.05, 0.05));
+    targetVertices.emplace_back(cv::Vec3f(2.05, 2.05, 2.05));
+    targetVertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
+
+    liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetVertices);
+
+    CombinedSolverParameters params;
+    params.numIter       = 32;
+    params.nonLinearIter = 16;
+    params.linearIter    = 256;
+    params.useOpt        = false;
+    params.useOptLM      = true;
+    params.earlyOut      = true;
+
+    CombinedSolver combinedSolver(warpfield, params);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.solveAll();
+
+    int i = 0;
+    int j = 0;
+    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+        cv::Vec3f totalTranslation;
+
+        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+
+        for (auto neighbour : neighbourNodes) {
+            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+            totalTranslation += translation;
+            i++;
+        }
+
+        ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
+
+        i = 0;
+        j++;
+    }
+
+    /* reverse */
+    auto temp                  = liveFrame;
+    liveFrame                  = canonicalFrameWarpedToLive;
+    canonicalFrameWarpedToLive = temp;
+
+    CombinedSolver combinedSolverReverse(warpfield, params);
+    combinedSolverReverse.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolverReverse.solveAll();
+
+    i = 0;
+    j = 0;
+    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+        cv::Vec3f totalTranslation;
+
+        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+
+        for (auto neighbour : neighbourNodes) {
+            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+            totalTranslation += translation;
+            i++;
+        }
+
+        ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
 
         i = 0;
         j++;

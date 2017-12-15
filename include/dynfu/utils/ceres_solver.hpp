@@ -98,8 +98,8 @@ public:
     /* destructor */
     ~WarpProblem() {}
 
-    void optimiseWarpField(Warpfield warpfield, std::shared_ptr<Frame> canonicalFrame,
-                           std::shared_ptr<Frame> liveFrame) {
+    void optimiseWarpField(Warpfield warpfield, std::shared_ptr<dynfu::Frame> canonicalFrame,
+                           std::shared_ptr<dynfu::Frame> liveFrame) {
         ceres::Problem problem;
         ceres::Solver::Summary summary;
 

@@ -46,7 +46,7 @@ public:
     std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
 
     /* warp a canonical frame according to the data stored in the warpfield */
-    void warp(std::shared_ptr<Frame> liveFrame);
+    void warp(std::shared_ptr<dynfu::Frame> liveFrame);
 
     /* Find a set amount of closest neighbours */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);

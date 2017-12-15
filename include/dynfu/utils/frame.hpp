@@ -5,6 +5,8 @@
 #include <opencv2/core/affine.hpp>
 #include <opencv2/core/core.hpp>
 
+namespace dynfu {
+
 /* */
 class Frame {
 public:
@@ -25,5 +27,6 @@ private:
     std::vector<cv::Vec3f> normals;
 };
 
+}  // namespace dynfu
 /* DYNFU_FRAME_HPP */
 #endif
