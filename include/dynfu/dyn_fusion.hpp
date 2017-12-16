@@ -17,6 +17,9 @@
 /* sys headers */
 #include <math.h>
 
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 using namespace kfusion;
 using namespace kfusion::cuda;
 
@@ -41,7 +44,7 @@ public:
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
-    dynfu::Frame getCanonicalWarpedToLive();
+    std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
 
 private:
     std::shared_ptr<dynfu::Frame> canonicalFrame;
@@ -52,6 +55,8 @@ private:
 
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
+    /* convert OpenCV matrix to cloud */
+    kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
     /* convert normals to OpenCV matrix */
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
     /* convert OpenCV matrix to vector of Vec3f */

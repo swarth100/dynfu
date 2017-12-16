@@ -153,9 +153,9 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     cuda::waitAllDefaultStream();
 
-    // can't perform more on first frame
+    // can't do more with the first frame
     if (frame_counter_ == 0) {
-        /* Initialise the warpfield */
+        /* initialise the warpfield */
         dynfu->init(curr_.points_pyr[0], curr_.normals_pyr[0]);
         volume_->integrate(dists_, poses_.back(), p.intr);
 #if defined USE_DEPTH
@@ -167,9 +167,10 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
         return ++frame_counter_, false;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // ICP
-    Affine3f affine;  // cuur -> prev
+    /*
+     * ITERATIVE CLOSET POINT
+     */
+    Affine3f affine;  // current -> previous
     {
 // ScopeTime time("icp");
 #if defined USE_DEPTH
@@ -185,29 +186,30 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     poses_.push_back(poses_.back() * affine);  // curr -> global
 
-    /* Add live frame to Dynfu */
+    /* add new live frame to dynfu */
     dynfu->addLiveFrame(frame_counter_, curr_.points_pyr[0], curr_.normals_pyr[0]);
 
-    /* TODO(rm3115) Apply warp and get the result (probably need to upload the data back to curr_.points and
-     * curr_.normals) */
+    /* TODO (dig15): apply warp and get the result; probably need to upload the data back to curr_.points and
+     * curr_.normals */
     dynfu->warpCanonicalToLiveOpt();
-
     dynfu::Frame canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Volume integration
-
-    // We do not integrate volume if camera does not move.
+    /*
+     * VOLUME INTEGRATION
+     * we don't integrate volume if the camera doesn't move
+     */
     float rnorm    = (float) cv::norm(affine.rvec());
     float tnorm    = (float) cv::norm(affine.translation());
     bool integrate = (rnorm + tnorm) / 2 >= p.tsdf_min_camera_movement;
+
     if (integrate) {
         // ScopeTime time("tsdf");
         volume_->integrate(dists_, poses_.back(), p.intr);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Ray casting
+    /*
+     * RAYCASTING
+     */
     {
 // ScopeTime time("ray-cast-all");
 #if defined USE_DEPTH
@@ -281,57 +283,3 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
     }
 #undef PASS1
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// namespace pcl
-//{
-//    Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix)
-//    {
-//        Eigen::JacobiSVD<Eigen::Matrix3f> svd(matrix, Eigen::ComputeFullV |
-//        Eigen::ComputeFullU); Eigen::Matrix3f R = svd.matrixU() *
-//        svd.matrixV().transpose();
-
-//        double rx = R(2, 1) - R(1, 2);
-//        double ry = R(0, 2) - R(2, 0);
-//        double rz = R(1, 0) - R(0, 1);
-
-//        double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
-//        double c = (R.trace() - 1) * 0.5;
-//        c = c > 1. ? 1. : c < -1. ? -1. : c;
-
-//        double theta = acos(c);
-
-//        if( s < 1e-5 )
-//        {
-//            double t;
-
-//            if( c > 0 )
-//                rx = ry = rz = 0;
-//            else
-//            {
-//                t = (R(0, 0) + 1)*0.5;
-//                rx = sqrt( std::max(t, 0.0) );
-//                t = (R(1, 1) + 1)*0.5;
-//                ry = sqrt( std::max(t, 0.0) ) * (R(0, 1) < 0 ? -1.0 : 1.0);
-//                t = (R(2, 2) + 1)*0.5;
-//                rz = sqrt( std::max(t, 0.0) ) * (R(0, 2) < 0 ? -1.0 : 1.0);
-
-//                if( fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (R(1, 2) >
-//                0) != (ry*rz > 0) )
-//                    rz = -rz;
-//                theta /= sqrt(rx*rx + ry*ry + rz*rz);
-//                rx *= theta;
-//                ry *= theta;
-//                rz *= theta;
-//            }
-//        }
-//        else
-//        {
-//            double vth = 1/(2*s);
-//            vth *= theta;
-//            rx *= vth; ry *= vth; rz *= vth;
-//        }
-//        return Eigen::Vector3d(rx, ry, rz).cast<float>();
-//    }
-//}
