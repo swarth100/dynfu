@@ -70,7 +70,9 @@ void DynFusion::warpCanonicalToLive() {
     for (auto vertex : canonicalFrame->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        for (auto neighbour : this->warpfield->findNeighbors(KNN, vertex)) {
+        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
+
+        for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
             neighbour->setRadialBasisWeight(parameters[i][0]);
             neighbour->setTranslation(translation);
@@ -96,22 +98,25 @@ void DynFusion::warpCanonicalToLiveOpt() {
     combinedSolver.initializeProblemInstance(this->canonicalFrame, this->liveFrame);
     combinedSolver.solveAll();
 
-    int i = 0;
-    int j = 0;
+    std::vector<cv::Vec3f> canonicalVerticesWarpedToLive;
+
     for (auto vertex : canonicalFrame->getVertices()) {
+        cv::Vec3f vertexWarpedToLive;
         cv::Vec3f totalTranslation;
 
         auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-            // totalTranslation += translation;
-            i++;
+            totalTranslation += translation;
         }
 
-        i = 0;
-        j++;
+        vertexWarpedToLive = vertex + totalTranslation;
+        canonicalVerticesWarpedToLive.push_back(vertexWarpedToLive);
     }
+
+    canonicalWarpedToLive =
+        std::make_shared<dynfu::Frame>(0, canonicalVerticesWarpedToLive, canonicalVerticesWarpedToLive);
 }
 
 void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
@@ -120,6 +125,8 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
 
     liveFrame = std::make_shared<dynfu::Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
+
+dynfu::Frame DynFusion::getCanonicalWarpedToLive() { return *canonicalWarpedToLive; }
 
 cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {
     cv::Mat cloudHost;

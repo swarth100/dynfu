@@ -192,6 +192,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
      * curr_.normals) */
     dynfu->warpCanonicalToLiveOpt();
 
+    dynfu::Frame canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Volume integration
 

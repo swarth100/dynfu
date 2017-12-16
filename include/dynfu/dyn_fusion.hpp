@@ -41,6 +41,8 @@ public:
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
+    dynfu::Frame getCanonicalWarpedToLive();
+
 private:
     std::shared_ptr<dynfu::Frame> canonicalFrame;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
