@@ -90,7 +90,7 @@ private:
     std::vector<Affine3f> poses_;
 
     cuda::Dists dists_;
-    cuda::Frame curr_, prev_;
+    cuda::Frame curr_, prev_, canonicalWarpedToLive_;
 
     cuda::Cloud points_;
     cuda::Normals normals_;
