@@ -1,3 +1,23 @@
+-- function definitions
+
+function huberPenalty(a, delta) -- delta = 0.00001
+    if lesseq(abs(a), delta) then
+        return a * a / 2
+    else
+        return delta * abs(a) - delta *  delta / 2
+    end
+end
+
+function tukeyPenalty(x, c) -- c = 0.01
+    if lesseq(abs(x), c) then
+        return x * pow(1.0 - (x * x) / (c * c), 2)
+    else
+        return 0
+    end
+end
+
+-- energy specifciation
+
 local D,N = Dim("D",0), Dim("N",1)
 
 local rotation = Unknown("rotation",opt_float3,{D},0)
@@ -28,9 +48,10 @@ local totalRotation = 0
 nodes = {0,1,2,3,4,5,6,7}
 
 for _,i in ipairs(nodes) do
-    -- totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i]) -- FIXME (dig15): use the transformation weights
-    -- totalRotation = totalRotation + transformationWeights(G.v)(i) * rotation(G["n"..i])
     totalTranslation = totalTranslation + translation(G["n"..i])
+    -- totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i]) -- FIXME (dig15): use the transformation weights
+    -- totalRotation = totalRotation + transformationWeights(G.v)(i) * rotation(G["n"..i]) -- FIXME (dig15): use rotations
 end
 
 Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
+-- Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, 0.01)) -- FIXME (dig15): works for real data but will cause tests to fail

@@ -3,27 +3,39 @@
 DynFusion::DynFusion() = default;
 
 /* initialise dynamicfusion with the initals vertices and normals */
-void DynFusion::init(kfusion::cuda::Cloud &vertices) {
+void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Cloud &normals) {
     cv::Mat cloudHost = cloudToMat(vertices);
-    std::vector<cv::Vec3f> canonical(cloudHost.rows * cloudHost.cols);
+    std::vector<cv::Vec3f> canonicalVertices(cloudHost.rows * cloudHost.cols);
 
     for (int y = 0; y < cloudHost.cols; ++y) {
         for (int x = 0; x < cloudHost.rows; ++x) {
             auto point = cloudHost.at<kfusion::Point>(x, y);
             if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z))) {
-                canonical[x + cloudHost.rows * y] = cv::Vec3f(point.x, point.y, point.z);
+                canonicalVertices[x + cloudHost.rows * y] = cv::Vec3f(point.x, point.y, point.z);
             }
         }
     }
 
-    initCanonicalFrame(canonical, canonical);
+    cloudHost = cloudToMat(normals);
+    std::vector<cv::Vec3f> canonicalNormals(cloudHost.rows * cloudHost.cols);
+
+    for (int y = 0; y < cloudHost.cols; ++y) {
+        for (int x = 0; x < cloudHost.rows; ++x) {
+            auto point = cloudHost.at<kfusion::Point>(x, y);
+            if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z))) {
+                canonicalNormals[x + cloudHost.rows * y] = cv::Vec3f(point.x, point.y, point.z);
+            }
+        }
+    }
+
+    initCanonicalFrame(canonicalVertices, canonicalNormals);
 
     /* Sample the deformation nodes */
     int steps = 50;
     std::vector<std::shared_ptr<Node>> deformationNodes;
-    for (int i = 0; i < canonical.size() - steps; i += steps) {
+    for (int i = 0; i < canonicalVertices.size() - steps; i += steps) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        deformationNodes.push_back(std::make_shared<Node>(canonical[i], dq, 1.f));
+        deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[i], dq, 1.f));
     }
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
