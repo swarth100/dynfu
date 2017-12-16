@@ -28,8 +28,10 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     m_transformationWeights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 8, OptImage::GPU, true);
 
     resetGPUMemory();
+
     initializeConnectivity(m_canonicalVerticesOpenCV);
-    addOptSolvers(m_dims, std::string("/homes/dig15/df/dynfu/include/dynfu/utils/terra/energy.t"));
+
+    addOptSolvers(m_dims, std::string(TOSTRING(TERRA_SOLVER_FILE)));
 }
 
 void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVertices) {

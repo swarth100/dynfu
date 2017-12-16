@@ -35,7 +35,7 @@ DynFusion::~DynFusion() = default;
 
 /* TODO: Add comment */
 void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* normals */) {
-    this->canonicalFrame = std::make_shared<Frame>(0, vertices, vertices);
+    this->canonicalFrame = std::make_shared<dynfu::Frame>(0, vertices, vertices);
 }
 
 /* TODO: Add comment */
@@ -71,11 +71,42 @@ void DynFusion::warpCanonicalToLive() {
     }
 }
 
+// void DynFusion::warpCanonicalToLiveOpt() {
+//     CombinedSolverParameters params;
+//     params.numIter       = 20;
+//     params.nonLinearIter = 15;
+//     params.linearIter    = 250;
+//     params.useOpt        = false;
+//     params.useOptLM      = true;
+//     params.earlyOut      = true;
+//
+//     CombinedSolver combinedSolver(*warpfield, params);
+//     combinedSolver.initializeProblemInstance(this->canonicalFrame, this->liveFrame);
+//     combinedSolver.solveAll();
+//
+//     int i = 0;
+//     int j = 0;
+//     for (auto vertex : canonicalFrame->getVertices()) {
+//         cv::Vec3f totalTranslation;
+//
+//         auto neighbourNodes = warpfield->findNeighbors(8, vertex);
+//
+//         for (auto neighbour : neighbourNodes) {
+//             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+//             // totalTranslation += translation;
+//             i++;
+//         }
+//
+//         i = 0;
+//         j++;
+//     }
+// }
+
 void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
     auto liveFrameVertices = matToVector(cloudToMat(vertices));
     auto liveFrameNormals  = matToVector(normalsToMat(normals));
 
-    liveFrame = std::make_shared<Frame>(frameID, liveFrameVertices, liveFrameNormals);
+    liveFrame = std::make_shared<dynfu::Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
 cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {

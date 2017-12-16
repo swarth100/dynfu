@@ -1,14 +1,20 @@
 #pragma once
 
+/* boost includes */
 #include <boost/filesystem.hpp>
-#include <dynfu/warp_field.hpp>
+
+/* kinfu includes */
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
+
+/* sys headers */
 #include <string>
 #include <vector>
 
+/* dynfu includes */
 #include <dynfu/dyn_fusion.hpp>
+#include <dynfu/warp_field.hpp>
 
 namespace kfusion {
 namespace cuda {

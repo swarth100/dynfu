@@ -11,6 +11,8 @@ include_directories(
   ${OPT_INCLUDE_DIRS}
 )
 
+target_compile_definitions(dynfu PUBLIC TERRA_SOLVER_FILE=${CMAKE_SOURCE_DIR}/include/dynfu/utils/terra/energy.t)
+
 # Link to dynfu library
 target_link_libraries(dynfu
     ceres

@@ -1,5 +1,8 @@
 #pragma once
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 /* kinfu includes */
 #include <kfusion/types.hpp>
 
@@ -10,7 +13,6 @@
 /* opt includes */
 #include <CombinedSolverBase.h>
 #include <CombinedSolverParameters.h>
-#include <CudaArray.h>
 #include <OptGraph.h>
 #include <OptImage.h>
 
