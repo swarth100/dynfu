@@ -71,36 +71,36 @@ void DynFusion::warpCanonicalToLive() {
     }
 }
 
-// void DynFusion::warpCanonicalToLiveOpt() {
-//     CombinedSolverParameters params;
-//     params.numIter       = 20;
-//     params.nonLinearIter = 15;
-//     params.linearIter    = 250;
-//     params.useOpt        = false;
-//     params.useOptLM      = true;
-//     params.earlyOut      = true;
-//
-//     CombinedSolver combinedSolver(*warpfield, params);
-//     combinedSolver.initializeProblemInstance(this->canonicalFrame, this->liveFrame);
-//     combinedSolver.solveAll();
-//
-//     int i = 0;
-//     int j = 0;
-//     for (auto vertex : canonicalFrame->getVertices()) {
-//         cv::Vec3f totalTranslation;
-//
-//         auto neighbourNodes = warpfield->findNeighbors(8, vertex);
-//
-//         for (auto neighbour : neighbourNodes) {
-//             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-//             // totalTranslation += translation;
-//             i++;
-//         }
-//
-//         i = 0;
-//         j++;
-//     }
-// }
+void DynFusion::warpCanonicalToLiveOpt() {
+    CombinedSolverParameters params;
+    params.numIter       = 20;
+    params.nonLinearIter = 15;
+    params.linearIter    = 250;
+    params.useOpt        = false;
+    params.useOptLM      = true;
+    params.earlyOut      = true;
+
+    CombinedSolver combinedSolver(*warpfield, params);
+    combinedSolver.initializeProblemInstance(this->canonicalFrame, this->liveFrame);
+    combinedSolver.solveAll();
+
+    int i = 0;
+    int j = 0;
+    for (auto vertex : canonicalFrame->getVertices()) {
+        cv::Vec3f totalTranslation;
+
+        auto neighbourNodes = warpfield->findNeighbors(8, vertex);
+
+        for (auto neighbour : neighbourNodes) {
+            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+            // totalTranslation += translation;
+            i++;
+        }
+
+        i = 0;
+        j++;
+    }
+}
 
 void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
     auto liveFrameVertices = matToVector(cloudToMat(vertices));
