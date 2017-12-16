@@ -91,7 +91,6 @@ include_directories(include
   ${CUDA_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${OPENMESH_INCLUDE_DIRS}
-  ${TERRA_INCLUDE_DIRS}
   ${OPT_INCLUDE_DIRS}
   ${TERRA_INCLUDE_DIRS}
 )

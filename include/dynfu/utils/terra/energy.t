@@ -23,11 +23,13 @@ local G = Graph("dataGraph", 7,
                     "n7", {D}, 16)
 
 local totalTranslation = 0
+local totalRotation = 0
 
 nodes = {0,1,2,3,4,5,6,7}
 
 for _,i in ipairs(nodes) do
     -- totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i]) -- FIXME (dig15): use the transformation weights
+    -- totalRotation = totalRotation + transformationWeights(G.v)(i) * rotation(G["n"..i])
     totalTranslation = totalTranslation + translation(G["n"..i])
 end
 

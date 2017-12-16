@@ -50,10 +50,11 @@ void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVert
         for (int i = 1; i < indices.size(); i++) {
             transformationWeightsArray[i - 1] =
                 vertexNeighbours[i - 1]->getTransformationWeight(canonicalVertices[count]);
+
             indices[i].push_back(vertexNeighboursIdx[i - 1]);
         }
 
-        transformationWeights.push_back(transformationWeightsArray);
+        transformationWeights[count] = transformationWeightsArray;
     }
 
     m_transformationWeights->update(transformationWeights);

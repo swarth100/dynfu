@@ -310,7 +310,7 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
         j++;
     }
 
-    // FIXME (dig15): can't use yet because Opt doesn't solve for weights
+    // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
     // int i = 0;
     // int j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
@@ -422,7 +422,7 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
         j++;
     }
 
-    // FIXME (dig15): can't use yet because Opt doesn't solve for weights
+    // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
     // int i = 0;
     // int j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
@@ -534,7 +534,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
         j++;
     }
 
-    // FIXME (dig15): can't use yet because Opt doesn't solve for weights
+    // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
     // int i = 0;
     // int j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
@@ -583,9 +583,9 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
         j++;
     }
 
-    // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // int i = 0;
-    // int j = 0;
+    // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
+    // i = 0;
+    // j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //

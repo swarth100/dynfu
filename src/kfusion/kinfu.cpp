@@ -190,7 +190,7 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     /* TODO(rm3115) Apply warp and get the result (probably need to upload the data back to curr_.points and
      * curr_.normals) */
-    dynfu->warpCanonicalToLive();
+    dynfu->warpCanonicalToLiveOpt();
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Volume integration
