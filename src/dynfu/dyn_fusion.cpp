@@ -70,7 +70,7 @@ void DynFusion::warpCanonicalToLive() {
     for (auto vertex : canonicalFrame->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        for (auto neighbour : this->warpfield->getNodes()) {
+        for (auto neighbour : this->warpfield->findNeighbors(KNN, vertex)) {
             cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
             neighbour->setRadialBasisWeight(parameters[i][0]);
             neighbour->setTranslation(translation);
@@ -101,7 +101,7 @@ void DynFusion::warpCanonicalToLiveOpt() {
     for (auto vertex : canonicalFrame->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield->findNeighbors(8, vertex);
+        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();

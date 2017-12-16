@@ -44,8 +44,8 @@ void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVert
     for (int count = 0; count < canonicalVertices.size(); count++) {
         indices[0].push_back(count);
 
-        auto vertexNeighbours    = m_warpfield.findNeighbors(8, canonicalVertices[count]);
-        auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(8, canonicalVertices[count]);
+        auto vertexNeighbours    = m_warpfield.findNeighbors(KNN, canonicalVertices[count]);
+        auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, canonicalVertices[count]);
 
         for (int i = 1; i < indices.size(); i++) {
             transformationWeightsArray[i - 1] =

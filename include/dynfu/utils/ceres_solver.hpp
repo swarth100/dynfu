@@ -109,7 +109,7 @@ public:
         int i = 0;
         for (auto vertex : liveFrame->getVertices()) {
             values.clear();
-            auto neighbours = warpfield.findNeighbors(8, vertex);
+            auto neighbours = warpfield.findNeighbors(KNN, vertex);
 
             for (auto neighbour : neighbours) {
                 values.emplace_back(neighbour->getParams());

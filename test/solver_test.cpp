@@ -294,7 +294,7 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -316,7 +316,7 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
@@ -406,7 +406,7 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -428,7 +428,7 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
@@ -518,7 +518,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -540,7 +540,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
@@ -567,7 +567,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -589,7 +589,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto neighbourNodes = warpfield.findNeighbors(8, vertex);
+    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
