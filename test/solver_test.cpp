@@ -289,7 +289,6 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
 
-    int i = 0;
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
@@ -299,24 +298,19 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
             totalTranslation += translation;
-            i++;
         }
 
         ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
 
-        i = 0;
         j++;
     }
 
     // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // int i = 0;
     // int j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
-    //
-    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
@@ -325,7 +319,6 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     //     ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
     //     ASSERT_NEAR(result[2], liveFrame->getVertices()[j][2], max_error);
     //
-    //     i = 0;
     //     j++;
     // }
 }
@@ -401,7 +394,6 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
 
-    int i = 0;
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
@@ -411,24 +403,19 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
             totalTranslation += translation;
-            i++;
         }
 
         ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
 
-        i = 0;
         j++;
     }
 
     // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // int i = 0;
     // int j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
-    //
-    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
@@ -437,7 +424,6 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
     //     ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
     //     ASSERT_NEAR(result[2], liveFrame->getVertices()[j][2], max_error);
     //
-    //     i = 0;
     //     j++;
     // }
 }
@@ -513,7 +499,6 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
 
-    int i = 0;
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
@@ -523,24 +508,19 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
             totalTranslation += translation;
-            i++;
         }
 
         ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
 
-        i = 0;
         j++;
     }
 
     // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // int i = 0;
     // int j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
-    //
-    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
@@ -549,7 +529,6 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     //     ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
     //     ASSERT_NEAR(result[2], liveFrame->getVertices()[j][2], max_error);
     //
-    //     i = 0;
     //     j++;
     // }
 
@@ -562,7 +541,6 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     combinedSolverReverse.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolverReverse.solveAll();
 
-    i = 0;
     j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
@@ -572,24 +550,19 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
             totalTranslation += translation;
-            i++;
         }
 
         ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
         ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
 
-        i = 0;
         j++;
     }
 
     // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // i = 0;
     // j = 0;
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
-    //
-    //     auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
     //
     //     auto totalTransformation = warpfield.calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
@@ -598,7 +571,6 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     //     ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
     //     ASSERT_NEAR(result[2], liveFrame->getVertices()[j][2], max_error);
     //
-    //     i = 0;
     //     j++;
     // }
 }
