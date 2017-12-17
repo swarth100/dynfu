@@ -22,10 +22,11 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     m_liveVertices      = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
     m_liveNormals       = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
 
-    m_rotation    = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_translation = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_nodeCoordinates = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
 
-    m_transformationWeights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 8, OptImage::GPU, true);
+    m_rotation           = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_translation        = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_radialBasisWeights = createEmptyOptImage({D}, OptImage::Type::FLOAT, 1, OptImage::GPU, true);
 
     resetGPUMemory();
 
@@ -38,8 +39,6 @@ void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVert
     int N = canonicalVertices.size();
 
     std::vector<std::vector<int>> indices(9, std::vector<int>(N));
-    std::vector<std::array<float, 8>> transformationWeights(N);
-    std::array<float, 8> transformationWeightsArray{};
 
     for (int count = 0; count < canonicalVertices.size(); count++) {
         indices[0].push_back(count);
@@ -48,16 +47,10 @@ void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVert
         auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, canonicalVertices[count]);
 
         for (int i = 1; i < indices.size(); i++) {
-            transformationWeightsArray[i - 1] =
-                vertexNeighbours[i - 1]->getTransformationWeight(canonicalVertices[count]);
-
             indices[i].push_back(vertexNeighboursIdx[i - 1]);
         }
-
-        transformationWeights[count] = transformationWeightsArray;
     }
 
-    m_transformationWeights->update(transformationWeights);
     m_dataGraph = std::make_shared<OptGraph>(indices);
 }
 
@@ -122,30 +115,48 @@ void CombinedSolver::resetGPUMemory() {
 
     auto D = m_dims[0];
 
+    std::vector<float3> h_coordinates(D);
+
     std::vector<float3> h_translation(D);
     std::vector<float3> h_rotation(D);
+    std::vector<float> h_radialBasisWeight(D);
 
     for (int i = 0; i < D; i++) {
-        auto nodeTransformation = m_warpfield.getNodes()[i]->getTransformation();
-        auto nodeTranslation    = nodeTransformation->getTranslation();
-        auto nodeRotation       = nodeTransformation->getRotation();
+        auto nodeCoordinates = m_warpfield.getNodes()[i]->getPosition();
 
-        h_translation[i] = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
-        h_rotation[i]    = make_float3(0.f, 0.f, 0.f);  // FIXME (dig15): set the rotations
+        auto nodeTransformation = m_warpfield.getNodes()[i]->getTransformation();
+
+        auto nodeTranslation       = nodeTransformation->getTranslation();
+        auto nodeRotation          = nodeTransformation->getRotation();
+        auto nodeRadialBasisWeight = m_warpfield.getNodes()[i]->getRadialBasisWeight();
+
+        h_coordinates[i] = make_float3(nodeCoordinates[0], nodeCoordinates[1], nodeCoordinates[2]);
+
+        h_translation[i]       = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
+        h_rotation[i]          = make_float3(0.f, 0.f, 0.f);  // FIXME (dig15): set the rotations
+        h_radialBasisWeight[i] = nodeRadialBasisWeight;
     }
+
+    m_nodeCoordinates->update(h_coordinates);
 
     m_translation->update(h_translation);
     m_rotation->update(h_rotation);
+    m_radialBasisWeights->update(h_radialBasisWeight);
 }
 
 void CombinedSolver::copyResultToCPUFromFloat3() {
     auto D = m_dims[0];
+    auto N = m_dims[1];
+
     std::vector<float3> h_translation(D);
+    std::vector<float> h_radialBasisWeights(D);
 
     m_translation->copyTo(h_translation);
+    m_radialBasisWeights->copyTo(h_radialBasisWeights);
 
     for (unsigned int i = 0; i < D; i++) {
         m_warpfield.getNodes()[i]->setTranslation(
             cv::Vec3f(h_translation[i].x, h_translation[i].y, h_translation[i].z));
+        m_warpfield.getNodes()[i]->setRadialBasisWeight(h_radialBasisWeights[i]);
     }
 }

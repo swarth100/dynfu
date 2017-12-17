@@ -207,8 +207,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
      * VOLUME INTEGRATION
      * we don't integrate volume if the camera doesn't move
      */
-    float rnorm    = (float) cv::norm(affine.rvec());
-    float tnorm    = (float) cv::norm(affine.translation());
+    float rnorm    = static_cast<float>(cv::norm(affine.rvec()));
+    float tnorm    = static_cast<float>(cv::norm(affine.translation()));
     bool integrate = (rnorm + tnorm) / 2 >= p.tsdf_min_camera_movement;
 
     if (integrate) {
@@ -303,12 +303,11 @@ void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
 #define PASS1 canonicalWarpedToLive_.points_pyr
 #endif
 
-    if (flag < 1 || flag > 3)
+    if ((flag < 1 || flag > 3)) {
         cuda::renderImage(PASS1[0], canonicalWarpedToLive_.normals_pyr[0], params_.intr, params_.light_pose, image);
-    else if (flag == 2)
+    } else if (flag == 2) {
         cuda::renderTangentColors(canonicalWarpedToLive_.normals_pyr[0], image);
-    else /* if (flag == 3) */
-    {
+    } else /* if (flag == 3) */ {
         DeviceArray2D<RGB> i1(p.rows, p.cols, image.ptr(), image.step());
         DeviceArray2D<RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
 

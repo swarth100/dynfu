@@ -8,8 +8,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-using namespace kfusion;
-
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
         KinFuParams params = KinFuParams::default_params();
