@@ -59,10 +59,11 @@ private:
 
     std::shared_ptr<OptGraph> m_dataGraph;
 
+    std::shared_ptr<OptImage> m_nodeCoordinates;
+
     std::shared_ptr<OptImage> m_rotation;
     std::shared_ptr<OptImage> m_translation;
-
-    std::shared_ptr<OptImage> m_transformationWeights;
+    std::shared_ptr<OptImage> m_radialBasisWeights;
 
     std::vector<cv::Vec3f> m_results;
 };

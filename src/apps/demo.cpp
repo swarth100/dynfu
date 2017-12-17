@@ -33,7 +33,7 @@ struct DynFuApp {
 
     void show_canonical_warped_to_live(KinFu *kinfu, int i) {
         const int mode = 3;
-        (*kinfu).renderImage(view_device_, mode);
+        (*kinfu).renderCanonicalWarpedToLive(view_device_, mode);
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
@@ -41,7 +41,7 @@ struct DynFuApp {
             cv::imshow("canonical frame warped to live", view_host_);
             cvWaitKey(10);
         }
-        std::string path = outPath_ + "/warped_" + std::to_string(i) + ".png";
+        std::string path = outPath_ + "/warped/" + std::to_string(i) + ".png";
         cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
         cv::imwrite(path, view_host_);
     }
@@ -74,8 +74,15 @@ struct DynFuApp {
         outPath_ = filePath_ + "/out";
         boost::filesystem::path dir(outPath_);
 
+        outWarpedPath_ = filePath_ + "/out/warped";
+        boost::filesystem::path dirWarped(outWarpedPath_);
+
         if (boost::filesystem::create_directory(dir)) {
-            std::cout << "Created output dir." << std::endl;
+            std::cout << "created output directory" << std::endl;
+        }
+
+        if (boost::filesystem::create_directory(dirWarped)) {
+            std::cout << "created output directory for warped frames" << std::endl;
         }
     }
 
@@ -133,7 +140,7 @@ struct DynFuApp {
     KinFu::Ptr kinfu_;
 
     std::string filePath_;
-    std::string outPath_;
+    std::string outPath_, outWarpedPath_;
 
     bool exit_, visualizer_;
 

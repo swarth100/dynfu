@@ -2,7 +2,7 @@
 
 DynFusion::DynFusion() = default;
 
-/* initialise dynamicfusion with the initals vertices and normals */
+/* initialise dynamicfusion with the initial vertices and normals */
 void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Cloud &normals) {
     cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonicalVertices(cloudHost.rows * cloudHost.cols);
@@ -126,13 +126,20 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     liveFrame = std::make_shared<dynfu::Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
-dynfu::Frame DynFusion::getCanonicalWarpedToLive() { return *canonicalWarpedToLive; }
+std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return canonicalWarpedToLive; }
 
 cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {
     cv::Mat cloudHost;
     cloudHost.create(cloud.rows(), cloud.cols(), CV_32FC4);
     cloud.download(cloudHost.ptr<kfusion::Point>(), cloudHost.step);
     return cloudHost;
+}
+
+kfusion::cuda::Cloud DynFusion::matToCloud(cv::Mat matrix) {
+    kfusion::cuda::Cloud cloud;
+    cloud.create(matrix.rows, matrix.cols);
+    cloud.upload(matrix.data, matrix.step, matrix.rows, matrix.cols);
+    return cloud;
 }
 
 cv::Mat DynFusion::normalsToMat(kfusion::cuda::Normals normals) {
