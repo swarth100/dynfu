@@ -1,14 +1,20 @@
 #pragma once
 
+/* boost includes */
 #include <boost/filesystem.hpp>
-#include <dynfu/warp_field.hpp>
+
+/* kinfu includes */
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
+
+/* sys headers */
 #include <string>
 #include <vector>
 
+/* dynfu includes */
 #include <dynfu/dyn_fusion.hpp>
+#include <dynfu/warp_field.hpp>
 
 namespace kfusion {
 namespace cuda {
@@ -72,6 +78,7 @@ public:
 
     void renderImage(cuda::Image &image, int flag = 0);
     void renderImage(cuda::Image &image, const Affine3f &pose, int flag = 0);
+    void renderCanonicalWarpedToLive(cuda::Image &image, int flag = 0);
 
     Affine3f getCameraPose(int time = -1) const;
 
@@ -84,7 +91,7 @@ private:
     std::vector<Affine3f> poses_;
 
     cuda::Dists dists_;
-    cuda::Frame curr_, prev_;
+    cuda::Frame curr_, prev_, canonicalWarpedToLive_;
 
     cuda::Cloud points_;
     cuda::Normals normals_;

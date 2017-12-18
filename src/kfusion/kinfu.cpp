@@ -88,11 +88,16 @@ void kfusion::KinFu::allocate_buffers() {
 
     curr_.depth_pyr.resize(LEVELS);
     curr_.normals_pyr.resize(LEVELS);
+
     prev_.depth_pyr.resize(LEVELS);
     prev_.normals_pyr.resize(LEVELS);
 
+    canonicalWarpedToLive_.depth_pyr.resize(LEVELS);
+    canonicalWarpedToLive_.normals_pyr.resize(LEVELS);
+
     curr_.points_pyr.resize(LEVELS);
     prev_.points_pyr.resize(LEVELS);
+    canonicalWarpedToLive_.points_pyr.resize(LEVELS);
 
     for (int i = 0; i < LEVELS; ++i) {
         curr_.depth_pyr[i].create(rows, cols);
@@ -101,8 +106,12 @@ void kfusion::KinFu::allocate_buffers() {
         prev_.depth_pyr[i].create(rows, cols);
         prev_.normals_pyr[i].create(rows, cols);
 
+        canonicalWarpedToLive_.depth_pyr[i].create(rows, cols);
+        canonicalWarpedToLive_.normals_pyr[i].create(rows, cols);
+
         curr_.points_pyr[i].create(rows, cols);
         prev_.points_pyr[i].create(rows, cols);
+        canonicalWarpedToLive_.points_pyr[i].create(rows, cols);
 
         cols /= 2;
         rows /= 2;
@@ -153,10 +162,10 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     cuda::waitAllDefaultStream();
 
-    // can't perform more on first frame
+    // can't do more with the first frame
     if (frame_counter_ == 0) {
-        /* Initialise the warpfield */
-        dynfu->init(curr_.points_pyr[0]);
+        /* initialise the warpfield */
+        dynfu->init(curr_.points_pyr[0], curr_.normals_pyr[0]);
         volume_->integrate(dists_, poses_.back(), p.intr);
 #if defined USE_DEPTH
         curr_.depth_pyr.swap(prev_.depth_pyr);
@@ -167,9 +176,10 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
         return ++frame_counter_, false;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // ICP
-    Affine3f affine;  // cuur -> prev
+    /*
+     * ITERATIVE CLOSET POINT
+     */
+    Affine3f affine;  // current -> previous
     {
 // ScopeTime time("icp");
 #if defined USE_DEPTH
@@ -185,27 +195,30 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     poses_.push_back(poses_.back() * affine);  // curr -> global
 
-    /* Add live frame to Dynfu */
+    /* add new live frame to dynfu */
     dynfu->addLiveFrame(frame_counter_, curr_.points_pyr[0], curr_.normals_pyr[0]);
 
-    /* TODO(rm3115) Apply warp and get the result (probably need to upload the data back to curr_.points and
-     * curr_.normals) */
-    dynfu->warpCanonicalToLive();
+    /* TODO (dig15): apply warp and get the result; probably need to upload the data back to curr_.points and
+     * curr_.normals */
+    dynfu->warpCanonicalToLiveOpt();
+    auto canonicalWarpedToLiveCloud = dynfu->getCanonicalWarpedToLive();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Volume integration
-
-    // We do not integrate volume if camera does not move.
-    float rnorm    = (float) cv::norm(affine.rvec());
-    float tnorm    = (float) cv::norm(affine.translation());
+    /*
+     * VOLUME INTEGRATION
+     * we don't integrate volume if the camera doesn't move
+     */
+    float rnorm    = static_cast<float>(cv::norm(affine.rvec()));
+    float tnorm    = static_cast<float>(cv::norm(affine.translation()));
     bool integrate = (rnorm + tnorm) / 2 >= p.tsdf_min_camera_movement;
+
     if (integrate) {
         // ScopeTime time("tsdf");
         volume_->integrate(dists_, poses_.back(), p.intr);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Ray casting
+    /*
+     * RAYCASTING
+     */
     {
 // ScopeTime time("ray-cast-all");
 #if defined USE_DEPTH
@@ -280,56 +293,26 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
 #undef PASS1
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
+    const KinFuParams &p = params_;
+    image.create(p.rows, flag != 3 ? p.cols : p.cols * 2);
 
-// namespace pcl
-//{
-//    Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix)
-//    {
-//        Eigen::JacobiSVD<Eigen::Matrix3f> svd(matrix, Eigen::ComputeFullV |
-//        Eigen::ComputeFullU); Eigen::Matrix3f R = svd.matrixU() *
-//        svd.matrixV().transpose();
+#if defined USE_DEPTH
+#define PASS1 canonicalWarpedToLive_.depth_pyr
+#else
+#define PASS1 canonicalWarpedToLive_.points_pyr
+#endif
 
-//        double rx = R(2, 1) - R(1, 2);
-//        double ry = R(0, 2) - R(2, 0);
-//        double rz = R(1, 0) - R(0, 1);
+    if ((flag < 1 || flag > 3)) {
+        cuda::renderImage(PASS1[0], canonicalWarpedToLive_.normals_pyr[0], params_.intr, params_.light_pose, image);
+    } else if (flag == 2) {
+        cuda::renderTangentColors(canonicalWarpedToLive_.normals_pyr[0], image);
+    } else /* if (flag == 3) */ {
+        DeviceArray2D<RGB> i1(p.rows, p.cols, image.ptr(), image.step());
+        DeviceArray2D<RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
 
-//        double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
-//        double c = (R.trace() - 1) * 0.5;
-//        c = c > 1. ? 1. : c < -1. ? -1. : c;
-
-//        double theta = acos(c);
-
-//        if( s < 1e-5 )
-//        {
-//            double t;
-
-//            if( c > 0 )
-//                rx = ry = rz = 0;
-//            else
-//            {
-//                t = (R(0, 0) + 1)*0.5;
-//                rx = sqrt( std::max(t, 0.0) );
-//                t = (R(1, 1) + 1)*0.5;
-//                ry = sqrt( std::max(t, 0.0) ) * (R(0, 1) < 0 ? -1.0 : 1.0);
-//                t = (R(2, 2) + 1)*0.5;
-//                rz = sqrt( std::max(t, 0.0) ) * (R(0, 2) < 0 ? -1.0 : 1.0);
-
-//                if( fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (R(1, 2) >
-//                0) != (ry*rz > 0) )
-//                    rz = -rz;
-//                theta /= sqrt(rx*rx + ry*ry + rz*rz);
-//                rx *= theta;
-//                ry *= theta;
-//                rz *= theta;
-//            }
-//        }
-//        else
-//        {
-//            double vth = 1/(2*s);
-//            vth *= theta;
-//            rx *= vth; ry *= vth; rz *= vth;
-//        }
-//        return Eigen::Vector3d(rx, ry, rz).cast<float>();
-//    }
-//}
+        cuda::renderImage(PASS1[0], canonicalWarpedToLive_.normals_pyr[0], params_.intr, params_.light_pose, i1);
+        cuda::renderTangentColors(canonicalWarpedToLive_.normals_pyr[0], i2);
+    }
+#undef PASS1
+}

@@ -35,9 +35,35 @@ RUN apt-get install -y libproj-dev
 # Required for libvtk-proj4 due to bug in vtk6
 RUN ln -s /usr/lib/x86_64-linux-gnu/libvtkCommonCore-6.2.so /usr/lib/libvtkproj4.so
 
-# Make dynfu
+# Make dynfu build dir
 RUN mkdir -p dynfu/build
 
+# Get terra
+ADD https://github.com/zdevito/terra/releases/download/release-2016-03-25/terra-Linux-x86_64-332a506.zip .
+RUN unzip -qq terra-Linux-x86_64-332a506.zip
+RUN mv terra-Linux-x86_64-332a506 terra
+RUN ln -s /terra /dynfu/build/terra
+
+# Get Opt
+RUN git clone https://github.com/mbrookes1304/Opt.git
+WORKDIR Opt/API
+RUN git checkout env-variables
+RUN make
+WORKDIR ../..
+RUN ln -s /Opt /dynfu/build/Opt
+
+# Install OpenMesh
+ADD http://www.openmesh.org/media/Releases/6.3/OpenMesh-6.3.tar.gz .
+RUN tar xzf OpenMesh-6.3.tar.gz
+WORKDIR OpenMesh-6.3
+RUN mkdir build
+WORKDIR build
+RUN cmake .. && make install
+WORKDIR ../..
+RUN rm -rf OpenMesh*
+
+WORKDIR ../..
+RUN rm -rf OpenMesh*
 ADD CMakeLists.txt /dynfu
 ADD cmake /dynfu/cmake
 ADD src /dynfu/src

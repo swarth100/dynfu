@@ -23,8 +23,8 @@
 /* Set max amount of closest neighbours to consider */
 #define KNN 8
 
-typedef nanoflann::L2_Simple_Adaptor<float, PointCloud> nanoflannAdaptor;
-typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflannAdaptor, PointCloud, 3> kd_tree_t;
+typedef nanoflann::L2_Simple_Adaptor<float, nanoflann::PointCloud> nanoflannAdaptor;
+typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflannAdaptor, nanoflann::PointCloud, 3> kd_tree_t;
 
 class Warpfield {
     /* Type for the index tree */
@@ -46,7 +46,7 @@ public:
     std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
 
     /* warp a canonical frame according to the data stored in the warpfield */
-    void warp(std::shared_ptr<Frame> liveFrame);
+    void warp(std::shared_ptr<dynfu::Frame> liveFrame);
 
     /* Find a set amount of closest neighbours */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);
@@ -62,7 +62,7 @@ private:
     std::vector<std::shared_ptr<Node>> nodes;
 
     /* cloud data */
-    std::shared_ptr<PointCloud> cloud;
+    std::shared_ptr<nanoflann::PointCloud> cloud;
 
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;

@@ -7,8 +7,10 @@ target_link_libraries(app
     dynfu
     kfusion
     ${Boost_LIBRARIES}
-    ${CUDA_LIBRARIES}
     ${CUDA_CUDA_LIBRARY}
+    ${CUDA_CUDART_LIBRARY}
     ${OpenCV_LIBS}
-    ${Boost_LIBRARIES}
+    ${TERRA_LIBRARIES}
+    ${OPENMESH_LIBRARIES}
+    ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
 )

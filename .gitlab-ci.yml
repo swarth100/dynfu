@@ -67,7 +67,7 @@ cmake:
   #    set the c++ standard correctly (i.e. will throw a number of errors)
   # 3) [Others]
   script:
-    - source setup.sh --cmake
+    - source setup.sh --cmake -i
 
 # ---------------------------------------------------------------------------- #
 #                                     LINT                                     #

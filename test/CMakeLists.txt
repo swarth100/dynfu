@@ -5,8 +5,6 @@
 # Implementation heavily based upon:
 # https://github.com/kaizouman/gtest-cmake-example
 
-find_package(Threads REQUIRED)
-
 # Enable ExternalProject CMake module
 include(ExternalProject)
 
@@ -42,9 +40,6 @@ set_target_properties(libgmock PROPERTIES
     "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
 )
 
-# I couldn't make it work with INTERFACE_INCLUDE_DIRECTORIES
-include_directories("${source_dir}/googletest/include"
-                    "${source_dir}/googlemock/include")
 
 # ---------------------------------------------------------------------------- #
 # CODE COVERAGE (GCOV) SETTINGS
@@ -67,7 +62,14 @@ SET(COVERAGE_EXCLUDES
   '/tmp/*'
   '/vol/project/*'
   '/vol/cuda/*'
+  'build/*'
 )
+
+# ---------------------------------------------------------------------------- #
+# TEST INCLUDE DIRECTORIES
+# ---------------------------------------------------------------------------- #
+include_directories("${source_dir}/googletest/include"
+                    "${source_dir}/googlemock/include")
 
 # ---------------------------------------------------------------------------- #
 # CREATE TESTS
@@ -82,8 +84,13 @@ CREATE_TEST(dynfu_test)
 target_link_libraries(dynfu_test
   dynfu
   ceres
+  Threads::Threads
   ${Boost_LIBRARIES}
+  ${CUDA_CUDART_LIBRARY}
   ${PCL_LIBRARIES}
+  ${TERRA_LIBRARIES}
+  ${OPENMESH_LIBRARIES}
+  ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
 )
 
 # Generate coverage commands

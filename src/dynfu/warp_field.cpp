@@ -36,7 +36,7 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
     /* Save the deformation Nodes to PCL format */
     this->saveToPcl(deformationNodesPosition);
 
-    cloud      = std::make_shared<PointCloud>();
+    cloud      = std::make_shared<nanoflann::PointCloud>();
     cloud->pts = deformationNodesPosition;
     kdTree     = std::make_shared<kd_tree_t>(3, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
     kdTree->buildIndex();
@@ -72,7 +72,7 @@ std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(cv::Vec3f point) {
     return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
 }
 
-void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
+void Warpfield::warp(std::shared_ptr<dynfu::Frame> liveFrame) {
     // calculate DQB for all points
     // warps all points
     auto points = liveFrame->getVertices();
