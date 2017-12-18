@@ -287,4 +287,23 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     CombinedSolver combinedSolver(warpfield, params);
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
+
+    int i = 0;
+    int j = 0;
+    for (auto vertex : sourceVertices) {
+        cv::Vec3f totalTranslation;
+
+        for (auto neighbour : nodes) {
+            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+            totalTranslation += translation * neighbour->getTransformationWeight(vertex);
+            i++;
+        }
+
+        ASSERT_NEAR((vertex + totalTranslation)[0], targetVertices[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], targetVertices[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], targetVertices[j][2], max_error);
+
+        i = 0;
+        j++;
+    }
 }

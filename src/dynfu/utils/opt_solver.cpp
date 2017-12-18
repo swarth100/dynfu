@@ -33,7 +33,7 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<Frame> cano
 }
 
 void CombinedSolver::initializeConnectivity(const std::vector<cv::Vec3f> canonicalVertices) {
-    unsigned int N = (unsigned int) canonicalVertices.size();
+    int N = canonicalVertices.size();
 
     std::vector<std::vector<int>> indices(9, std::vector<int>(N));
     std::vector<float[8]> transformationWeights(N);
@@ -53,8 +53,11 @@ void CombinedSolver::combinedSolveInit() {
     m_solverParams.set("nIterations", &m_combinedSolverParameters.nonLinearIter);
     m_solverParams.set("lIterations", &m_combinedSolverParameters.linearIter);
 
+    m_problemParams.set("nodeCoordinates", m_nodeCoordinates);
+
     m_problemParams.set("rotation", m_rotation);
     m_problemParams.set("translation", m_translation);
+    m_problemParams.set("radialBasisWeights", m_radialBasisWeights);
 
     m_problemParams.set("canonicalVertices", m_canonicalVertices);
     m_problemParams.set("canonicalNormals", m_canonicalNormals);
@@ -62,9 +65,8 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("liveVertices", m_liveVertices);
     m_problemParams.set("liveNormals", m_liveNormals);
 
-    m_problemParams.set("transformationWeights", m_transformationWeights);
-
     m_problemParams.set("dataGraph", m_dataGraph);
+
 }
 
 void CombinedSolver::preSingleSolve() {}
@@ -123,8 +125,6 @@ void CombinedSolver::resetGPUMemory() {
     m_translation->update(h_translation);
     m_rotation->update(h_rotation);
 }
-
-std::vector<cv::Vec3f> getResult() {}  // FIXME (dig15): return the result
 
 void CombinedSolver::copyResultToCPUFromFloat3() {
     auto D = m_dims[0];

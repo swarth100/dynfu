@@ -108,8 +108,6 @@ public:
 
         int i = 0;
         for (auto vertex : liveFrame->getVertices()) {
-            std::cout << "processing vertex " << i << " out of " << liveFrame->getVertices().size() << std::endl;
-
             values.clear();
             auto neighbours = warpfield.findNeighbors(8, vertex);
 
@@ -117,17 +115,7 @@ public:
                 values.emplace_back(neighbour->getParams());
             }
 
-            std::clock_t start;
-
-            double duration;
-
-            start = std::clock();
-
             cost_function = Energy::Create(vertex, canonicalFrame->getVertices()[i], neighbours);
-
-            duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-
-            std::cout << "time taken to create cost function: " << duration << '\n';
 
             problem.AddResidualBlock(cost_function, NULL, values);
             i++;

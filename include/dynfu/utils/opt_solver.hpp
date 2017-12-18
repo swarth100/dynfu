@@ -36,8 +36,6 @@ public:
 
     void resetGPUMemory();
 
-    std::vector<cv::Vec3f> getResult();
-
     void copyResultToCPUFromFloat3();
 
 private:

@@ -80,10 +80,6 @@ set(gtest_build_samples ON)
 # Add quaternion Test
 CREATE_TEST(dynfu_test)
 
-message(CUDA_LIBRARIES ${CUDA_LIBRARIES})
-message(CUDA_CUDART_LIBRARY ${CUDA_CUDART_LIBRARY})
-
-
 # Link all libraries for testing
 target_link_libraries(dynfu_test
   dynfu
