@@ -142,8 +142,10 @@ std::shared_ptr<dynfu::Frame> kfusion::KinFu::getDynfuCanonicalWarpedToLive() {
 }
 
 kfusion::Affine3f kfusion::KinFu::getCameraPose(int time) const {
-    if (((time > static_cast<int>(poses_.size())) || (time < 0)))
+    if ((time > static_cast<int>(poses_.size())) || (time < 0)) {
         time = static_cast<int>(poses_.size()) - 1;
+    }
+
     return poses_[time];
 }
 
