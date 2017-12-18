@@ -1,4 +1,5 @@
 #include <dynfu/dyn_fusion.hpp>
+#include <future>
 
 DynFusion::DynFusion() = default;
 
@@ -114,6 +115,20 @@ void DynFusion::warpCanonicalToLiveOpt() {
         vertexWarpedToLive = vertex + totalTranslation;
         canonicalVerticesWarpedToLive.push_back(vertexWarpedToLive);
     }
+    // std::async([canonicalVerticesWarpedToLive] {
+    // auto pointcloudViz = std::make_shared<PointCloudViz>();
+    // auto viewer        = pointcloudViz->getViewer();
+    // auto mat           = pointcloudViz->vecToMat(canonicalVerticesWarpedToLive);
+    // auto cloud         = pointcloudViz->matToCloud(mat);
+    // viewer->showWidget("Cloud", cloud);
+    // viewer->spin();
+    //});
+    auto pointcloudViz = std::make_shared<PointCloudViz>();
+    auto viewer        = pointcloudViz->getViewer();
+    auto mat           = pointcloudViz->vecToMat(canonicalVerticesWarpedToLive);
+    auto cloud         = pointcloudViz->matToCloud(mat);
+    viewer->showWidget("Cloud", cloud);
+    viewer->spin();
 
     canonicalWarpedToLive =
         std::make_shared<dynfu::Frame>(0, canonicalVerticesWarpedToLive, canonicalVerticesWarpedToLive);
