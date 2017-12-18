@@ -14,7 +14,7 @@ function calculateTransformationWeight(vertexCoordinates, nodeCoordinates, radia
 end
 
 -- function to calculate the huber penalty
-function huberPenalty(a, delta) -- delta = 0.00001
+function huberPenalty(a, delta) -- the value of delta?
     if lesseq(abs(a), delta) then
         return a * a / 2
     else
@@ -23,7 +23,7 @@ function huberPenalty(a, delta) -- delta = 0.00001
 end
 
 -- function to calculate the tukey penalty
-function tukeyPenalty(x, c) -- c = 0.01
+function tukeyPenalty(x, c) -- the value of c is highly dependent on the quality of data; for alessandro recorded with realsense we recommend c = 4
     if lesseq(abs(x), c) then
         return x * pow(1.0 - (x * x) / (c * c), 2)
     else
@@ -61,8 +61,9 @@ local G = Graph("dataGraph", 8,
 local totalTranslation = 0
 local totalRotation = 0
 
-nodes = {0,1,2,3,4,5,6,7}
+local transformationWeight = 0
 
+nodes = {0,1,2,3,4,5,6,7}
 
 for _,i in ipairs(nodes) do
     totalTranslation = totalTranslation + translation(G["n"..i])
@@ -71,4 +72,6 @@ for _,i in ipairs(nodes) do
 end
 
 Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
--- Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, 0.01)) -- FIXME (dig15): works for real data but will cause tests to fail
+
+-- local c = 4
+-- Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c)) -- FIXME (dig15): works for real data but will cause tests to fail
