@@ -43,10 +43,6 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Cloud &norma
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
     warpfield->init(deformationNodes);
-
-    /* Initialise the point cloud viz */
-    pointCloudViz = std::make_shared<PointCloudViz>();
-    vizThread     = nullptr;
 }
 
 /* TODO: Add comment */
@@ -123,22 +119,6 @@ void DynFusion::warpCanonicalToLiveOpt() {
     }
 
     DynFusion::nextFrameReady = true;
-
-    auto viewer = pointCloudViz->getViewer();
-    if (vizThread) {
-        vizThread->join();
-        viewer->removeWidget("Cloud");
-    }
-    DynFusion::nextFrameReady = false;
-
-    auto mat   = pointCloudViz->vecToMat(canonicalVerticesWarpedToLive);
-    auto cloud = pointCloudViz->matToCloud(mat);
-    viewer->showWidget("Cloud", cloud);
-    vizThread = std::make_shared<std::thread>([this] {
-        while (!DynFusion::nextFrameReady) {
-            this->pointCloudViz->getViewer()->spinOnce(1, true);
-        }
-    });
 
     canonicalWarpedToLive =
         std::make_shared<dynfu::Frame>(0, canonicalVerticesWarpedToLive, canonicalVerticesWarpedToLive);
