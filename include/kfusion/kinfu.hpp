@@ -80,6 +80,11 @@ public:
     void renderImage(cuda::Image &image, const Affine3f &pose, int flag = 0);
     void renderCanonicalWarpedToLive(cuda::Image &image, int flag = 0);
 
+    bool getDynfuNextFrameReady();
+    void setDynfuNextFrameReady(bool status);
+
+    std::shared_ptr<dynfu::Frame> getDynfuCanonicalWarpedToLive();
+
     Affine3f getCameraPose(int time = -1) const;
 
 private:
