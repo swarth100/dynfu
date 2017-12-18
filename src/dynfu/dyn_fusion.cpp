@@ -16,6 +16,8 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
         }
     }
 
+    initCanonicalFrame(canonical, canonical);
+
     /* Sample the deformation nodes */
     int steps = 50;
     std::vector<std::shared_ptr<Node>> deformationNodes;
@@ -32,12 +34,41 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices) {
 DynFusion::~DynFusion() = default;
 
 /* TODO: Add comment */
-void DynFusion::initCanonicalFrame() {}
+void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> /* normals */) {
+    this->canonicalFrame = std::make_shared<Frame>(0, vertices, vertices);
+}
 
 /* TODO: Add comment */
 void DynFusion::warpCanonicalToLive() {
-    // query the solver passing to it the canonicalFrame, liveFrame, and
-    // prevwarpField
+    ceres::Solver::Options options;
+    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
+    options.minimizer_progress_to_stdout = true;
+    options.max_num_iterations           = 64;
+
+    int noCores         = sysconf(_SC_NPROCESSORS_ONLN);
+    options.num_threads = noCores;
+
+    WarpProblem warpProblem(options);
+    warpProblem.optimiseWarpField(*warpfield, this->canonicalFrame, this->liveFrame);
+
+    auto parameters = warpProblem.getParameters();
+
+    int i = 0;
+    int j = 0;
+    for (auto vertex : canonicalFrame->getVertices()) {
+        cv::Vec3f totalTranslation;
+
+        for (auto neighbour : this->warpfield->getNodes()) {
+            cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
+            neighbour->setRadialBasisWeight(parameters[i][0]);
+            neighbour->setTranslation(translation);
+
+            totalTranslation += translation * neighbour->getTransformationWeight(vertex);
+            i++;
+        }
+        i = 0;
+        j++;
+    }
 }
 
 void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
@@ -45,29 +76,6 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     auto liveFrameNormals  = matToVector(normalsToMat(normals));
 
     liveFrame = std::make_shared<Frame>(frameID, liveFrameVertices, liveFrameNormals);
-}
-
-/* Calculate Dual Quaternion Blending */
-/* Get the dg_se3 from each of the nodes, time it by the weight and calculate the sum */
-/* Before returning, normalise the dual quaternion */
-std::shared_ptr<DualQuaternion<float>> DynFusion::calcDQB(cv::Vec3f point) {
-    /* From the warp field get the k (8) closest points */
-    Warpfield warpfield;
-    auto nearestNeighbors = warpfield.findNeighbors(KNN, point);
-    /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
-    /* Apply the formula to get w(x) */
-    DualQuaternion<float> transformationSum(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    for (auto node : nearestNeighbors) {
-        float nodeWeight = node->getTransformationWeight(point);
-
-        DualQuaternion<float> dg_se3                  = *node->getTransformation();
-        DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
-        transformationSum += weighted_transformation;
-    }
-    /*Normalise the sum */
-    DualQuaternion<float> dual_quaternion_blending = transformationSum.normalize();
-
-    return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
 }
 
 cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {

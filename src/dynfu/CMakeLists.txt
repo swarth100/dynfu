@@ -7,6 +7,7 @@ include_directories(
 )
 # Link to dynfu library
 target_link_libraries(dynfu
+    ceres
     kfusion
     gcov
     ${Boost_LIBRARIES}

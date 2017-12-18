@@ -19,27 +19,22 @@
 
 class Energy {
 public:
-    Energy(Warpfield warpfield, cv::Vec3f sourceVertex, cv::Vec3f liveVertex) {
-        warpfield = warpfield;
-
-        this->sourceVertex = sourceVertex;
-        this->liveVertex   = liveVertex;
-
-        liveVertexNeighbours = warpfield.findNeighbors(KNN, liveVertex);
+    Energy(cv::Vec3f sourceVertex, cv::Vec3f liveVertex, std::vector<std::shared_ptr<Node>> liveVertexNeighbours) {
+        this->sourceVertex         = sourceVertex;
+        this->liveVertex           = liveVertex;
+        this->liveVertexNeighbours = liveVertexNeighbours;
     }
 
     template <typename T>
-    static T calcTransformationWeight(cv::Vec3f position, T weight, cv::Vec3f point) {
-        cv::Vec<T, 3> distance_vec = cv::Vec<T, 3>(abs(T(position[0]) - T(point[0])), abs(T(position[1]) - T(point[1])),
-                                                   abs(T(position[2]) - T(point[2])));
-        T distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
+    static T calcTransformationWeight(cv::Vec3f point1, cv::Vec3f point2, T radialBasisWeight) {
+        T distance = T(cv::norm(point1 - point2));
 
         // if the distance between the node and the vertex is 0, return 1 for the transformation weight
-        if (distance_norm == T(0.0)) {
+        if (distance == T(0.0)) {
             return T(1.0);
         }
 
-        return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
+        return exp(-1.0 * distance * distance / (2.0 * radialBasisWeight * radialBasisWeight));
     }
 
     /*
@@ -51,14 +46,11 @@ public:
 
         int i = 0;
         for (auto node : liveVertexNeighbours) {
-            T temp[4] = {T(transformationParameters[i][0]), T(transformationParameters[i][1]),
-                         T(transformationParameters[i][2]), T(transformationParameters[i][3])};
+            T weight = calcTransformationWeight(node->getPosition(), liveVertex, T(transformationParameters[i][0]));
 
-            T weight = calcTransformationWeight(node->getPosition(), temp[0], liveVertex);
-
-            total_translation[0] += T(temp[1] * weight);
-            total_translation[1] += T(temp[2] * weight);
-            total_translation[2] += T(temp[3] * weight);
+            total_translation[0] += transformationParameters[i][1] * weight;
+            total_translation[1] += transformationParameters[i][2] * weight;
+            total_translation[2] += transformationParameters[i][3] * weight;
             i++;
         }
 
@@ -73,9 +65,10 @@ public:
      * factory to hide the construction of the CostFunction object from
      * the client code
      */
-    static ceres::CostFunction* Create(Warpfield warpfield, cv::Vec3f sourceVertex, cv::Vec3f liveVertex) {
+    static ceres::CostFunction* Create(cv::Vec3f sourceVertex, cv::Vec3f liveVertex,
+                                       std::vector<std::shared_ptr<Node>> liveVertexNeighbours) {
         auto cost_function = new ceres::DynamicAutoDiffCostFunction<Energy, 4 /* stride */>(
-            new Energy(warpfield, sourceVertex, liveVertex));
+            new Energy(sourceVertex, liveVertex, liveVertexNeighbours));
 
         for (int i = 0; i < KNN; i++) {
             cost_function->AddParameterBlock(4);
@@ -87,8 +80,6 @@ public:
     }
 
 private:
-    Warpfield warpfield;
-
     cv::Vec3f sourceVertex;
     cv::Vec3f liveVertex;
 
@@ -113,17 +104,19 @@ public:
         ceres::Solver::Summary summary;
 
         ceres::CostFunction* cost_function;
+        std::vector<double*> values;
 
         int i = 0;
         for (auto vertex : liveFrame->getVertices()) {
-            std::vector<double*> values;
+            values.clear();
             auto neighbours = warpfield.findNeighbors(8, vertex);
 
             for (auto neighbour : neighbours) {
                 values.emplace_back(neighbour->getParams());
             }
 
-            cost_function = Energy::Create(warpfield, vertex, canonicalFrame->getVertices()[i]);
+            cost_function = Energy::Create(vertex, canonicalFrame->getVertices()[i], neighbours);
+
             problem.AddResidualBlock(cost_function, NULL, values);
             i++;
         }

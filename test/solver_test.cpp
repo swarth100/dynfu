@@ -33,7 +33,14 @@ protected:
 
     /* Code here will be called immediately after the constructor (right
      * before each test). */
-    void SetUp() override {}
+    void SetUp() override {
+        options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
+        options.minimizer_progress_to_stdout = true;
+        options.max_num_iterations           = 64;
+
+        int noCores         = sysconf(_SC_NPROCESSORS_ONLN);
+        options.num_threads = noCores;
+    }
 
     /* Code here will be called immediately after each test (right
      * before the destructor). */
@@ -107,28 +114,23 @@ TEST_F(SolverTest, SingleVertexTest) {
 
     liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
 
-    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
-    options.minimizer_progress_to_stdout = true;
-
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);
 
     auto parameters = warpProblem.getParameters();
 
-    cv::Vec3f totalTranslation;
     int i = 0;
     for (auto neighbour : nodes) {
         cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
         neighbour->setRadialBasisWeight(parameters[i][0]);
         neighbour->setTranslation(translation);
-
-        totalTranslation += translation * neighbour->getTransformationWeight(sourceVertex);
         i++;
     }
 
-    auto result = sourceVertex + totalTranslation;
+    auto totalTransformation = warpfield.calcDQB(sourceVertex);
+    auto result              = sourceVertex + totalTransformation->getTranslation();
 
-    max_error = 0.1;
+    max_error = 0.01;
     ASSERT_NEAR(result[0], targetVertices[0][0], max_error);
     ASSERT_NEAR(result[1], targetVertices[0][1], max_error);
     ASSERT_NEAR(result[2], targetVertices[0][2], max_error);
@@ -192,10 +194,6 @@ TEST_F(SolverTest, MultipleVerticesTest) {
     targetVertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
 
     liveFrame = std::make_shared<Frame>(1, targetVertices, targetVertices);
-
-    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
-    options.minimizer_progress_to_stdout = true;
-    options.max_num_iterations           = 1000;
 
     WarpProblem warpProblem(options);
     warpProblem.optimiseWarpField(warpfield, canonicalFrameWarpedToLive, liveFrame);

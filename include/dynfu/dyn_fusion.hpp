@@ -2,9 +2,13 @@
 #define DYNFU_DYNFUSION_HPP
 
 /* dynfu includes */
+#include <dynfu/utils/ceres_solver.hpp>
 #include <dynfu/utils/dual_quaternion.hpp>
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/warp_field.hpp>
+
+/* ceres includes */
+#include <ceres/ceres.h>
 
 /* typedefs */
 #include <kfusion/types.hpp>
@@ -20,12 +24,9 @@ public:
 
     void init(kfusion::cuda::Cloud &vertices);
 
-    void initCanonicalFrame();
+    void initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
     // void updateCanonicalFrame();
     void warpCanonicalToLive();
-
-    /* return a dual quaternion which represents the dual quaternion blending for a point */
-    std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
 
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);

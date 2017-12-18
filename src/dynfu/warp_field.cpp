@@ -49,6 +49,29 @@ std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
 // void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }
 
+/* Calculate Dual Quaternion Blending */
+/* Get the dg_se3 from each of the nodes, time it by the weight and calculate the sum */
+/* Before returning, normalise the dual quaternion */
+std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(cv::Vec3f point) {
+    /* From the warp field get the k (8) closest points */
+    auto nearestNeighbors = this->findNeighbors(KNN, point);
+    /* Then for each of the Nodes compare the distance between the vector of the Node and the point */
+    /* Apply the formula to get w(x) */
+    DualQuaternion<float> transformationSum(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+    for (auto node : nearestNeighbors) {
+        float nodeWeight = node->getTransformationWeight(point);
+
+        DualQuaternion<float> dg_se3                  = *node->getTransformation();
+        DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
+
+        transformationSum += weighted_transformation;
+    }
+    /*Normalise the sum */
+    DualQuaternion<float> dual_quaternion_blending = transformationSum.normalize();
+
+    return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
+}
+
 void Warpfield::warp(std::shared_ptr<Frame> liveFrame) {
     // calculate DQB for all points
     // warps all points
