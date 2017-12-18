@@ -6,11 +6,11 @@ function norm(v)
 end
 
 function calculateTransformationWeight(vertexCoordinates, nodeCoordinates, radialBasisWeight)
-  if eq(vertexCoordinates, nodeCoordinates) then
-    return 1
-  else
+  -- if eq(vertexCoordinates, nodeCoordinates) then -- FIXME (dig15): make the control statement work
+  --   return 1
+  -- else
     return exp(-pow(norm(vertexCoordinates - nodeCoordinates), 2) / (2 * pow(radialBasisWeight, 2)))
-  end
+  -- end
 end
 
 -- function to calculate the huber penalty
@@ -66,12 +66,10 @@ local transformationWeight = 0
 nodes = {0,1,2,3,4,5,6,7}
 
 for _,i in ipairs(nodes) do
-    totalTranslation = totalTranslation + translation(G["n"..i])
-    -- totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i]) -- FIXME (dig15): use transformation weights
+    local transformationWeight = calculateTransformationWeight(canonicalVertices(G.v), nodeCoordinates(G["n"..i]), radialBasisWeights(G["n"..i]))
+    totalTranslation = totalTranslation + transformationWeight * translation(G["n"..i])
     -- totalRotation = totalRotation + rotation(G["n"..i]) -- FIXME (dig15): use rotations
 end
 
-Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
-
--- local c = 4
--- Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c)) -- FIXME (dig15): works for real data but will cause tests to fail
+local c = 4
+Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c))
