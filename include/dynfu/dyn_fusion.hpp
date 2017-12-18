@@ -6,6 +6,7 @@
 #include <dynfu/utils/dual_quaternion.hpp>
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/opt_solver.hpp>
+#include <dynfu/utils/pointcloud_viz.hpp>
 #include <dynfu/warp_field.hpp>
 
 /* ceres includes */
