@@ -71,7 +71,6 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("liveNormals", m_liveNormals);
 
     m_problemParams.set("dataGraph", m_dataGraph);
-
 }
 
 void CombinedSolver::preSingleSolve() {}
