@@ -133,6 +133,14 @@ void kfusion::KinFu::reset() {
     volume_->clear();
 }
 
+bool kfusion::KinFu::getDynfuNextFrameReady() { return dynfu->nextFrameReady; }
+
+void kfusion::KinFu::setDynfuNextFrameReady(bool status) { dynfu->nextFrameReady = status; }
+
+std::shared_ptr<dynfu::Frame> kfusion::KinFu::getDynfuCanonicalWarpedToLive() {
+    return dynfu->getCanonicalWarpedToLive();
+}
+
 kfusion::Affine3f kfusion::KinFu::getCameraPose(int time) const {
     if (time > (int) poses_.size() || time < 0)
         time = (int) poses_.size() - 1;
