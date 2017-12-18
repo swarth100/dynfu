@@ -86,16 +86,13 @@ public:
 
     /* TODO allow 0,5 * dq to be used */
 
-    DualQuaternion<T> operator*(T scale) { return DualQuaternion<T>(real * scale, real * scale); }
+    DualQuaternion<T> operator*(T scale) { return DualQuaternion<T>(real * scale, dual * scale); }
 
     DualQuaternion<T>& operator*=(T scale) {
         real *= scale;
         dual *= scale;
         return *this;
     }
-
-    /* TODO confirm this
-     * http://wscg.zcu.cz/wscg2012/short/A29-full.pdf */
 
     DualQuaternion<T> operator*(const DualQuaternion<T>& other) {
         return DualQuaternion<T>(real * other.getReal(), real * other.getDual() + dual * other.getReal());
@@ -107,8 +104,9 @@ public:
         real *= other.getReal();
     }
 
+    /* TODO Conferm no scaling needs to be done for dual */
     DualQuaternion<T>& normalize() {
-        T magnitude = dotProduct(real, dual);
+        T magnitude = sqrtf(dotProduct(real, real));
         assert(magnitude > epsilon);
         real *= (1.0f / magnitude);
         return *this;
