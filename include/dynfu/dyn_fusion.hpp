@@ -47,6 +47,7 @@ public:
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
+    /* get the canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
 
     /* control the thread deletion */
@@ -67,10 +68,6 @@ private:
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
     /* convert OpenCV matrix to vector of Vec3f */
     std::vector<cv::Vec3f> matToVector(cv::Mat);
-    /* point cloud viz */
-    std::shared_ptr<PointCloudViz> pointCloudViz;
-    /* point cloud viz thread */
-    std::shared_ptr<std::thread> vizThread;
 };
 
 /* DYNFU_DYNFUSION_HPP */
