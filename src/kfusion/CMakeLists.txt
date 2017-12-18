@@ -5,7 +5,5 @@ add_module_library(kfusion)
 target_link_libraries(kfusion
   dynfu
   ${CUDA_CUDART_LIBRARY}
-  ${OPT_LIBRARIES}
-  ${TERRA_LIBRARIES}
   ${OpenCV_LIBS}
 )
