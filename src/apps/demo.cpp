@@ -4,6 +4,9 @@
 /* kinfu includes */
 #include <kfusion/kinfu.hpp>
 
+/* dynfuy includes */
+#include <dynfu/utils/pointcloud_viz.hpp>
+
 /* opencv includes */
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -35,13 +38,45 @@ struct DynFuApp {
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
+
         if (visualizer_) {
             cv::imshow("canonical frame warped to live", view_host_);
             cvWaitKey(10);
         }
+
         std::string path = outPath_ + "/warped/" + std::to_string(i) + ".png";
         cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
         cv::imwrite(path, view_host_);
+
+        if (visualizer_) {
+            /* point cloud viz */
+            std::shared_ptr<PointCloudViz> pointCloudViz;
+            /* point cloud viz thread */
+            std::shared_ptr<std::thread> vizThread;
+
+            /* initialise the point cloud viz */
+            pointCloudViz = std::make_shared<PointCloudViz>();
+            vizThread     = nullptr;
+
+            auto viewer = pointCloudViz->getViewer();
+
+            if (vizThread) {
+                vizThread->join();
+                viewer->removeWidget("Cloud");
+            }
+
+            auto mat   = pointCloudViz->vecToMat(kinfu->getDynfuCanonicalWarpedToLive()->getVertices());
+            auto cloud = pointCloudViz->matToCloud(mat);
+
+            viewer->showWidget("Cloud", cloud);
+            vizThread = std::make_shared<std::thread>([&pointCloudViz] {
+                while (!DynFusion::nextFrameReady) {
+                    pointCloudViz->getViewer()->spinOnce(1, true);
+                }
+            });
+
+            kinfu->setDynfuNextFrameReady(false);
+        }
     }
 
     void take_cloud(KinFu *kinfu) {
