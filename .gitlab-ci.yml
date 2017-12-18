@@ -249,7 +249,7 @@ coverage:
 # > deploy <
 # The deploy stage will deploy the newly built project binaries
 # to /data/dynfu.
-depoy:
+deploy:
   stage: Deploy
 
   # The latest build build/ must be retrieved from cache
@@ -293,6 +293,20 @@ docker_image_deploy:
     - docker push $CONTAINER_IMAGE
   only:
     - master
+
+# > test_dynfu_on_ec2 <
+# Trigger testing on ec2 instance
+test_dynfu_on_ec2:
+  stage: Deploy
+  tags:
+    - docker
+  before_script:
+    - pip install awscli
+    - export PATH="${PATH}:~/.local/bin"
+  script:
+    - AWS_ACCESS_KEY_ID=${UPDATE_LAMBDA_KEY} AWS_SECRET_ACCESS_KEY=${UPDATE_LAMBDA_PASS} AWS_DEFAULT_REGION=eu-west-1 aws lambda invoke --function-name dynamic-fusion-trigger-testing /tmp/lambda-out
+  only:
+    - dev
 # ---------------------------------------------------------------------------- #
 #                                   CLEANUP                                    #
 # ---------------------------------------------------------------------------- #
