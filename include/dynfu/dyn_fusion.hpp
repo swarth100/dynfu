@@ -17,7 +17,9 @@
 
 /* sys headers */
 #include <math.h>
+#include <thread>
 
+/* opencv headers */
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -47,6 +49,9 @@ public:
 
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
 
+    /* control the thread deletion */
+    static bool nextFrameReady;
+
 private:
     std::shared_ptr<dynfu::Frame> canonicalFrame;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
@@ -62,6 +67,10 @@ private:
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
     /* convert OpenCV matrix to vector of Vec3f */
     std::vector<cv::Vec3f> matToVector(cv::Mat);
+    /* point cloud viz */
+    std::shared_ptr<PointCloudViz> pointCloudViz;
+    /* point cloud viz thread */
+    std::shared_ptr<std::thread> vizThread;
 };
 
 /* DYNFU_DYNFUSION_HPP */
