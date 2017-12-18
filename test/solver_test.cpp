@@ -659,3 +659,100 @@ TEST_F(SolverTest, MultipleVerticesOneGroupOfDeformationNodesNonRigidTest) {
     //     j++;
     // }
 }
+
+TEST_F(SolverTest, MihaiNonRigidTest) {
+    Warpfield warpfieldNonRigid;
+    std::vector<std::shared_ptr<Node>> nodesNonRigid;
+
+    cv::Vec3f dg_v2   = {1, 1, 1};
+    auto nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {1, 2, -1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {1, -2, 1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {1, -1, -1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {-1, 1, 5};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {-1, 1, -1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {-1, 1, 5};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {-1, -1, 1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {-1, 1, 5};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {-1, -1, 1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {-1, -1, -1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    dg_v2        = {2, -3, -1};
+    nodeNonRigid = std::make_shared<Node>(dg_v2, dg_se3, dg_w);
+    nodesNonRigid.push_back(nodeNonRigid);
+
+    warpfieldNonRigid.init(nodesNonRigid);
+
+    std::vector<cv::Vec3f> source_vertices;
+    source_vertices.emplace_back(cv::Vec3f(-3, -3, -3));
+    source_vertices.emplace_back(cv::Vec3f(-2, -2, -2));
+    source_vertices.emplace_back(cv::Vec3f(0, 0, 0));
+    source_vertices.emplace_back(cv::Vec3f(2, 2, 2));
+    source_vertices.emplace_back(cv::Vec3f(3, 3, 3));
+    source_vertices.emplace_back(cv::Vec3f(3, 3, 3));
+
+    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, source_vertices, source_vertices);
+
+    std::vector<cv::Vec3f> target_vertices;
+    target_vertices.emplace_back(cv::Vec3f(-2.95f, -3.f, -2.95f));
+    target_vertices.emplace_back(cv::Vec3f(-1.95f, -1.95f, -2.f));
+    target_vertices.emplace_back(cv::Vec3f(0.1, 0.1, 0.1));
+    target_vertices.emplace_back(cv::Vec3f(2, 2.5f, 2));
+    target_vertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
+    target_vertices.emplace_back(cv::Vec3f(3.05, 3.05, 3.05));
+
+    liveFrame = std::make_shared<dynfu::Frame>(0, target_vertices, target_vertices);
+
+    CombinedSolver combinedSolver(warpfieldNonRigid, params);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.solveAll();
+
+    int j = 0;
+    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+        cv::Vec3f totalTranslation;
+
+        auto neighbourNodes = warpfieldNonRigid.findNeighbors(KNN, vertex);
+
+        for (auto neighbour : neighbourNodes) {
+            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+            totalTranslation += translation;
+        }
+
+        ASSERT_NEAR((vertex + totalTranslation)[0], liveFrame->getVertices()[j][0], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[1], liveFrame->getVertices()[j][1], max_error);
+        ASSERT_NEAR((vertex + totalTranslation)[2], liveFrame->getVertices()[j][2], max_error);
+
+        j++;
+    }
+}
