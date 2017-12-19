@@ -88,7 +88,10 @@ protected:
         nodes.clear();
 
         sourceVertices.clear();
+        sourceNormals.clear();
+
         targetVertices.clear();
+        targetNormals.clear();
     }
 
     /* Objects declared here can be used by all tests in the test case for Solver. */
@@ -108,7 +111,10 @@ protected:
     float dg_w = 2.f;
 
     std::vector<cv::Vec3f> sourceVertices;
+    std::vector<cv::Vec3f> sourceNormals;
+
     std::vector<cv::Vec3f> targetVertices;
+    std::vector<cv::Vec3f> targetNormals;
 
     std::shared_ptr<dynfu::Frame> canonicalFrameWarpedToLive;
     std::shared_ptr<dynfu::Frame> liveFrame;
@@ -198,9 +204,12 @@ TEST_F(SolverTest, SingleVertexOneGroupOfDeformationNodesTestOpt) {
     warpfield.init(nodes);
 
     sourceVertices.emplace_back(cv::Vec3f(1.05, 0.05, 1));
-    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceVertices);
+    sourceNormals.emplace_back(cv::Vec3f(1, 1, 1));
+    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(
+        0, sourceVertices, sourceVertices);  // FIXME (dig15): understand how to use the normals
 
     targetVertices.emplace_back(cv::Vec3f(1.0, 0.0, 1.0));
+    targetNormals.emplace_back(cv::Vec3f(1, 1, 1));
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetVertices);
 
     CombinedSolver combinedSolver(warpfield, params);
