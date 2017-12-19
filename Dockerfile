@@ -74,8 +74,5 @@ RUN cmake -D CUDA_CUDA_LIBRARY="/usr/local/cuda/lib64/stubs/libcuda.so" ..
 RUN make -j`nproc`
 WORKDIR ..
 
-# Remove unnecessary packages
-RUN apt-get remove -y cmake python pkg-config git zip clang build-essential
-
 # Run dynamicfusion using /data
 CMD ./build/bin/app /data
