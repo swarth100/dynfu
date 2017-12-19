@@ -48,35 +48,32 @@ struct DynFuApp {
         cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
         cv::imwrite(path, view_host_);
 
-        if (visualizer_) {
-            /* point cloud viz */
-            std::shared_ptr<PointCloudViz> pointCloudViz;
-            /* point cloud viz thread */
-            std::shared_ptr<std::thread> vizThread;
-
-            /* initialise the point cloud viz */
-            pointCloudViz = std::make_shared<PointCloudViz>();
-            vizThread     = nullptr;
-
-            auto viewer = pointCloudViz->getViewer();
-
-            if (vizThread) {
-                vizThread->join();
-                viewer->removeWidget("Cloud");
-            }
-
-            auto mat   = pointCloudViz->vecToMat(kinfu->getDynfuCanonicalWarpedToLive()->getVertices());
-            auto cloud = pointCloudViz->matToCloud(mat);
-
-            viewer->showWidget("Cloud", cloud);
-            vizThread = std::make_shared<std::thread>([&pointCloudViz] {
-                while (!DynFusion::nextFrameReady) {
-                    pointCloudViz->getViewer()->spinOnce(1, true);
-                }
-            });
-
-            kinfu->setDynfuNextFrameReady(false);
-        }
+        // if (visualizer_) {
+        //     /* initialise the point cloud viz */
+        //     pointCloudViz = std::make_shared<PointCloudViz>();
+        //     vizThread     = nullptr;
+        //
+        //     auto viewer = pointCloudViz->getViewer();
+        //
+        //     kinfu->setDynfuNextFrameReady(true);
+        //
+        //     if (vizThread) {
+        //         vizThread->join();
+        //         viewer->removeWidget("Cloud");
+        //     }
+        //
+        //     auto mat   = pointCloudViz->vecToMat(kinfu->getDynfuCanonicalWarpedToLive()->getVertices());
+        //     auto cloud = pointCloudViz->matToCloud(mat);
+        //
+        //     kinfu->setDynfuNextFrameReady(false);
+        //
+        //     viewer->showWidget("Cloud", cloud);
+        //     vizThread = std::make_shared<std::thread>([this] {
+        //         while (!DynFusion::nextFrameReady) {
+        //             pointCloudViz->getViewer()->spinOnce(1, true);
+        //         }
+        //     });
+        // }
     }
 
     void take_cloud(KinFu *kinfu) {
@@ -174,6 +171,11 @@ struct DynFuApp {
 
     std::string filePath_;
     std::string outPath_, outWarpedPath_;
+
+    /* point cloud viz */
+    std::shared_ptr<PointCloudViz> pointCloudViz;
+    /* point cloud viz thread */
+    std::shared_ptr<std::thread> vizThread;
 
     bool exit_, visualizer_;
 
