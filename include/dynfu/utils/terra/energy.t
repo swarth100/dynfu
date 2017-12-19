@@ -1,8 +1,19 @@
 -- function definitions
 
--- function to calculate the norm of a vector
+-- function to calculate the norm of a 3-D vector
 function norm(v)
   return pow(pow(v(0), 2) + pow(v(1), 2) + pow(v(2), 2), 0.5)
+end
+
+-- function to calculate the dot product of an n-D vector
+function dotProduct(a, b)
+        -- get dimensions
+        local ax, ay = a.b.x-a.a.x, a.b.y-a.a.y
+        local bx, by = b.b.x-b.a.x, b.b.y-b.a.y
+
+        -- multiply the x's, multiply the y's, then add
+        local dot = ax * bx + ay * by
+        return dot
 end
 
 function calculateTransformationWeight(vertexCoordinates, nodeCoordinates, radialBasisWeight)
