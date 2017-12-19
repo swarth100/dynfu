@@ -1,17 +1,16 @@
 # Build all dynfu source files into library dynfy
 add_module_library(dynfu)
 
+# PCL Package must be included at this stage for DockerFile
 find_package(PCL 1.2 REQUIRED COMPONENTS io)
 
+# Add PCL to include paths
 include_directories(
-  ${CUDA_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-  ${OPENMESH_INCLUDE_DIRS}
-  ${TERRA_INCLUDE_DIRS}
-  ${OPT_INCLUDE_DIRS}
 )
 
-target_compile_definitions(dynfu PUBLIC TERRA_SOLVER_FILE=${CMAKE_SOURCE_DIR}/include/dynfu/utils/terra/energy.t)
+target_compile_definitions(dynfu
+  PUBLIC TERRA_SOLVER_FILE=${CMAKE_SOURCE_DIR}/include/dynfu/utils/terra/energy.t)
 
 # Link to dynfu library
 target_link_libraries(dynfu

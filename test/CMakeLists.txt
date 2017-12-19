@@ -83,14 +83,7 @@ CREATE_TEST(dynfu_test)
 # Link all libraries for testing
 target_link_libraries(dynfu_test
   dynfu
-  ceres
-  Threads::Threads
-  ${Boost_LIBRARIES}
   ${CUDA_CUDART_LIBRARY}
-  ${PCL_LIBRARIES}
-  ${TERRA_LIBRARIES}
-  ${OPENMESH_LIBRARIES}
-  ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
 )
 
 # Generate coverage commands
