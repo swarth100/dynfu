@@ -75,5 +75,5 @@ for _,i in ipairs(nodes) do
 end
 
 local c = 4
-Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c)
+Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c))
 -- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): understand how to use the normals
