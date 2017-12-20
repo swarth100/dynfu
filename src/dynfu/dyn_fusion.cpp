@@ -6,7 +6,8 @@ bool DynFusion::nextFrameReady = false;
 DynFusion::DynFusion() = default;
 
 /* initialise dynamicfusion with the initial vertices and normals */
-void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Cloud &normals) {
+void DynFusion::init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cuda::Cloud &vertices,
+                     kfusion::cuda::Cloud &normals) {
     cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonicalVertices(cloudHost.rows * cloudHost.cols);
 
@@ -33,22 +34,23 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Cloud &norma
 
     initCanonicalFrame(canonicalVertices, canonicalNormals);
 
-    /* Sample the deformation nodes */
+    /* sample the deformation nodes */
     int noDeformationNodes = 8192;
 
     std::vector<std::shared_ptr<Node>> deformationNodes;
-    float truncationDist = 8;
+    auto truncationDist  = tsdfVolume->getTruncDist();
+    auto volumeVoxelSize = tsdfVolume->getVoxelSize();
 
     int i = 1;
     while (i <= noDeformationNodes) {
         auto k = rand() % (canonicalVertices.size() - 1);
 
-        if (cv::norm(canonicalVertices[k]) < truncationDist) {
+        if ((cv::norm(canonicalVertices[k]) != 0.f) &&
+            (cv::norm(canonicalVertices[k]) < (truncationDist / volumeVoxelSize[0]))) {
             auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
             deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[k], dq, 2.f));
+            i++;
         }
-
-        i++;
     }
 
     /* Initialise the warp field with the inital frames vertices */
@@ -115,18 +117,22 @@ void DynFusion::warpCanonicalToLiveOpt() {
     std::vector<cv::Vec3f> canonicalVerticesWarpedToLive;
 
     for (auto vertex : canonicalFrame->getVertices()) {
-        cv::Vec3f vertexWarpedToLive;
-        cv::Vec3f totalTranslation;
+        if (cv::norm(vertex) == 0) {
+            canonicalVerticesWarpedToLive.push_back(vertex);
+        } else {
+            cv::Vec3f vertexWarpedToLive;
+            cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
+            auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
 
-        for (auto neighbour : neighbourNodes) {
-            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-            totalTranslation += translation;
+            for (auto neighbour : neighbourNodes) {
+                cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
+                totalTranslation += translation;
+            }
+
+            vertexWarpedToLive = vertex + totalTranslation;
+            canonicalVerticesWarpedToLive.push_back(vertexWarpedToLive);
         }
-
-        vertexWarpedToLive = vertex + totalTranslation;
-        canonicalVerticesWarpedToLive.push_back(vertexWarpedToLive);
     }
 
     DynFusion::nextFrameReady = true;
