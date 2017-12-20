@@ -16,10 +16,14 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
 
     /* number of non-zero vertices */
     unsigned int N = 0;
+
+    int k = 0;
     for (vertex : m_canonicalVerticesOpenCV) {
-        if (cv::norm(vertex) != 0) {
+        if ((cv::norm(vertex) != 0) && (cv::norm(m_liveVerticesOpenCV[k]) != 0)) {
             N++;
         }
+
+        k++;
     }
 
     m_dims = {D, N};
@@ -103,7 +107,7 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float3> h_liveNormals(N);
 
     for (int i = 0; i < N; i++) {
-        if (cv::norm(m_canonicalVerticesOpenCV[i]) == 0) {
+        if ((cv::norm(m_canonicalVerticesOpenCV[i]) == 0) || (cv::norm(m_liveVerticesOpenCV[i]) == 0)) {
             continue;
         } else {
             h_canonicalVertices[i] = make_float3(m_canonicalVerticesOpenCV[i][0], m_canonicalVerticesOpenCV[i][1],
