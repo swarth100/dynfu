@@ -120,17 +120,10 @@ void DynFusion::warpCanonicalToLiveOpt() {
         if (cv::norm(vertex) == 0) {
             canonicalVerticesWarpedToLive.push_back(vertex);
         } else {
-            cv::Vec3f vertexWarpedToLive;
-            cv::Vec3f totalTranslation;
+            auto transformation   = warpfield->calcDQB(vertex);
+            auto totalTranslation = transformation->getTranslation();
 
-            auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
-
-            for (auto neighbour : neighbourNodes) {
-                cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-                totalTranslation += translation;
-            }
-
-            vertexWarpedToLive = vertex + totalTranslation;
+            auto vertexWarpedToLive = vertex + totalTranslation;
             canonicalVerticesWarpedToLive.push_back(vertexWarpedToLive);
         }
     }
