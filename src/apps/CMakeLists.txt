@@ -1,6 +1,12 @@
 # Link source files to executables
 add_application(app)
 
+find_package(PCL 1.2 REQUIRED COMPONENTS io)
+
+include_directories(
+  ${PCL_INCLUDE_DIRS}
+)
+
 # Link to all libraries
 target_link_libraries(app
     ceres
@@ -11,6 +17,7 @@ target_link_libraries(app
     ${CUDA_CUDART_LIBRARY}
     ${OpenCV_LIBS}
     ${TERRA_LIBRARIES}
+    ${PCL_LIBRARIES}
     ${OPENMESH_LIBRARIES}
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
 )
