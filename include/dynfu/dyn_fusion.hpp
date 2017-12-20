@@ -29,12 +29,22 @@ public:
     DynFusion();
     ~DynFusion();
 
+    /* helper function to determine whether a point has NaNs */
+    static bool DynFusion::hasNaNs(kfusion::Point pt);
+
+    /* helper function to determine whether vertex is part of the background */
+    static bool isBackground(kfusion::Point pt);
+
     void init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cuda::Cloud &vertices,
               kfusion::cuda::Cloud &normals);
 
     void initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
 
     // void updateCanonicalFrame();
+
+    /* updates the warp field if the no. of deformation nodes is insufficient to capture the geometry of canonical model
+     */
+    void updateWarpfield();
 
     /* warp canonical frame to live frame using Ceres */
     void warpCanonicalToLive();
