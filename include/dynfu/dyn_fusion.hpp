@@ -13,6 +13,7 @@
 #include <ceres/ceres.h>
 
 /* typedefs */
+#include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
 
 /* sys headers */
@@ -28,7 +29,8 @@ public:
     DynFusion();
     ~DynFusion();
 
-    void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Cloud &normals);
+    void init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cuda::Cloud &vertices,
+              kfusion::cuda::Cloud &normals);
 
     void initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
 
