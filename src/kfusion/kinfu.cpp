@@ -137,10 +137,6 @@ bool kfusion::KinFu::getDynfuNextFrameReady() { return dynfu->nextFrameReady; }
 
 void kfusion::KinFu::setDynfuNextFrameReady(bool status) { dynfu->nextFrameReady = status; }
 
-std::shared_ptr<dynfu::Frame> kfusion::KinFu::getDynfuCanonicalWarpedToLive() {
-    return dynfu->getCanonicalWarpedToLive();
-}
-
 kfusion::Affine3f kfusion::KinFu::getCameraPose(int time) const {
     if ((time > static_cast<int>(poses_.size())) || (time < 0)) {
         time = static_cast<int>(poses_.size()) - 1;
@@ -211,7 +207,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     /* TODO (dig15): apply warp and get the result; probably need to upload the data back to curr_.points and
      * curr_.normals */
     dynfu->warpCanonicalToLiveOpt();
-    auto canonicalWarpedToLiveCloud = dynfu->getCanonicalWarpedToLive();
+
+    canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
 
     /*
      * VOLUME INTEGRATION
