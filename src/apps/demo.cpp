@@ -11,6 +11,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+/* pcl includes */
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
         KinFuParams params = KinFuParams::default_params();
@@ -40,40 +44,71 @@ struct DynFuApp {
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
 
         if (visualizer_) {
+            /* FROM THE GPU */
+
             cv::imshow("canonical frame warped to live", view_host_);
             cvWaitKey(10);
+
+            /* FROM THE POINT CLOUD */
+
+            pointCloudViz = std::make_shared<PointCloudViz>();
+            vizThread     = nullptr;
+
+            auto viewer = pointCloudViz->getViewer();
+
+            kinfu->setDynfuNextFrameReady(true);
+
+            if (vizThread) {
+                vizThread->join();
+                viewer->removeWidget("Cloud");
+            }
+
+            auto mat   = pointCloudViz->vecToMat(kinfu->getDynfuCanonicalWarpedToLive()->getVertices());
+            auto cloud = pointCloudViz->matToCloud(mat);
+
+            kinfu->setDynfuNextFrameReady(false);
+
+            viewer->showWidget("Cloud", cloud);
+            vizThread = std::make_shared<std::thread>([this] {
+                while (!DynFusion::nextFrameReady) {
+                    pointCloudViz->getViewer()->spinOnce(1, true);
+                }
+            });
+        }
+    }
+
+    void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
+        /* initialise the point cloud */
+        auto cloud   = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+        auto vectors = kinfu->getDynfuCanonicalWarpedToLive()->getVertices();
+
+        (*cloud).width  = vectors.size();
+        (*cloud).height = 1;
+
+        (*cloud).points.resize((*cloud).width * (*cloud).height);
+
+        /* iterate through vectors */
+        for (size_t i = 0; i < vectors.size(); i++) {
+            const cv::Vec3f &pt = vectors[i];
+
+            pcl::PointXYZ point = pcl::PointXYZ();
+            point.x             = pt[0];
+            point.y             = pt[1];
+            point.z             = pt[2];
+
+            (*cloud).points[i] = point;
         }
 
-        std::string path = outPath_ + "/warped/" + std::to_string(i) + ".png";
-        cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
-        cv::imwrite(path, view_host_);
+        /* save to PCL */
+        std::string filenameStr = ("files/PCLFrame" + std::to_string(i) + ".pcd");
+        try {
+            pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+        } catch (...) {
+            std::cout << "Could not save to " + filenameStr << std::endl;
+        }
 
-        // if (visualizer_) {
-        //     /* initialise the point cloud viz */
-        //     pointCloudViz = std::make_shared<PointCloudViz>();
-        //     vizThread     = nullptr;
-        //
-        //     auto viewer = pointCloudViz->getViewer();
-        //
-        //     kinfu->setDynfuNextFrameReady(true);
-        //
-        //     if (vizThread) {
-        //         vizThread->join();
-        //         viewer->removeWidget("Cloud");
-        //     }
-        //
-        //     auto mat   = pointCloudViz->vecToMat(kinfu->getDynfuCanonicalWarpedToLive()->getVertices());
-        //     auto cloud = pointCloudViz->matToCloud(mat);
-        //
-        //     kinfu->setDynfuNextFrameReady(false);
-        //
-        //     viewer->showWidget("Cloud", cloud);
-        //     vizThread = std::make_shared<std::thread>([this] {
-        //         while (!DynFusion::nextFrameReady) {
-        //             pointCloudViz->getViewer()->spinOnce(1, true);
-        //         }
-        //     });
-        // }
+        /* print to std::err after successful save */
+        std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
     }
 
     void take_cloud(KinFu *kinfu) {
@@ -157,7 +192,10 @@ struct DynFuApp {
                 show_canonical_warped_to_live(&kinfu, i);
             }
 
+            save_canonical_warped_to_live_point_cloud(&kinfu, i);
+
             // show_depth(depth);
+
             if (visualizer_) {
                 cv::imshow("Image", image);
                 cv::imshow("Depth", depth);
