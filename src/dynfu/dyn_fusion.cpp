@@ -5,6 +5,53 @@ bool DynFusion::nextFrameReady = false;
 
 DynFusion::DynFusion() = default;
 
+static bool DynFusion::hasNaNs(kfusion::Point pt) {
+    if (std::isnan(pt.x) || std::isnan(pt.y) || std::isnan(pt.z)) {
+        return true;
+    }
+
+    return false;
+}
+
+static bool DynFusion::isBackground(kfusion::Point pt) {
+    auto norm = cv::norm(cv::Vec3f(pt.x, pt.y, pt.z));
+
+    /* TODO (dig15): set this value in a less arbitrary way */
+    if (norm < 4) {
+        return false;
+    }
+
+    return true;
+}
+
+void DynFusion::updateWarpfield() {
+    std::vector<cv::Vec3f> unsupportedVertices;
+    float min;
+
+    for (auto vertex : canonicalFrame->getVertices()) {
+        if ((cv::norm(vertex) != 0) && (cv::norm(vertex) < 4)) {
+            for (auto neighbour : warpfield->findNeighbors(KNN, vertex)) {
+                min = cv::norm(vertex - neighbour->getPosition()) / neighbour->getRadialBasisWeight();
+
+                if (min > 1) {
+                    unsupportedVertices.emplace_back(vertex);
+                    break;
+                }
+            }
+        }
+    }
+
+    std::cout << "no. of unsupported vertices: " << unsupportedVertices.size() << std::endl;
+
+    for (int i = 0; i < unsupportedVertices.size(); i += 5) {
+        auto dg_se3 = warpfield->calcDQB(unsupportedVertices[i]);
+
+        warpfield->addNode(std::make_shared<Node>(unsupportedVertices[i], dg_se3, 2.f));
+    }
+
+    std::cout << "finished updating the warpfield!" << std::endl;
+}
+
 /* initialise dynamicfusion with the initial vertices and normals */
 void DynFusion::init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cuda::Cloud &vertices,
                      kfusion::cuda::Cloud &normals) {
@@ -14,8 +61,11 @@ void DynFusion::init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cu
     for (int y = 0; y < cloudHost.cols; ++y) {
         for (int x = 0; x < cloudHost.rows; ++x) {
             auto point = cloudHost.at<kfusion::Point>(x, y);
-            if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z))) {
+
+            if (!hasNaNs(point) && !isBackground(point)) {
                 canonicalVertices[x + cloudHost.rows * y] = cv::Vec3f(point.x, point.y, point.z);
+            } else {
+                canonicalVertices[x + cloudHost.rows * y] = cv::Vec3f(0.f, 0.f, 0.f);
             }
         }
     }
@@ -45,8 +95,7 @@ void DynFusion::init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cu
     while (i <= noDeformationNodes) {
         auto k = rand() % (canonicalVertices.size() - 1);
 
-        if ((cv::norm(canonicalVertices[k]) != 0.f) &&
-            (cv::norm(canonicalVertices[k]) < (truncationDist / volumeVoxelSize[0]))) {
+        if ((cv::norm(canonicalVertices[k]) < 4) && (cv::norm(canonicalVertices[k]) != 0)) {
             auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
             deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[k], dq, 2.f));
             i++;
@@ -115,6 +164,8 @@ void DynFusion::warpCanonicalToLiveOpt() {
     combinedSolver.solveAll();
 
     std::vector<cv::Vec3f> canonicalVerticesWarpedToLive;
+
+    updateWarpfield();
 
     for (auto vertex : canonicalFrame->getVertices()) {
         if (cv::norm(vertex) == 0) {
