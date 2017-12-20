@@ -170,9 +170,11 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     // can't do more with the first frame
     if (frame_counter_ == 0) {
-        /* initialise the warpfield */
-        dynfu->init(curr_.points_pyr[0], curr_.normals_pyr[0]);
         volume_->integrate(dists_, poses_.back(), p.intr);
+
+        /* initialise the warpfield */
+        dynfu->init(volume_, curr_.points_pyr[0], curr_.normals_pyr[0]);
+
 #if defined USE_DEPTH
         curr_.depth_pyr.swap(prev_.depth_pyr);
 #else
