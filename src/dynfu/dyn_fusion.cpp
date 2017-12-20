@@ -34,12 +34,23 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Cloud &norma
     initCanonicalFrame(canonicalVertices, canonicalNormals);
 
     /* Sample the deformation nodes */
-    int steps = 50;
+    int noDeformationNodes = 8192;
+
     std::vector<std::shared_ptr<Node>> deformationNodes;
-    for (int i = 0; i < canonicalVertices.size() - steps; i += steps) {
-        auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[i], dq, 1.f));
+    float truncationDist = 8;
+
+    int i = 1;
+    while (i <= noDeformationNodes) {
+        auto k = rand() % (canonicalVertices.size() - 1);
+
+        if (cv::norm(canonicalVertices[k]) < truncationDist) {
+            auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+            deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[k], dq, 2.f));
+        }
+
+        i++;
     }
+
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
     warpfield->init(deformationNodes);
