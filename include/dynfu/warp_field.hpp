@@ -38,7 +38,7 @@ public:
     void init(std::vector<std::shared_ptr<Node>> nodes);
 
     /* add new deformation node to the warp field */
-    void addNode(Node newNode);
+    void addNode(std::shared_ptr<Node> newNode);
 
     /* return a vector of all nodes in the warp field */
     std::vector<std::shared_ptr<Node>> getNodes();
@@ -49,10 +49,10 @@ public:
     /* warp a canonical frame according to the data stored in the warpfield */
     void warp(std::shared_ptr<dynfu::Frame> liveFrame);
 
-    /* Find a set amount of closest neighbours */
+    /* find a given no. of closest neighbours */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);
 
-    /* Find index of set amount of closest neighbours */
+    /* find a given no. of closest neighbours */
     std::vector<size_t> findNeighborsIndex(int numNeighbor, cv::Vec3f vertex);
 
 private:
