@@ -19,10 +19,6 @@
 #include <math.h>
 #include <thread>
 
-/* opencv headers */
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
 using namespace kfusion;
 using namespace kfusion::cuda;
 
