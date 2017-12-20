@@ -36,7 +36,7 @@ struct DynFuApp {
         cv::imwrite(path, view_host_);
     }
 
-    void show_canonical_warped_to_live(KinFu *kinfu, int i) {
+    void show_canonical_warped_to_live(KinFu *kinfu) {
         const int mode = 3;
         (*kinfu).renderCanonicalWarpedToLive(view_device_, mode);
 
@@ -63,7 +63,7 @@ struct DynFuApp {
                 viewer->removeWidget("Cloud");
             }
 
-            auto mat   = pointCloudViz->vecToMat(kinfu->getDynfuCanonicalWarpedToLive()->getVertices());
+            auto mat   = pointCloudViz->vecToMat(kinfu->canonicalWarpedToLive->getVertices());
             auto cloud = pointCloudViz->matToCloud(mat);
 
             kinfu->setDynfuNextFrameReady(false);
@@ -80,7 +80,7 @@ struct DynFuApp {
     void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
         /* initialise the point cloud */
         auto cloud   = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-        auto vectors = kinfu->getDynfuCanonicalWarpedToLive()->getVertices();
+        auto vectors = kinfu->canonicalWarpedToLive->getVertices();
 
         (*cloud).width  = vectors.size();
         (*cloud).height = 1;
@@ -189,11 +189,12 @@ struct DynFuApp {
 
             if (has_image) {
                 show_raycasted(&kinfu, i);
-                show_canonical_warped_to_live(&kinfu, i);
             }
 
-            save_canonical_warped_to_live_point_cloud(&kinfu, i);
-
+            if (i > 0) {
+                show_canonical_warped_to_live(&kinfu);
+                save_canonical_warped_to_live_point_cloud(&kinfu, i);
+            }
             // show_depth(depth);
 
             if (visualizer_) {
