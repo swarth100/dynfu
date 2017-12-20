@@ -40,7 +40,7 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
  */
 std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
-// void Warpfield::addNode(Node newNode) { nodes.emplace_back(newNode); }
+void Warpfield::addNode(std::shared_ptr<Node> newNode) { nodes.emplace_back(newNode); }
 
 /* Calculate Dual Quaternion Blending */
 /* Get the dg_se3 from each of the nodes, time it by the weight and calculate the sum */
