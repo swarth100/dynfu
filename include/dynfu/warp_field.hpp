@@ -16,11 +16,11 @@
 #include <memory>
 #include <vector>
 
-/* Nanoflann dependencies */
+/* nanoflann dependencies */
 #include <nanoflann/nanoflann.hpp>
 #include <nanoflann/pointcloud.hpp>
 
-/* Set max amount of closest neighbours to consider */
+/* set the no. of nearest neighbours to consider */
 #define KNN 8
 
 typedef nanoflann::L2_Simple_Adaptor<float, nanoflann::PointCloud> nanoflannAdaptor;
@@ -30,8 +30,9 @@ class Warpfield {
     /* Type for the index tree */
 public:
     Warpfield();
-    ~Warpfield();
     Warpfield(const Warpfield& w);
+
+    ~Warpfield();
 
     /* initialise the warp field */
     void init(std::vector<std::shared_ptr<Node>> nodes);
@@ -55,7 +56,7 @@ public:
     std::vector<size_t> findNeighborsIndex(int numNeighbor, cv::Vec3f vertex);
 
 private:
-    /* PCL frame counter */
+    /* frame counter */
     int frameNum = 0;
 
     /* list of currently held deformation nodes */
@@ -69,9 +70,6 @@ private:
 
     /* Getter for pcl cloud counter */
     int getFrameNum();
-
-    /* Save the given vec3s to PCL format */
-    void saveToPcl(std::vector<cv::Vec3f> vectors);
 };
 
 /* DYNFU_WARP_FIELD_HPP */
