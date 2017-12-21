@@ -35,6 +35,9 @@ public:
     /* helper function to determine whether vertex is part of the background */
     static bool isBackground(kfusion::Point pt);
 
+    /* helper function to determine whether vertex is part of the canonical model */
+    static bool DynFusion::isCanonical(cv::Vec3f vertex);
+
     void init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cuda::Cloud &vertices,
               kfusion::cuda::Cloud &normals);
 
