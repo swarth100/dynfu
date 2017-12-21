@@ -296,8 +296,6 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
         cuda::renderTangentColors(normals_, i2);
     }
 }
-<<<<<<< HEAD
-=======
 
 void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
     const KinFuParams &p = params_;
@@ -317,5 +315,4 @@ void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
         cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, i1);
         cuda::renderTangentColors(normals, i2);
     }
->>>>>>> 45a1106... src/apps/demo.cpp: Download data from GPU
-#undef PASS1
+}

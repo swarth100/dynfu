@@ -78,6 +78,7 @@ public:
 
     void renderImage(cuda::Image &image, int flag = 0);
     void renderImage(cuda::Image &image, const Affine3f &pose, int flag = 0);
+    void renderCanonicalWarpedToLive(cuda::Image &image, int flag);
 
     bool getDynfuNextFrameReady();
     void setDynfuNextFrameReady(bool status);

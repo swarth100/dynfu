@@ -69,15 +69,11 @@ private:
 
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
-<<<<<<< HEAD
-    /* convert OpenCV matrix to cloud */
-    kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
+
     /* convert depths to OpenCV matrix */
     cv::Mat depthToMat(kfusion::cuda::Depth depths);
     /* convert OpenCV matrix to depths */
     kfusion::cuda::Depth matToDepth(cv::Mat matrix);
-=======
->>>>>>> 45a1106... src/apps/demo.cpp: Download data from GPU
     /* convert normals to OpenCV matrix */
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
     /* convert openCV matrix to normals */
