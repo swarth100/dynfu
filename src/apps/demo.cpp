@@ -41,7 +41,7 @@ struct DynFuApp {
             cv::imshow("CanonicalToLive", canonical_to_live_view_host_);
             cvWaitKey(10);
         }
-        std::string path = outPath_ + "/" + std::to_string(i) + ".png";
+        std::string path = outPath_ + "/canonicalToLive" + std::to_string(i) + ".png";
         cv::cvtColor(canonical_to_live_view_host_, canonical_to_live_view_host_, CV_BGR2GRAY);
         cv::imwrite(path, canonical_to_live_view_host_);
     }
