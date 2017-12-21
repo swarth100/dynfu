@@ -32,7 +32,7 @@ void DynFusion::updateWarpfield() {
     float min;
 
     for (auto vertex : canonicalFrame->getVertices()) {
-        if ((cv::norm(vertex) != 0) && (cv::norm(vertex) < 4)) {
+        if (isCanonical(vertex)) {
             for (auto neighbour : warpfield->findNeighbors(KNN, vertex)) {
                 min = cv::norm(vertex - neighbour->getPosition()) / neighbour->getRadialBasisWeight();
 
@@ -155,6 +155,8 @@ void DynFusion::warpCanonicalToLive() {
 }
 
 void DynFusion::warpCanonicalToLiveOpt() {
+    updateWarpfield();
+
     CombinedSolverParameters params;
     params.numIter       = 20;
     params.nonLinearIter = 15;
@@ -168,8 +170,6 @@ void DynFusion::warpCanonicalToLiveOpt() {
     combinedSolver.solveAll();
 
     std::vector<cv::Vec3f> canonicalVerticesWarpedToLive;
-
-    updateWarpfield();
 
     for (auto vertex : canonicalFrame->getVertices()) {
         if (cv::norm(vertex) == 0) {
