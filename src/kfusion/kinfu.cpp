@@ -192,6 +192,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
             return reset(), false;
     }
 
+    dynfu->setAffine(affine);
+
     poses_.push_back(poses_.back() * affine);  // curr -> global
 
     /*
