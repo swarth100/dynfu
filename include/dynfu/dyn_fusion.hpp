@@ -42,7 +42,7 @@ public:
 
     // void updateCanonicalFrame();
 
-    /* updates the warp field if the no. of deformation nodes is insufficient to capture the geometry of canonical model
+    /* update the warp field if the no. of deformation nodes is insufficient to capture the geometry of canonical model
      */
     void updateWarpfield();
 
