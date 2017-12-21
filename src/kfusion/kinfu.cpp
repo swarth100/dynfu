@@ -240,7 +240,7 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     dynfu->addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
 
     dynfu->warpCanonicalToLiveOpt();
-    auto canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
+    canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
 
     return ++frame_counter_, true;
 }
@@ -302,7 +302,6 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
 void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
     const KinFuParams &p = params_;
     image.create(p.rows, flag != 3 ? p.cols : p.cols * 2);
-
     auto vertices = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getVertices()));
     auto normals  = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getNormals()));
 

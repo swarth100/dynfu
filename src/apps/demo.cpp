@@ -29,17 +29,21 @@ struct DynFuApp {
         cv::imwrite(path, view_host_);
     }
 
-    void show_canonical_warped_to_live(KinFu *kinfu) {
+    void show_canonical_warped_to_live(KinFu *kinfu, int i) {
         const int mode = 3;
-        // (*kinfu).renderCanonicalWarpedToLive(view_device_, mode);
-
-        view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
-        view_device_.download(view_host_.ptr<void>(), view_host_.step);
+        (*kinfu).renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
+        canonical_to_live_view_host_.create(canonical_to_live_view_device_.rows(),
+                                            canonical_to_live_view_device_.cols(), CV_8UC4);
+        canonical_to_live_view_device_.download(canonical_to_live_view_host_.ptr<void>(),
+                                                canonical_to_live_view_host_.step);
         if (visualizer_) {
             /* FROM THE GPU */
-            cv::imshow("CanonicalToLive", view_host_);
+            cv::imshow("CanonicalToLive", canonical_to_live_view_host_);
             cvWaitKey(10);
         }
+        std::string path = outPath_ + "/" + std::to_string(i) + ".png";
+        cv::cvtColor(canonical_to_live_view_host_, canonical_to_live_view_host_, CV_BGR2GRAY);
+        cv::imwrite(path, canonical_to_live_view_host_);
     }
 
     void take_cloud(KinFu *kinfu) {
@@ -90,10 +94,6 @@ struct DynFuApp {
         bool has_image = false;
 
         if (visualizer_) {
-            cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
-            cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE);
-            cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE);
-            cv::namedWindow("CanonicalToLive", cv::WINDOW_AUTOSIZE);
         }
 
         std::vector<cv::String> depths;
@@ -119,19 +119,27 @@ struct DynFuApp {
                 has_image = kinfu(depth_device_);
             }
 
-            if (has_image) {
-                show_raycasted(&kinfu, i);
+            if (visualizer_ && i == 0) {
+                cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE);
             }
-
-            if (i > 1) {
-                show_canonical_warped_to_live(&kinfu);
-            }
-            // show_depth(depth);
 
             if (visualizer_) {
                 cv::imshow("Image", image);
                 cv::imshow("Depth", depth);
+                cv::waitKey(10);
             }
+
+            if (visualizer_ && i == 1) {
+                cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("CanonicalToLive", cv::WINDOW_AUTOSIZE);
+            }
+
+            if (has_image) {
+                show_raycasted(&kinfu, i);
+                show_canonical_warped_to_live(&kinfu, i);
+            }
+            // show_depth(depth);
         }
 
         return true;
@@ -150,7 +158,11 @@ struct DynFuApp {
     bool exit_, visualizer_;
 
     cv::Mat view_host_;
+    cv::Mat canonical_to_live_view_host_;
+
     cuda::Image view_device_;
+    cuda::Image canonical_to_live_view_device_;
+
     cuda::Depth depth_device_;
     cuda::DeviceArray<Point> cloud_buffer;
 };

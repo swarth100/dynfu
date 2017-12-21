@@ -132,7 +132,7 @@ void DynFusion::warpCanonicalToLive() {
 }
 
 void DynFusion::warpCanonicalToLiveOpt() {
-    // updateWarpfield();
+    updateWarpfield();
 
     CombinedSolverParameters params;
     params.numIter       = 20;
