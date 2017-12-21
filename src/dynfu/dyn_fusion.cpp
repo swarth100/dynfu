@@ -67,6 +67,8 @@ void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector
     this->canonicalFrame = std::make_shared<dynfu::Frame>(0, vertices, normals);
 }
 
+void DynFusion::setAffine(cv::Affine3f affine) { this->affine = affine; }
+
 void DynFusion::updateWarpfield() {
     std::vector<cv::Vec3f> unsupportedVertices;
     float min;
@@ -142,7 +144,32 @@ void DynFusion::warpCanonicalToLiveOpt() {
 
     std::cout << "solving" << std::endl;
     CombinedSolver combinedSolver(*warpfield, params);
-    combinedSolver.initializeProblemInstance(this->canonicalFrame, this->liveFrame);
+
+    std::vector<cv::Vec3f> canonicalVertices = canonicalFrame->getVertices();
+    std::vector<cv::Vec3f> canonicalNormals  = canonicalFrame->getNormals();
+
+    std::vector<cv::Vec3f> canonicalVerticesAffine = canonicalFrame->getVertices();
+    std::vector<cv::Vec3f> canonicalNormalsAffine  = canonicalFrame->getNormals();
+
+    for (int i = 0; i < canonicalVertices.size(); i++) {
+        cv::Vec3f vertex = canonicalVertices[i];
+        cv::Vec3f normal = canonicalNormals[i];
+
+        if (cv::norm(vertex) == 0 || cv::norm(normal) == 0) {
+            canonicalVerticesAffine.emplace_back(vertex);
+            canonicalNormalsAffine.emplace_back(normal);
+        } else {
+            auto canonicalVertexAfine  = vertex + affine.translation();
+            auto canonicalNormalAffine = vertex + affine.translation();
+
+            canonicalVerticesAffine.emplace_back(vertex);
+            canonicalNormalsAffine.emplace_back(normal);
+        }
+    }
+
+    canonicalFrameAffine = std::make_shared<dynfu::Frame>(0, canonicalVerticesAffine, canonicalNormalsAffine);
+
+    combinedSolver.initializeProblemInstance(this->canonicalFrameAffine, this->liveFrame);
     combinedSolver.solveAll();
 
     std::cout << "solved" << std::endl;
@@ -150,13 +177,10 @@ void DynFusion::warpCanonicalToLiveOpt() {
     std::vector<cv::Vec3f> canonicalVerticesWarpedToLive;
     std::vector<cv::Vec3f> canonicalNormalsWarpedToLive;
 
-    std::vector<cv::Vec3f> canonicalVertices = canonicalFrame->getVertices();
-    std::vector<cv::Vec3f> canonicalNormals  = canonicalFrame->getNormals();
-
     int n = 0;
     for (int i = 0; i < canonicalVertices.size(); i++) {
-        cv::Vec3f vertex = canonicalVertices[i];
-        cv::Vec3f normal = canonicalNormals[i];
+        cv::Vec3f vertex = canonicalVerticesAffine[i];
+        cv::Vec3f normal = canonicalNormalsAffine[i];
 
         if (cv::norm(vertex) == 0 || cv::norm(normal) == 0) {
             canonicalVerticesWarpedToLive.emplace_back(vertex);
