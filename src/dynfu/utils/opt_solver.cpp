@@ -18,8 +18,8 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     unsigned int N = 0;
 
     int k = 0;
-    for (vertex : m_canonicalVerticesOpenCV) {
-        if ((cv::norm(vertex) != 0) && (cv::norm(m_liveVerticesOpenCV[k]) != 0)) {
+    for (auto vertex : m_canonicalVerticesOpenCV) {
+        if (cv::norm(vertex) != 0) {
             N++;
         }
 
@@ -67,6 +67,8 @@ void CombinedSolver::initializeConnectivity() {
     }
 
     m_dataGraph = std::make_shared<OptGraph>(indices);
+
+    std::cout << "initialized connectivity" << std::endl;
 }
 
 void CombinedSolver::combinedSolveInit() {
@@ -111,9 +113,7 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float3> h_liveNormals(N);
 
     for (int i = 0; i < N; i++) {
-        if ((cv::norm(m_canonicalVerticesOpenCV[i]) == 0) || (cv::norm(m_liveVerticesOpenCV[i]) == 0)) {
-            continue;
-        } else {
+        if (!cv::norm(m_canonicalVerticesOpenCV[i]) == 0 && !cv::norm(m_liveVerticesOpenCV[i]) == 0) {
             h_canonicalVertices[i] = make_float3(m_canonicalVerticesOpenCV[i][0], m_canonicalVerticesOpenCV[i][1],
                                                  m_canonicalVerticesOpenCV[i][2]);
             h_canonicalNormals[i]  = make_float3(m_canonicalNormalsOpenCV[i][0], m_canonicalNormalsOpenCV[i][1],
