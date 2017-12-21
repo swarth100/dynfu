@@ -42,7 +42,7 @@ local nodeCoordinates = Array("nodeCoordinates",opt_float3,{D},0) -- used to cal
 
 local rotation = Unknown("rotation",opt_float3,{D},1)
 local translation = Unknown("translation",opt_float3,{D},2)
-local radialBasisWeights = Unknown("transformationWeights",opt_float,{D},3)
+local radialBasisWeights = Unknown("radialBasisWeights",opt_float,{D},3)
 
 local canonicalVertices = Array("canonicalVertices",opt_float3,{N},4)
 local canonicalNormals = Array("canonicalNormals",opt_float3,{N},5)
