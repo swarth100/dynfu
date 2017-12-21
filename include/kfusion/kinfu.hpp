@@ -84,6 +84,8 @@ public:
 
     Affine3f getCameraPose(int time = -1) const;
 
+    std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
+
 private:
     void allocate_buffers();
 
@@ -103,7 +105,5 @@ private:
     cv::Ptr<cuda::ProjectiveICP> icp_;
 
     std::shared_ptr<DynFusion> dynfu;
-
-    std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
 };
 }  // namespace kfusion
