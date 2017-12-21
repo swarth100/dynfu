@@ -38,6 +38,8 @@ public:
      */
     void updateWarpfield();
 
+    void setAffine(cv::Affine3f affine);
+
     /* warp canonical frame to live frame using Ceres */
     void warpCanonicalToLive();
 
@@ -59,10 +61,13 @@ public:
 
 private:
     std::shared_ptr<dynfu::Frame> canonicalFrame;
+    std::shared_ptr<dynfu::Frame> canonicalFrameAffine;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
     std::shared_ptr<dynfu::Frame> liveFrame;
 
     std::shared_ptr<Warpfield> warpfield;
+
+    cv::Affine3f affine;
 
     /* check if kfusion::Point contains NaN's */
     static bool DynFusion::isNaN(kfusion::Point pt);
