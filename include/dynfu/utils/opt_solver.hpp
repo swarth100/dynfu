@@ -23,7 +23,7 @@ public:
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
                                    const std::shared_ptr<dynfu::Frame> liveFrame);
 
-    void initializeConnectivity(std::vector<cv::Vec3f> canonicalVertices);
+    void initializeConnectivity();
 
     void combinedSolveInit() override;
 
