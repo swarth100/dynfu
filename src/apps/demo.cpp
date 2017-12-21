@@ -4,16 +4,9 @@
 /* kinfu includes */
 #include <kfusion/kinfu.hpp>
 
-/* dynfuy includes */
-#include <dynfu/utils/pointcloud_viz.hpp>
-
 /* opencv includes */
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
-/* pcl includes */
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
 
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
@@ -38,7 +31,7 @@ struct DynFuApp {
 
     void show_canonical_warped_to_live(KinFu *kinfu) {
         const int mode = 3;
-        (*kinfu).renderCanonicalWarpedToLive(view_device_, mode);
+        // (*kinfu).renderCanonicalWarpedToLive(view_device_, mode);
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
@@ -75,40 +68,6 @@ struct DynFuApp {
                 }
             });
         }
-    }
-
-    void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
-        /* initialise the point cloud */
-        auto cloud   = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-        auto vectors = kinfu->canonicalWarpedToLive->getVertices();
-
-        (*cloud).width  = vectors.size();
-        (*cloud).height = 1;
-
-        (*cloud).points.resize((*cloud).width * (*cloud).height);
-
-        /* iterate through vectors */
-        for (size_t i = 0; i < vectors.size(); i++) {
-            const cv::Vec3f &pt = vectors[i];
-
-            pcl::PointXYZ point = pcl::PointXYZ();
-            point.x             = pt[0];
-            point.y             = pt[1];
-            point.z             = pt[2];
-
-            (*cloud).points[i] = point;
-        }
-
-        /* save to PCL */
-        std::string filenameStr = ("files/PCLFrame" + std::to_string(i) + ".pcd");
-        try {
-            pcl::io::savePCDFileASCII(filenameStr, (*cloud));
-        } catch (...) {
-            std::cout << "Could not save to " + filenameStr << std::endl;
-        }
-
-        /* print to std::err after successful save */
-        std::cout << "Saved " << (*cloud).points.size() << " data points to " << filenameStr << std::endl;
     }
 
     void take_cloud(KinFu *kinfu) {
@@ -191,9 +150,8 @@ struct DynFuApp {
                 show_raycasted(&kinfu, i);
             }
 
-            if (i > 0) {
+            if (i > 1) {
                 show_canonical_warped_to_live(&kinfu);
-                save_canonical_warped_to_live_point_cloud(&kinfu, i);
             }
             // show_depth(depth);
 
