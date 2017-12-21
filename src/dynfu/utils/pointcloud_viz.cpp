@@ -7,8 +7,8 @@ std::shared_ptr<cv::viz::Viz3d> PointCloudViz::getViewer() { return this->viewer
 cv::Mat PointCloudViz::vecToMat(std::vector<cv::Vec3f> vec) {
     int rows = vec.size();
     cv::Mat res(rows, 1, CV_32FC3);
-    for (int x = 0; x < rows; ++x) {
-        res.at<cv::Vec3f>(x, 0) = vec[x];
+    for (int y = 0; y < rows; ++y) {
+        res.at<cv::Vec3f>(y, 0) = vec[y];
     }
     return res;
 }

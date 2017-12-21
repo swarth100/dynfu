@@ -13,12 +13,12 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     std::cout << "no. of canonical vertices: " << cloudHost.cols * cloudHost.rows << std::endl;
 
-    for (int y = 0; y < cloudHost.cols; ++y) {
-        for (int x = 0; x < cloudHost.rows; ++x) {
-            auto point = cloudHost.at<kfusion::Point>(x, y);
+    for (int y = 0; y < cloudHost.rows; ++y) {
+        for (int x = 0; x < cloudHost.cols; ++x) {
+            auto point = cloudHost.at<kfusion::Point>(y, x);
 
             if (!isNaN(point)) {
-                canonicalVertices[x + cloudHost.rows * y] = cv::Vec3f(point.x, point.y, point.z);
+                canonicalVertices[x + cloudHost.cols * y] = cv::Vec3f(point.x, point.y, point.z);
             }
         }
     }
@@ -28,12 +28,11 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     std::cout << "no. of canonical normals: " << normalHost.cols * normalHost.rows << std::endl;
 
-    for (int y = 0; y < cloudHost.cols; ++y) {
-        for (int x = 0; x < cloudHost.rows; ++x) {
-            auto point = cloudHost.at<kfusion::Point>(x, y);
-
+    for (int y = 0; y < cloudHost.rows; ++y) {
+        for (int x = 0; x < cloudHost.cols; ++x) {
+            auto point = cloudHost.at<kfusion::Point>(y, x);
             if (!isNaN(point)) {
-                canonicalNormals[x + normalHost.rows * y] = cv::Vec3f(point.x, point.y, point.z);
+                canonicalNormals[x + cloudHost.cols * y] = cv::Vec3f(point.x, point.y, point.z);
             }
         }
     }
@@ -239,7 +238,7 @@ std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
         for (int x = 0; x < matrix.cols; ++x) {
             auto point = matrix.at<kfusion::Point>(y, x);
             if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z))) {
-                vector[x + matrix.rows * y] = cv::Vec3f(point.x, point.y, point.z);
+                vector[x + matrix.cols * y] = cv::Vec3f(point.x, point.y, point.z);
             }
         }
     }
@@ -252,14 +251,14 @@ cv::Mat DynFusion::vectorToMat(std::vector<cv::Vec3f> vec) {
     cv::Mat mat(rowLen, colLen, CV_32FC4);
     for (int y = 0; y < rowLen; ++y) {
         for (int x = 0; x < colLen; ++x) {
-            int index = x + y * rowLen;
-            if (index >= vec.size()) {
-                kfusion::Point p             = {{0.f, 0.f, 0.f}};
-                mat.at<kfusion::Point>(y, x) = p;
+            int index = x + y * colLen;
+            kfusion::Point p;
+            if (index < vec.size() && (vec[index][0] || vec[index][1] || vec[index][2])) {
+                p = kfusion::Point({{vec[index][0], vec[index][1], vec[index][2]}});
             } else {
-                kfusion::Point p             = {{vec[index][0], vec[index][1], vec[index][2]}};
-                mat.at<kfusion::Point>(y, x) = p;
+                p = kfusion::Point({{std::nan(""), std::nan(""), std::nan("")}});
             }
+            mat.at<kfusion::Point>(y, x) = p;
         }
     }
     return mat;

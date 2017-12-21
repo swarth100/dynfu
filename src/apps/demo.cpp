@@ -21,7 +21,7 @@ struct DynFuApp {
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
         if (visualizer_) {
-            cv::imshow("scene", view_host_);
+            cv::imshow("Scene", view_host_);
             cvWaitKey(10);
         }
         std::string path = outPath_ + "/" + std::to_string(i) + ".png";
@@ -35,11 +35,10 @@ struct DynFuApp {
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
-
         if (visualizer_) {
             /* FROM THE GPU */
             cv::imshow("CanonicalToLive", view_host_);
-            cvWaitKey(0);
+            cvWaitKey(10);
         }
     }
 
