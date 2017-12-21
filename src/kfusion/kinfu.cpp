@@ -296,4 +296,26 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
         cuda::renderTangentColors(normals_, i2);
     }
 }
+<<<<<<< HEAD
+=======
+
+void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
+    const KinFuParams &p = params_;
+    image.create(p.rows, flag != 3 ? p.cols : p.cols * 2);
+
+    auto vertices = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getVertices()));
+    auto normals  = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getNormals()));
+
+    if ((flag < 1 || flag > 3)) {
+        cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, image);
+    } else if (flag == 2) {
+        cuda::renderTangentColors(normals, image);
+    } else /* if (flag == 3) */ {
+        DeviceArray2D<RGB> i1(p.rows, p.cols, image.ptr(), image.step());
+        DeviceArray2D<RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
+
+        cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, i1);
+        cuda::renderTangentColors(normals, i2);
+    }
+>>>>>>> 45a1106... src/apps/demo.cpp: Download data from GPU
 #undef PASS1

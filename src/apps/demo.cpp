@@ -38,8 +38,8 @@ struct DynFuApp {
 
         if (visualizer_) {
             /* FROM THE GPU */
-            cv::imshow("canonical frame warped to live", view_host_);
-            cvWaitKey(10);
+            cv::imshow("CanonicalToLive", view_host_);
+            cvWaitKey(0);
         }
     }
 
@@ -94,6 +94,7 @@ struct DynFuApp {
             cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
             cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE);
             cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE);
+            cv::namedWindow("CanonicalToLive", cv::WINDOW_AUTOSIZE);
         }
 
         std::vector<cv::String> depths;

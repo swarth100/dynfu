@@ -235,13 +235,32 @@ kfusion::cuda::Normals DynFusion::matToNormals(cv::Mat matrix) {
 
 std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
     std::vector<cv::Vec3f> vector(matrix.cols * matrix.rows);
-    for (int y = 0; y < matrix.cols; ++y) {
-        for (int x = 0; x < matrix.rows; ++x) {
-            auto point = matrix.at<kfusion::Point>(x, y);
+    for (int y = 0; y < matrix.rows; ++y) {
+        for (int x = 0; x < matrix.cols; ++x) {
+            auto point = matrix.at<kfusion::Point>(y, x);
             if (!(std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z))) {
                 vector[x + matrix.rows * y] = cv::Vec3f(point.x, point.y, point.z);
             }
         }
     }
     return vector;
+}
+
+cv::Mat DynFusion::vectorToMat(std::vector<cv::Vec3f> vec) {
+    int colLen = 640;
+    int rowLen = 480;
+    cv::Mat mat(rowLen, colLen, CV_32FC4);
+    for (int y = 0; y < rowLen; ++y) {
+        for (int x = 0; x < colLen; ++x) {
+            int index = x + y * rowLen;
+            if (index >= vec.size()) {
+                kfusion::Point p             = {{0.f, 0.f, 0.f}};
+                mat.at<kfusion::Point>(y, x) = p;
+            } else {
+                kfusion::Point p             = {{vec[index][0], vec[index][1], vec[index][2]}};
+                mat.at<kfusion::Point>(y, x) = p;
+            }
+        }
+    }
+    return mat;
 }

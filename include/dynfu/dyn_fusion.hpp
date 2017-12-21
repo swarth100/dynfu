@@ -52,6 +52,10 @@ public:
 
     /* control the thread deletion */
     static bool nextFrameReady;
+    /* convert vec3f to OpenCV matrix */
+    cv::Mat vectorToMat(std::vector<cv::Vec3f> vec);
+    /* convert OpenCV matrix to cloud */
+    kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
 
 private:
     std::shared_ptr<dynfu::Frame> canonicalFrame;
@@ -65,12 +69,15 @@ private:
 
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
+<<<<<<< HEAD
     /* convert OpenCV matrix to cloud */
     kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
     /* convert depths to OpenCV matrix */
     cv::Mat depthToMat(kfusion::cuda::Depth depths);
     /* convert OpenCV matrix to depths */
     kfusion::cuda::Depth matToDepth(cv::Mat matrix);
+=======
+>>>>>>> 45a1106... src/apps/demo.cpp: Download data from GPU
     /* convert normals to OpenCV matrix */
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
     /* convert openCV matrix to normals */
