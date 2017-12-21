@@ -38,35 +38,8 @@ struct DynFuApp {
 
         if (visualizer_) {
             /* FROM THE GPU */
-
             cv::imshow("canonical frame warped to live", view_host_);
             cvWaitKey(10);
-
-            /* FROM THE POINT CLOUD */
-
-            pointCloudViz = std::make_shared<PointCloudViz>();
-            vizThread     = nullptr;
-
-            auto viewer = pointCloudViz->getViewer();
-
-            kinfu->setDynfuNextFrameReady(true);
-
-            if (vizThread) {
-                vizThread->join();
-                viewer->removeWidget("Cloud");
-            }
-
-            auto mat   = pointCloudViz->vecToMat(kinfu->canonicalWarpedToLive->getVertices());
-            auto cloud = pointCloudViz->matToCloud(mat);
-
-            kinfu->setDynfuNextFrameReady(false);
-
-            viewer->showWidget("Cloud", cloud);
-            vizThread = std::make_shared<std::thread>([this] {
-                while (!DynFusion::nextFrameReady) {
-                    pointCloudViz->getViewer()->spinOnce(1, true);
-                }
-            });
         }
     }
 
