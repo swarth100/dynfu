@@ -43,22 +43,22 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
 
     resetGPUMemory();
 
-    initializeConnectivity(m_canonicalVerticesOpenCV);
+    initializeConnectivity();
 
     addOptSolvers(m_dims, std::string(TOSTRING(TERRA_SOLVER_FILE)));
 }
 
-void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVertices) {
+void CombinedSolver::initializeConnectivity() {
     unsigned int N = m_dims[1];
 
     std::vector<std::vector<int>> indices(9, std::vector<int>(N));
 
     for (int count = 0; count < N; count++) {
-        if (cv::norm(canonicalVertices[count]) != 0) {
+        if (cv::norm(m_canonicalVerticesOpenCV[count]) != 0) {
             indices[0].push_back(count);
 
-            auto vertexNeighbours    = m_warpfield.findNeighbors(KNN, canonicalVertices[count]);
-            auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, canonicalVertices[count]);
+            auto vertexNeighbours    = m_warpfield.findNeighbors(KNN, m_canonicalVerticesOpenCV[count]);
+            auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, m_canonicalVerticesOpenCV[count]);
 
             for (int i = 1; i < indices.size(); i++) {
                 indices[i].push_back(vertexNeighboursIdx[i - 1]);
