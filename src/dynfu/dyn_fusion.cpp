@@ -28,9 +28,10 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     std::cout << "no. of canonical normals: " << normalHost.cols * normalHost.rows << std::endl;
 
-    for (int y = 0; y < cloudHost.rows; ++y) {
-        for (int x = 0; x < cloudHost.cols; ++x) {
-            auto point = cloudHost.at<kfusion::Point>(y, x);
+    for (int y = 0; y < normalHost.cols; ++y) {
+        for (int x = 0; x < normalHost.rows; ++x) {
+            auto point = normalHost.at<kfusion::Point>(x, y);
+
             if (!isNaN(point)) {
                 canonicalNormals[x + cloudHost.cols * y] = cv::Vec3f(point.x, point.y, point.z);
             }
