@@ -19,7 +19,7 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
 
     int k = 0;
     for (auto vertex : m_canonicalVerticesOpenCV) {
-        if (cv::norm(vertex) != 0) {
+        if (cv::norm(vertex) != 0 && cv::norm(m_canonicalNormalsOpenCV[k]) != 0) {
             N++;
         }
 
@@ -54,7 +54,7 @@ void CombinedSolver::initializeConnectivity() {
     std::vector<std::vector<int>> indices(9, std::vector<int>(N));
 
     for (int count = 0; count < N; count++) {
-        if (cv::norm(m_canonicalVerticesOpenCV[count]) != 0) {
+        if (cv::norm(m_canonicalVerticesOpenCV[count]) != 0 && cv::norm(m_canonicalNormalsOpenCV[count]) != 0) {
             indices[0].push_back(count);
 
             auto vertexNeighbours    = m_warpfield.findNeighbors(KNN, m_canonicalVerticesOpenCV[count]);
@@ -113,7 +113,7 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float3> h_liveNormals(N);
 
     for (int i = 0; i < N; i++) {
-        if (!cv::norm(m_canonicalVerticesOpenCV[i]) == 0 && !cv::norm(m_liveVerticesOpenCV[i]) == 0) {
+        if (!cv::norm(m_canonicalVerticesOpenCV[i]) == 0 && !cv::norm(m_canonicalNormalsOpenCV[i]) == 0) {
             h_canonicalVertices[i] = make_float3(m_canonicalVerticesOpenCV[i][0], m_canonicalVerticesOpenCV[i][1],
                                                  m_canonicalVerticesOpenCV[i][2]);
             h_canonicalNormals[i]  = make_float3(m_canonicalNormalsOpenCV[i][0], m_canonicalNormalsOpenCV[i][1],
