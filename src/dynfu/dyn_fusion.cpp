@@ -24,6 +24,9 @@ static bool DynFusion::isBackground(kfusion::Point pt) {
     return true;
 }
 
+/* TODO (dig15): set the cut-out value of the norm in a less arbitrary way */
+static bool DynFusion::isCanonical(cv::Vec3f vertex) { return (cv::norm(vertex) != 0 && cv::norm(vertex) < 4); }
+
 void DynFusion::updateWarpfield() {
     std::vector<cv::Vec3f> unsupportedVertices;
     float min;
