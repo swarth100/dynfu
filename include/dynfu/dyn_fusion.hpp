@@ -13,7 +13,6 @@
 #include <ceres/ceres.h>
 
 /* typedefs */
-#include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
 
 /* sys headers */
@@ -29,17 +28,7 @@ public:
     DynFusion();
     ~DynFusion();
 
-    /* helper function to determine whether a point has NaNs */
-    static bool DynFusion::hasNaNs(kfusion::Point pt);
-
-    /* helper function to determine whether vertex is part of the background */
-    static bool isBackground(kfusion::Point pt);
-
-    /* helper function to determine whether vertex is part of the canonical model */
-    static bool DynFusion::isCanonical(cv::Vec3f vertex);
-
-    void init(cv::Ptr<kfusion::cuda::TsdfVolume> &tsdfVolume, kfusion::cuda::Cloud &vertices,
-              kfusion::cuda::Cloud &normals);
+    void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
     void initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
 
@@ -71,12 +60,21 @@ private:
 
     std::shared_ptr<Warpfield> warpfield;
 
+    /* check if kfusion::Point contains NaN's */
+    static bool DynFusion::isNaN(kfusion::Point pt);
+
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
     /* convert OpenCV matrix to cloud */
     kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
+    /* convert depths to OpenCV matrix */
+    cv::Mat depthToMat(kfusion::cuda::Depth depths);
+    /* convert OpenCV matrix to depths */
+    kfusion::cuda::Depth matToDepth(cv::Mat matrix);
     /* convert normals to OpenCV matrix */
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
+    /* convert openCV matrix to normals */
+    kfusion::cuda::Normals matToNormals(cv::Mat matrix);
     /* convert OpenCV matrix to vector of Vec3f */
     std::vector<cv::Vec3f> matToVector(cv::Mat);
 };
