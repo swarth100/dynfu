@@ -76,11 +76,8 @@ public:
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
 
-    std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
-
     void renderImage(cuda::Image &image, int flag = 0);
     void renderImage(cuda::Image &image, const Affine3f &pose, int flag = 0);
-    void renderCanonicalWarpedToLive(cuda::Image &image, int flag = 0);
 
     bool getDynfuNextFrameReady();
     void setDynfuNextFrameReady(bool status);
@@ -96,7 +93,7 @@ private:
     std::vector<Affine3f> poses_;
 
     cuda::Dists dists_;
-    cuda::Frame curr_, prev_, canonicalWarpedToLive_;
+    cuda::Frame curr_, prev_;
 
     cuda::Cloud points_;
     cuda::Normals normals_;
@@ -106,5 +103,7 @@ private:
     cv::Ptr<cuda::ProjectiveICP> icp_;
 
     std::shared_ptr<DynFusion> dynfu;
+
+    std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
 };
 }  // namespace kfusion
