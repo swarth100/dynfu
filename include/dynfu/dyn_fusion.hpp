@@ -30,7 +30,7 @@ public:
 
     void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
-    void initCanonicalFrame(std::vector<cv::Vec3f> vertices, std::vector<cv::Vec3f> normals);
+    void initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals);
 
     // void updateCanonicalFrame();
 
@@ -66,6 +66,9 @@ private:
 
     /* check if kfusion::Point contains NaN's */
     static bool DynFusion::isNaN(kfusion::Point pt);
+
+    /* check if kfusion::Normal contains NaN's */
+    static bool DynFusion::isNormalNaN(kfusion::Normal n);
 
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
