@@ -132,7 +132,7 @@ void DynFusion::warpCanonicalToLive() {
 }
 
 void DynFusion::warpCanonicalToLiveOpt() {
-    updateWarpfield();
+    // updateWarpfield();
 
     CombinedSolverParameters params;
     params.numIter       = 20;
@@ -145,67 +145,45 @@ void DynFusion::warpCanonicalToLiveOpt() {
     std::cout << "solving" << std::endl;
     CombinedSolver combinedSolver(*warpfield, params);
 
-    std::vector<cv::Vec3f> canonicalVertices = canonicalFrame->getVertices();
-    std::vector<cv::Vec3f> canonicalNormals  = canonicalFrame->getNormals();
-
-    std::vector<cv::Vec3f> canonicalVerticesAffine = canonicalFrame->getVertices();
-    std::vector<cv::Vec3f> canonicalNormalsAffine  = canonicalFrame->getNormals();
-
-    for (int i = 0; i < canonicalVertices.size(); i++) {
-        cv::Vec3f vertex = canonicalVertices[i];
-        cv::Vec3f normal = canonicalNormals[i];
-
-        if (cv::norm(vertex) == 0 || cv::norm(normal) == 0) {
-            canonicalVerticesAffine.emplace_back(vertex);
-            canonicalNormalsAffine.emplace_back(normal);
-        } else {
-            auto canonicalVertexAfine  = vertex + affine.translation();
-            auto canonicalNormalAffine = vertex + affine.translation();
-
-            canonicalVerticesAffine.emplace_back(vertex);
-            canonicalNormalsAffine.emplace_back(normal);
-        }
-    }
-
-    canonicalFrameAffine = std::make_shared<dynfu::Frame>(0, canonicalVerticesAffine, canonicalNormalsAffine);
-
-    combinedSolver.initializeProblemInstance(this->canonicalFrameAffine, this->liveFrame);
+    auto canonicalWarped             = (canonicalFrame);
+    auto canonicalNormals            = canonicalWarped->getNormals();
+    auto canonicalVertices           = canonicalWarped->getVertices();
+    auto liveFrameVertices           = liveFrame->getVertices();
+    auto correspondingCanonicalFrame = findCorrespondingFrame(canonicalVertices, canonicalNormals, liveFrameVertices);
+    combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame);
     combinedSolver.solveAll();
-
     std::cout << "solved" << std::endl;
+    canonicalWarpedToLive = warpfield->warpToLive(canonicalFrame);
+}
 
-    std::vector<cv::Vec3f> canonicalVerticesWarpedToLive;
-    std::vector<cv::Vec3f> canonicalNormalsWarpedToLive;
+std::shared_ptr<dynfu::Frame> DynFusion::findCorrespondingFrame(std::vector<cv::Vec3f> canonicalVertices,
+                                                                std::vector<cv::Vec3f> canonicalNormals,
+                                                                std::vector<cv::Vec3f> liveVertices) {
+    /* Initialise KD-tree */
+    auto kdCloud = std::make_shared<nanoflann::PointCloud>();
+    kdCloud->pts = canonicalVertices;
+    auto kdTree  = std::make_shared<kd_tree_t>(3, *kdCloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    kdTree->buildIndex();
 
-    int n = 0;
-    for (int i = 0; i < canonicalVertices.size(); i++) {
-        cv::Vec3f vertex = canonicalVerticesAffine[i];
-        cv::Vec3f normal = canonicalNormalsAffine[i];
+    std::vector<cv::Vec3f> correspondingCanonicalVertices;
+    std::vector<cv::Vec3f> correspondingCanonicalNormals;
 
-        if (cv::norm(vertex) == 0 || cv::norm(normal) == 0) {
-            canonicalVerticesWarpedToLive.emplace_back(vertex);
-            canonicalNormalsWarpedToLive.emplace_back(normal);
+    std::vector<float> outDistSqr(1);
+    std::vector<size_t> retIndex(1);
+    for (auto vertex : liveVertices) {
+        if ((!vertex[0] && !vertex[1] && !vertex[2]) || std::isnan(vertex[0]) || std::isnan(vertex[1]) ||
+            std::isnan(vertex[2])) {
+            correspondingCanonicalVertices.push_back(vertex);
+            correspondingCanonicalNormals.push_back(vertex);
         } else {
-            auto transformation   = warpfield->calcDQB(vertex);
-            auto totalTranslation = transformation->getTranslation();
-
-            auto vertexWarpedToLive = vertex + totalTranslation;
-            auto normalWarpedToLive = normal + totalTranslation;
-
-            canonicalVerticesWarpedToLive.emplace_back(vertexWarpedToLive);
-            canonicalNormalsWarpedToLive.emplace_back(normalWarpedToLive);
-            n++;
+            std::vector<float> query = {vertex[0], vertex[1], vertex[2]};
+            kdTree->knnSearch(&query[0], 1, &retIndex[0], &outDistSqr[0]);
+            size_t index = retIndex[0];
+            correspondingCanonicalVertices.push_back(canonicalVertices[index]);
+            correspondingCanonicalNormals.push_back(canonicalNormals[index]);
         }
     }
-
-    std::cout << "no. of non-zero canonical vertices warped to live: " << n << std::endl;
-
-    std::cout << "set the canonical vertices warped to live" << std::endl;
-
-    DynFusion::nextFrameReady = true;
-
-    canonicalWarpedToLive =
-        std::make_shared<dynfu::Frame>(0, canonicalVerticesWarpedToLive, canonicalNormalsWarpedToLive);
+    return std::make_shared<dynfu::Frame>(0, correspondingCanonicalVertices, correspondingCanonicalNormals);
 }
 
 void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {

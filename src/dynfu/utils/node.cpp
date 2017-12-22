@@ -61,3 +61,9 @@ void Node::setRotation(boost::math::quaternion<float> real) {
 void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
 
 void Node::setRadialBasisWeight(float newWeight) { dg_w = newWeight; }
+
+void Node::updateTranslation(cv::Vec3f translation) {
+    auto real = dg_se3->getReal();
+    translation += dg_se3->getTranslation();
+    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
+}

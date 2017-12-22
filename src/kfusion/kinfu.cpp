@@ -204,10 +204,11 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     float tnorm    = static_cast<float>(cv::norm(affine.translation()));
     bool integrate = (rnorm + tnorm) / 2 >= p.tsdf_min_camera_movement;
 
-    if (integrate) {
-        // ScopeTime time("tsdf");
-        volume_->integrate(dists_, poses_.back(), p.intr);
-    }
+    // if (integrate) {
+    // ScopeTime time("tsdf");
+    volume_->clear();
+    volume_->integrate(dists_, poses_.back(), p.intr);
+    //}
 
     /*
      * RAYCASTING

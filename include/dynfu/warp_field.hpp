@@ -46,8 +46,10 @@ public:
     /* return a dual quaternion which represents the dual quaternion blending for a point */
     std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
 
-    /* warp a canonical frame according to the data stored in the warpfield */
-    void warp(std::shared_ptr<dynfu::Frame> liveFrame);
+    /* warp the live frame to canonical frame */
+    std::shared_ptr<dynfu::Frame> warpToCanonical(std::shared_ptr<dynfu::Frame> liveFrame);
+    /* warp the canonical frame to live frame */
+    std::shared_ptr<dynfu::Frame> warpToLive(std::shared_ptr<dynfu::Frame> canonicalFrame);
 
     /* find a given no. of closest neighbours */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);

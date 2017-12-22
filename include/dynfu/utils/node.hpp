@@ -46,6 +46,7 @@ public:
     void setRotation(boost::math::quaternion<float> real);
     void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
     void setRadialBasisWeight(float newWeight);
+    void updateTranslation(cv::Vec3f translation);
 
 private:
     cv::Vec3f dg_v;

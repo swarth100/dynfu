@@ -35,6 +35,7 @@ struct DynFuApp {
         canonical_to_live_view_host_.create(canonical_to_live_view_device_.rows(),
                                             canonical_to_live_view_device_.cols(), CV_8UC4);
         canonical_to_live_view_device_.download(canonical_to_live_view_host_.ptr<void>(),
+
                                                 canonical_to_live_view_host_.step);
         if (visualizer_) {
             /* FROM THE GPU */

@@ -88,6 +88,10 @@ private:
     kfusion::cuda::Normals matToNormals(cv::Mat matrix);
     /* convert OpenCV matrix to vector of Vec3f */
     std::vector<cv::Vec3f> matToVector(cv::Mat);
+    /* find the corresponding vertices/normals of canonical frame from the live vertices */
+    std::shared_ptr<dynfu::Frame> findCorrespondingFrame(std::vector<cv::Vec3f> canonicalVertices,
+                                                         std::vector<cv::Vec3f> canonicalNormals,
+                                                         std::vector<cv::Vec3f> liveVertices);
 };
 
 /* DYNFU_DYNFUSION_HPP */

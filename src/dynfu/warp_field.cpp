@@ -65,15 +65,48 @@ std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(cv::Vec3f point) {
     return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
 }
 
-void Warpfield::warp(std::shared_ptr<dynfu::Frame> liveFrame) {
-    // calculate DQB for all points
-    // warps all points
-    auto points = liveFrame->getVertices();
+std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(std::shared_ptr<dynfu::Frame> liveFrame) {
+    auto vertices = liveFrame->getVertices();
+    auto normals  = liveFrame->getNormals();
 
-    for (auto point : points) {
-        // auto transformation = point.calculateDQB();
-        // point->setTransformation(transformation);
+    std::vector<cv::Vec3f> warpedVertices;
+    std::vector<cv::Vec3f> warpedNormals;
+
+    for (int i = 0; i < vertices.size(); i++) {
+        cv::Vec3f vertex = vertices[i];
+        cv::Vec3f normal = normals[i];
+        if (!(cv::norm(vertex) == 0 || cv::norm(normal) == 0)) {
+            auto transformation   = calcDQB(vertex);
+            auto totalTranslation = transformation->getTranslation();
+            vertex -= totalTranslation;
+            normal -= totalTranslation;
+        }
+        warpedVertices.emplace_back(vertex);
+        warpedNormals.emplace_back(normal);
     }
+    return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);
+}
+
+std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(std::shared_ptr<dynfu::Frame> canonicalFrame) {
+    auto vertices = canonicalFrame->getVertices();
+    auto normals  = canonicalFrame->getNormals();
+
+    std::vector<cv::Vec3f> warpedVertices;
+    std::vector<cv::Vec3f> warpedNormals;
+
+    for (int i = 0; i < vertices.size(); i++) {
+        cv::Vec3f vertex = vertices[i];
+        cv::Vec3f normal = normals[i];
+        if (!(cv::norm(vertex) == 0 || cv::norm(normal) == 0)) {
+            auto transformation   = calcDQB(vertex);
+            auto totalTranslation = transformation->getTranslation();
+            vertex += totalTranslation;
+            normal += totalTranslation;
+        }
+        warpedVertices.emplace_back(vertex);
+        warpedNormals.emplace_back(normal);
+    }
+    return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);
 }
 
 /* Find the nodes of k closest neighbour for the given point */
