@@ -12,9 +12,11 @@ DynFusion::~DynFusion() = default;
 
 /* initialise dynamicfusion with the initial vertices and normals */
 void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
-    global_counter    = 0;
+    global_counter = 0;
+
     cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonicalVertices(cloudHost.rows * cloudHost.cols);
+
     std::cout << "no. of canonical vertices: " << cloudHost.cols * cloudHost.rows << std::endl;
 
     for (int y = 0; y < cloudHost.rows; ++y) {
@@ -126,7 +128,9 @@ void DynFusion::warpCanonicalToLiveOpt() {
 
     CombinedSolver combinedSolver(*warpfield, params);
 
-    auto canonicalWarped   = warpfield->warpToLive(canonicalFrame);
+    auto affineCanonicalToLive = affineLiveToCanonical.inv();
+
+    auto canonicalWarped   = warpfield->warpToLive(affineCanonicalToLive, canonicalFrame);
     auto canonicalNormals  = canonicalWarped->getNormals();
     auto canonicalVertices = canonicalWarped->getVertices();
     auto liveFrameVertices = liveFrame->getVertices();
@@ -141,7 +145,7 @@ void DynFusion::warpCanonicalToLiveOpt() {
 
     std::cout << "solved" << std::endl;
 
-    canonicalWarpedToLive = warpfield->warpToLive(canonicalFrame);
+    canonicalWarpedToLive = warpfield->warpToLive(affineCanonicalToLive, canonicalFrame);
 
     savePointCloud(canonicalWarpedToLive->getVertices(), "CanonicalWarpedToLive", global_counter);
 
