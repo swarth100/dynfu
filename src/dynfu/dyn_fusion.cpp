@@ -1,7 +1,9 @@
 #include <dynfu/dyn_fusion.hpp>
+
 /* pcl includes */
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+
 /* TODO: Add comment */
 DynFusion::DynFusion() = default;
 

@@ -1,24 +1,27 @@
 #ifndef DYNFU_WARP_FIELD_HPP
 #define DYNFU_WARP_FIELD_HPP
 
-/* kinfu includes */
-#include <kfusion/types.hpp>
+/* ceres includes */
+#include <ceres/ceres.h>
 
 /* dynfu includes */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
 
-/* ceres includes */
-#include <ceres/ceres.h>
-
-/* sys headers */
-#include <iostream>
-#include <memory>
-#include <vector>
+/* kinfu includes */
+#include <kfusion/types.hpp>
 
 /* nanoflann dependencies */
 #include <nanoflann/nanoflann.hpp>
 #include <nanoflann/pointcloud.hpp>
+
+/* sys headers */
+#include <cmath>
+#include <ctgmath>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 /* set the no. of nearest neighbours to consider */
 #define KNN 8

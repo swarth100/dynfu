@@ -3,12 +3,12 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-/* kinfu includes */
-#include <kfusion/types.hpp>
-
 /* dynfu includes */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/warp_field.hpp>
+
+/* kinfu includes */
+#include <kfusion/types.hpp>
 
 /* opt includes */
 #include <CombinedSolverBase.h>

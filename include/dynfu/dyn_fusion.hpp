@@ -1,6 +1,9 @@
 #ifndef DYNFU_DYNFUSION_HPP
 #define DYNFU_DYNFUSION_HPP
 
+/* ceres includes */
+#include <ceres/ceres.h>
+
 /* dynfu includes */
 #include <dynfu/utils/ceres_solver.hpp>
 #include <dynfu/utils/dual_quaternion.hpp>
@@ -9,10 +12,7 @@
 #include <dynfu/utils/pointcloud_viz.hpp>
 #include <dynfu/warp_field.hpp>
 
-/* ceres includes */
-#include <ceres/ceres.h>
-
-/* typedefs */
+/* kinfu includes */
 #include <kfusion/types.hpp>
 
 /* sys headers */
@@ -37,12 +37,11 @@ public:
     /* update the warp field if the no. of deformation nodes is insufficient to capture the geometry of canonical model
      */
     void updateWarpfield();
-
+    /* update the affine transformation from icp */
     void updateAffine(cv::Affine3f newAffine);
 
     /* warp canonical frame to live frame using Ceres */
     void warpCanonicalToLive();
-
     /* warp canonical frame to live frame using Opt */
     void warpCanonicalToLiveOpt();
 

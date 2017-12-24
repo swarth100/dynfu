@@ -1,10 +1,4 @@
-/* dynfu includes */
 #include <dynfu/warp_field.hpp>
-
-/* sys headers */
-#include <cmath>
-#include <ctgmath>
-#include <string>
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC METHODS */

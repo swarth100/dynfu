@@ -1,12 +1,12 @@
-/* sys headers */
-#include <iostream>
-
 /* kinfu includes */
 #include <kfusion/kinfu.hpp>
 
 /* opencv includes */
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
+/* sys headers */
+#include <iostream>
 
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
