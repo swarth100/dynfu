@@ -46,14 +46,11 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     int step                     = 50;
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
     std::vector<std::shared_ptr<Node>> deformationNodes;
-    std::vector<cv::Vec3f> temp;
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
         deformationNodes.push_back(std::make_shared<Node>(canonicalFrameVertices[i], dq, 2.f));
-        temp.push_back(canonicalFrameVertices[i]);
     }
 
-    savePointCloud(temp, "DeformationNodes", global_counter);
     //[> sample the deformation nodes <]
     // int noDeformationNodes = 8192;
 

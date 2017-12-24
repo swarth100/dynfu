@@ -18,10 +18,12 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     unsigned int N = 0;
 
     for (int i = 0; i < m_canonicalVerticesOpenCV.size(); i++) {
-        auto vertex = m_canonicalVerticesOpenCV[i];
-        auto normal = m_canonicalNormalsOpenCV[i];
+        auto vertex     = m_canonicalVerticesOpenCV[i];
+        auto normal     = m_canonicalNormalsOpenCV[i];
+        auto vertexLive = m_canonicalVerticesOpenCV[i];
+        auto normalLive = m_canonicalNormalsOpenCV[i];
 
-        if (cv::norm(vertex) != 0 && cv::norm(normal) != 0) {
+        if (cv::norm(vertex) != 0 && cv::norm(normal) != 0 && cv::norm(vertexLive) != 0 && cv::norm(normalLive) != 0) {
             N++;
         }
     }
@@ -49,14 +51,16 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
 }
 
 void CombinedSolver::initializeConnectivity() {
-    unsigned int N = m_dims[1];
+    unsigned int N                   = m_dims[1];
+    unsigned int noCanonicalVertices = m_canonicalVerticesOpenCV.size();
 
     std::vector<std::vector<int>> indices(9, std::vector<int>(N));
 
-    for (int count = 0; count < N; count++) {
+    int k = 0;
+    for (int count = 0; count < noCanonicalVertices; count++) {
         if (cv::norm(m_canonicalVerticesOpenCV[count]) != 0 && cv::norm(m_canonicalNormalsOpenCV[count]) != 0 &&
             cv::norm(m_liveVerticesOpenCV[count]) != 0 && cv::norm(m_liveNormalsOpenCV[count]) != 0) {
-            indices[0].push_back(count);
+            indices[0].push_back(k);
 
             auto vertexNeighbours    = m_warpfield.findNeighbors(KNN, m_canonicalVerticesOpenCV[count]);
             auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, m_canonicalVerticesOpenCV[count]);
@@ -64,6 +68,8 @@ void CombinedSolver::initializeConnectivity() {
             for (int i = 1; i < indices.size(); i++) {
                 indices[i].push_back(vertexNeighboursIdx[i - 1]);
             }
+
+            k++;
         }
     }
 
@@ -105,7 +111,8 @@ void CombinedSolver::combinedSolveFinalize() {
 }
 
 void CombinedSolver::resetGPUMemory() {
-    auto N = m_dims[1];
+    unsigned int N                   = m_dims[1];
+    unsigned int noCanonicalVertices = m_canonicalNormalsOpenCV.size();
 
     std::vector<float3> h_canonicalVertices(N);
     std::vector<float3> h_canonicalNormals(N);
@@ -113,18 +120,20 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float3> h_liveVertices(N);
     std::vector<float3> h_liveNormals(N);
 
-    for (int i = 0; i < N; i++) {
+    int k = 0;
+    for (int i = 0; i < noCanonicalVertices; i++) {
         if (cv::norm(m_canonicalVerticesOpenCV[i]) != 0 && cv::norm(m_canonicalNormalsOpenCV[i]) != 0 &&
             cv::norm(m_liveVerticesOpenCV[i]) != 0 && cv::norm(m_liveNormalsOpenCV[i]) != 0) {
-            h_canonicalVertices[i] = make_float3(m_canonicalVerticesOpenCV[i][0], m_canonicalVerticesOpenCV[i][1],
+            h_canonicalVertices[k] = make_float3(m_canonicalVerticesOpenCV[i][0], m_canonicalVerticesOpenCV[i][1],
                                                  m_canonicalVerticesOpenCV[i][2]);
-            h_canonicalNormals[i]  = make_float3(m_canonicalNormalsOpenCV[i][0], m_canonicalNormalsOpenCV[i][1],
+            h_canonicalNormals[k]  = make_float3(m_canonicalNormalsOpenCV[i][0], m_canonicalNormalsOpenCV[i][1],
                                                 m_canonicalNormalsOpenCV[i][2]);
 
-            h_liveVertices[i] =
+            h_liveVertices[k] =
                 make_float3(m_liveVerticesOpenCV[i][0], m_liveVerticesOpenCV[i][1], m_liveVerticesOpenCV[i][2]);
-            h_liveNormals[i] =
+            h_liveNormals[k] =
                 make_float3(m_liveNormalsOpenCV[i][0], m_liveNormalsOpenCV[i][1], m_liveNormalsOpenCV[i][2]);
+            k++;
         }
     }
 
@@ -175,7 +184,7 @@ void CombinedSolver::copyResultToCPUFromFloat3() {
     m_radialBasisWeights->copyTo(h_radialBasisWeights);
 
     for (unsigned int i = 0; i < D; i++) {
-        m_warpfield.getNodes()[i]->setTranslation(
+        m_warpfield.getNodes()[i]->updateTranslation(
             cv::Vec3f(h_translation[i].x, h_translation[i].y, h_translation[i].z));
         m_warpfield->getNodes()[i]->setRadialBasisWeight(h_radialBasisWeights[i]);
     }

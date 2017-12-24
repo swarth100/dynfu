@@ -83,3 +83,6 @@ files
 
 # ignore remote sync config file
 .remote-sync.json
+
+# Ignore frames
+frames
