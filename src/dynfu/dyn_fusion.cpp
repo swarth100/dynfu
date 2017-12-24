@@ -67,7 +67,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     // i++;
     //}
 
-    /* Initialise the warp field with the inital frames vertices */
+    /* initialise the warp field with the sampled deformation nodes */
     warpfield = std::make_shared<Warpfield>();
     warpfield->init(deformationNodes);
 
@@ -80,6 +80,8 @@ void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector
 }
 
 void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }
+
+cv::Affine3f DynFusion::getLiveToCanonicalAffine() { return affineLiveToCanonical; }
 
 void DynFusion::updateWarpfield() {
     std::vector<cv::Vec3f> unsupportedVertices;
@@ -111,6 +113,7 @@ void DynFusion::updateWarpfield() {
 /* TODO: Add comment */
 void DynFusion::warpCanonicalToLiveOpt() {
     // updateWarpfield();
+
     CombinedSolverParameters params;
     params.numIter       = 20;
     params.nonLinearIter = 15;
@@ -120,20 +123,28 @@ void DynFusion::warpCanonicalToLiveOpt() {
     params.earlyOut      = true;
 
     std::cout << "solving" << std::endl;
+
     CombinedSolver combinedSolver(*warpfield, params);
-    auto canonicalWarped             = warpfield->warpToLive(canonicalFrame);
-    auto canonicalNormals            = canonicalWarped->getNormals();
-    auto canonicalVertices           = canonicalWarped->getVertices();
-    auto liveFrameVertices           = liveFrame->getVertices();
+
+    auto canonicalWarped   = warpfield->warpToLive(canonicalFrame);
+    auto canonicalNormals  = canonicalWarped->getNormals();
+    auto canonicalVertices = canonicalWarped->getVertices();
+    auto liveFrameVertices = liveFrame->getVertices();
+
     auto correspondingCanonicalFrame = findCorrespondingFrame(canonicalVertices, canonicalNormals, liveFrameVertices);
+
     savePointCloud(liveFrameVertices, "LiveFrame", global_counter);
     // savePointCloud(correspondingCanonicalFrame->getVertices(), "CanonicalCorresponding", global_counter);
+
     combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame);
     combinedSolver.solveAll();
+
     std::cout << "solved" << std::endl;
 
     canonicalWarpedToLive = warpfield->warpToLive(canonicalFrame);
+
     savePointCloud(canonicalWarpedToLive->getVertices(), "CanonicalWarpedToLive", global_counter);
+
     global_counter++;
 }
 

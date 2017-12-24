@@ -40,6 +40,9 @@ public:
     /* update the affine transformation from icp */
     void updateAffine(cv::Affine3f newAffine);
 
+    /* get the affine transformation */
+    cv::Affine3f getLiveToCanonicalAffine();
+
     /* warp canonical frame to live frame using Ceres */
     void warpCanonicalToLive();
     /* warp canonical frame to live frame using Opt */
@@ -60,24 +63,27 @@ public:
 
 private:
     int global_counter;
+
     std::shared_ptr<dynfu::Frame> canonicalFrame;
     std::shared_ptr<dynfu::Frame> canonicalFrameAffine;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
     std::shared_ptr<dynfu::Frame> liveFrame;
 
+    cv::Affine3f affineLiveToCanonical;
     std::shared_ptr<Warpfield> warpfield;
 
-    cv::Affine3f affineLiveToCanonical;
+    /* find the corresponding vertices/normals of canonical frame in the live vertices */
+    std::shared_ptr<dynfu::Frame> findCorrespondingFrame(std::vector<cv::Vec3f> canonicalVertices,
+                                                         std::vector<cv::Vec3f> canonicalNormals,
+                                                         std::vector<cv::Vec3f> liveVertices);
 
     /* check if kfusion::Point contains NaN's */
     static bool DynFusion::isNaN(kfusion::Point pt);
-
     /* check if kfusion::Normal contains NaN's */
     static bool DynFusion::isNormalNaN(kfusion::Normal n);
 
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
-
     /* convert depths to OpenCV matrix */
     cv::Mat depthToMat(kfusion::cuda::Depth depths);
     /* convert OpenCV matrix to depths */
@@ -88,10 +94,7 @@ private:
     kfusion::cuda::Normals matToNormals(cv::Mat matrix);
     /* convert OpenCV matrix to vector of Vec3f */
     std::vector<cv::Vec3f> matToVector(cv::Mat);
-    /* find the corresponding vertices/normals of canonical frame from the live vertices */
-    std::shared_ptr<dynfu::Frame> findCorrespondingFrame(std::vector<cv::Vec3f> canonicalVertices,
-                                                         std::vector<cv::Vec3f> canonicalNormals,
-                                                         std::vector<cv::Vec3f> liveVertices);
+
     /* save the point cloud as pcd*/
     void savePointCloud(std::vector<cv::Vec3f> vertices, std::string filename, int i);
 };
