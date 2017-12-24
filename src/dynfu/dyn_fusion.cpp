@@ -87,15 +87,22 @@ cv::Affine3f DynFusion::getLiveToCanonicalAffine() { return affineLiveToCanonica
 
 void DynFusion::updateWarpfield() {
     std::vector<cv::Vec3f> unsupportedVertices;
-    float min;
 
     for (auto vertex : canonicalFrame->getVertices()) {
-        for (auto neighbour : warpfield->findNeighbors(KNN, vertex)) {
-            min = cv::norm(vertex - neighbour->getPosition()) / neighbour->getRadialBasisWeight();
+        float currentDist = HUGE_VALF;
+        float vertexMin   = currentDist;
 
-            if (min > 1) {
+        if (cv::norm(vertex) != 0) {
+            for (auto neighbour : warpfield->findNeighbors(KNN, vertex)) {
+                currentDist = cv::norm(vertex - neighbour->getPosition()) / neighbour->getRadialBasisWeight();
+
+                if (currentDist < vertexMin) {
+                    vertexMin = currentDist;
+                }
+            }
+
+            if (vertexMin > 1) {
                 unsupportedVertices.emplace_back(vertex);
-                break;
             }
         }
     }
@@ -103,9 +110,9 @@ void DynFusion::updateWarpfield() {
     std::cout << "no. of unsupported vertices: " << unsupportedVertices.size() << std::endl;
 
     /* TODO (dig15): sample the new deformation nodes in a more intelligent way */
-    int step = 5;
-    for (int i = 0; i < unsupportedVertices.size(); i += step) {
+    for (int i = 0; i < unsupportedVertices.size(); i += 5) {
         auto dg_se3 = warpfield->calcDQB(unsupportedVertices[i]);
+
         warpfield->addNode(std::make_shared<Node>(unsupportedVertices[i], dg_se3, 2.f));
     }
 
