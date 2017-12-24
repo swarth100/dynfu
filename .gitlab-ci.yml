@@ -320,5 +320,6 @@ test_dynfu_on_ec2:
 cache_cleanup:
   stage: Cleanup
   script:
-    - rm -rf "/home/gitlab-runner/cache/g1736211/DynamicFusionCore/$CI_COMMIT_SHA"
+    - echo "Present Cache:" && ls /home/gitlab-runner/cache/g1736211/dynfu/
+    - rm -rf "/home/gitlab-runner/cache/g1736211/dynfu/$CI_COMMIT_SHA"
   when: always
