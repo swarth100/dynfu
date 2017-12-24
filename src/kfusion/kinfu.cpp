@@ -236,7 +236,6 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
         return ++frame_counter_, false;
     }
 
-    std::cout << "adding live frame no. " << frame_counter_ << std::endl;
     /* add new live frame to dynfu */
     dynfu->addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
 
