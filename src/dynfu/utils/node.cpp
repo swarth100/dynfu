@@ -25,7 +25,11 @@ std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se
 float Node::getRadialBasisWeight() { return dg_w; }
 
 float Node::getTransformationWeight(cv::Vec3f vertexPosition) {
-    return getTransformationWeightT<float>(vertexPosition);
+    auto position = this->getPosition();
+    auto weight   = this->getRadialBasisWeight();
+    auto dist     = pow(position[0] - vertexPosition[0], 2) + pow(position[1] - vertexPosition[1], 2) +
+                pow(position[2] - vertexPosition[2], 2);
+    return exp(-dist / (2 * pow(weight, 2)));
 }
 
 template <typename T>

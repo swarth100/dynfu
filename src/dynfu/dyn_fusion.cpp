@@ -129,12 +129,12 @@ void DynFusion::warpCanonicalToLiveOpt() {
     auto correspondingCanonicalFrame = findCorrespondingFrame(canonicalVertices, canonicalNormals, liveFrameVertices);
     savePointCloud(liveFrameVertices, "LiveFrame", global_counter);
     // savePointCloud(correspondingCanonicalFrame->getVertices(), "CanonicalCorresponding", global_counter);
-    combinedSolver.initializeProblemInstance(canonicalFrame, this->liveFrame);
+    combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame);
     combinedSolver.solveAll();
     std::cout << "solved" << std::endl;
 
-    canonicalWarpedToLive = warpfield->warpToCanonical(liveFrame);
-    savePointCloud(canonicalWarpedToLive->getVertices(), "WarpedLiveFrame", global_counter);
+    canonicalWarpedToLive = warpfield->warpToLive(canonicalFrame);
+    savePointCloud(canonicalWarpedToLive->getVertices(), "CanonicalWarpedToLive", global_counter);
     global_counter++;
 }
 

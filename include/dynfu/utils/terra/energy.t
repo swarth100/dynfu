@@ -72,6 +72,7 @@ for _,i in ipairs(nodes) do
     -- totalRotation = totalRotation + rotation(G["n"..i]) -- FIXME (dig15): use rotations
 end
 
-local c = 40
-Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c))
+Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
+-- local c = 40
+-- Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c))
 -- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): understand how to use the normals

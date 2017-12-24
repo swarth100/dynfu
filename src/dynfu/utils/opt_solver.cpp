@@ -175,7 +175,7 @@ void CombinedSolver::copyResultToCPUFromFloat3() {
     m_radialBasisWeights->copyTo(h_radialBasisWeights);
 
     for (unsigned int i = 0; i < D; i++) {
-        m_warpfield.getNodes()[i]->updateTranslation(
+        m_warpfield.getNodes()[i]->setTranslation(
             cv::Vec3f(h_translation[i].x, h_translation[i].y, h_translation[i].z));
         m_warpfield->getNodes()[i]->setRadialBasisWeight(h_radialBasisWeights[i]);
     }

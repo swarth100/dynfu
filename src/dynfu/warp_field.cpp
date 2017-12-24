@@ -73,15 +73,12 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(std::shared_ptr<dynfu::
     std::vector<cv::Vec3f> warpedNormals;
 
     for (int i = 0; i < vertices.size(); i++) {
-        cv::Vec3f vertex = vertices[i];
-        cv::Vec3f normal = normals[i];
-        if (!(cv::norm(vertex) == 0 || cv::norm(normal) == 0)) {
-            auto transformation = calcDQB(vertex);
-            std::cout << *transformation << std::endl;
-            auto totalTranslation = transformation->getTranslation();
-            vertex -= totalTranslation;
-            normal -= totalTranslation;
-        }
+        cv::Vec3f vertex      = vertices[i];
+        cv::Vec3f normal      = normals[i];
+        auto transformation   = calcDQB(vertex);
+        auto totalTranslation = transformation->getTranslation();
+        vertex -= totalTranslation;
+        normal -= totalTranslation;
         warpedVertices.emplace_back(vertex);
         warpedNormals.emplace_back(normal);
     }
@@ -96,14 +93,12 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(std::shared_ptr<dynfu::Frame
     std::vector<cv::Vec3f> warpedNormals;
 
     for (int i = 0; i < vertices.size(); i++) {
-        cv::Vec3f vertex = vertices[i];
-        cv::Vec3f normal = normals[i];
-        if (!(cv::norm(vertex) == 0 || cv::norm(normal) == 0)) {
-            auto transformation   = calcDQB(vertex);
-            auto totalTranslation = transformation->getTranslation();
-            vertex += totalTranslation;
-            normal += totalTranslation;
-        }
+        cv::Vec3f vertex      = vertices[i];
+        cv::Vec3f normal      = normals[i];
+        auto transformation   = calcDQB(vertex);
+        auto totalTranslation = transformation->getTranslation();
+        vertex += totalTranslation;
+        normal += totalTranslation;
         warpedVertices.emplace_back(vertex);
         warpedNormals.emplace_back(normal);
     }
