@@ -184,15 +184,15 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 #if defined USE_DEPTH
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.depth_pyr, curr_.normals_pyr, prev_.depth_pyr,
                                           prev_.normals_pyr);
+        dynfu->updateAffine(affine);
 #else
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.points_pyr, curr_.normals_pyr, prev_.points_pyr,
                                           prev_.normals_pyr);
+        dynfu->updateAffine(affine);
 #endif
         if (!ok)
             return reset(), false;
     }
-
-    dynfu->setAffine(affine);
 
     poses_.push_back(poses_.back() * affine);  // curr -> global
 

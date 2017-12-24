@@ -77,7 +77,7 @@ void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector
     this->canonicalFrame = std::make_shared<dynfu::Frame>(0, vertices, normals);
 }
 
-void DynFusion::setAffine(cv::Affine3f affine) { this->affine = affine; }
+void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }
 
 void DynFusion::updateWarpfield() {
     std::vector<cv::Vec3f> unsupportedVertices;
