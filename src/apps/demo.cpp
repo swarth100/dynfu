@@ -7,6 +7,7 @@
 
 /* pcl includes */
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/vtk_io.h>
 #include <pcl/point_types.h>
 
 /* sys headers */
@@ -55,6 +56,13 @@ struct DynFuApp {
 
         cv::cvtColor(canonical_to_live_view_host_, canonical_to_live_view_host_, CV_BGR2GRAY);
         cv::imwrite(path, canonical_to_live_view_host_);
+    }
+
+    void save_polygon_mesh(KinFu *kinfu) {
+        auto mesh = kinfu->canonicalMesh;
+        pcl::io::saveVTKFile(outPath_ + "/canonicalModelMesh.vtk", mesh);
+
+        std::cout << "saved canonical model mesh to .vtk" << std::endl;
     }
 
     void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
@@ -167,6 +175,10 @@ struct DynFuApp {
                 show_canonical_warped_to_live(&kinfu, i);
 
                 save_canonical_warped_to_live_point_cloud(&kinfu, i);
+            }
+
+            if (i == 2) {
+                save_polygon_mesh(&kinfu);
             }
 
             // show_depth(depth);

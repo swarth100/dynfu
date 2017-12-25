@@ -15,6 +15,12 @@
 /* kinfu includes */
 #include <kfusion/types.hpp>
 
+/* pcl includes */
+#include <pcl/features/normal_3d.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/point_types.h>
+#include <pcl/surface/gp3.h>
+
 /* sys headers */
 #include <math.h>
 #include <thread>
@@ -31,10 +37,13 @@ public:
     void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
     void initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals);
+    /* construct a polygon mesh for the canonical model */
+    void initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals);
 
     // void updateCanonicalFrame();
 
-    /* update the warp field if the no. of deformation nodes is insufficient to capture the geometry of canonical model
+    /* update the warp field if the no. of deformation nodes is insufficient to capture the geometry of canonical
+     * model
      */
     void updateWarpfield();
     /* update the affine transformation from icp */
@@ -51,6 +60,8 @@ public:
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
+    /* get the canonical model mesh */
+    pcl::PolygonMesh getCanonicalMesh();
     /* get the canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
 
@@ -67,6 +78,8 @@ private:
     std::shared_ptr<dynfu::Frame> canonicalFrameAffine;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
     std::shared_ptr<dynfu::Frame> liveFrame;
+
+    pcl::PolygonMesh canonicalMesh;
 
     cv::Affine3f affineLiveToCanonical;
     std::shared_ptr<Warpfield> warpfield;

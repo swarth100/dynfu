@@ -40,30 +40,19 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     }
 
     initCanonicalFrame(canonicalVertices, canonicalNormals);
+    // initCanonicalMesh(canonicalVertices, canonicalNormals); // TODO (dig15): only pass in non-zero vertices;
+    // otherwise takes forever
 
-    int step                     = 50;
+    /* TODO (dig15): implement better sampling of deformation nodes */
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
 
+    int step = 50;
     std::vector<std::shared_ptr<Node>> deformationNodes;
 
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
         deformationNodes.push_back(std::make_shared<Node>(canonicalFrameVertices[i], dq, 2.f));
     }
-
-    //[> sample the deformation nodes <]
-    // int noDeformationNodes = 8192;
-
-    // std::vector<std::shared_ptr<Node>> deformationNodes;
-
-    // int i = 1;
-    // while (i <= noDeformationNodes) {
-    // auto k = rand() % (canonicalVertices.size() - 1);
-
-    // auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    // deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[k], dq, 2.f));
-    // i++;
-    //}
 
     /* initialise the warp field with the sampled deformation nodes */
     warpfield = std::make_shared<Warpfield>();
@@ -75,6 +64,74 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 /* TODO: Add comment */
 void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals) {
     this->canonicalFrame = std::make_shared<dynfu::Frame>(0, vertices, normals);
+}
+
+void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals) {
+    std::cout << "constructing a polygon mesh" << std::endl;
+
+    auto cloudVertices = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    auto cloudNormals  = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+
+    (*cloudVertices).width  = vertices.size();
+    (*cloudVertices).height = 1;
+
+    (*cloudVertices).points.resize((*cloudVertices).width * (*cloudVertices).height);
+
+    (*cloudNormals).width  = normals.size();
+    (*cloudNormals).height = 1;
+
+    (*cloudNormals).points.resize((*cloudNormals).width * (*cloudNormals).height);
+
+    /* iterate through vectors */
+    for (size_t i = 0; i < vertices.size(); i++) {
+        const cv::Vec3f &ptVertices = vertices[i];
+        const cv::Vec3f &ptNormals  = normals[i];
+
+        pcl::PointXYZ pointVertex = pcl::PointXYZ();
+        pointVertex.x             = ptVertices[0];
+        pointVertex.y             = ptVertices[1];
+        pointVertex.z             = ptVertices[2];
+
+        pcl::PointXYZ pointNormal = pcl::PointXYZ();
+        pointNormal.x             = ptNormals[0];
+        pointNormal.y             = ptNormals[1];
+        pointNormal.z             = ptNormals[2];
+
+        (*cloudVertices).points[i] = pointVertex;
+        (*cloudNormals).points[i]  = pointNormal;
+    }
+
+    pcl::PointCloud<pcl::PointNormal>::Ptr mesh(new pcl::PointCloud<pcl::PointNormal>);
+    pcl::concatenateFields(*cloudVertices, *cloudNormals, *mesh);
+
+    // create search tree*
+    pcl::search::KdTree<pcl::PointNormal>::Ptr tree2(new pcl::search::KdTree<pcl::PointNormal>);
+    tree2->setInputCloud(mesh);
+
+    // initialize objects
+    pcl::GreedyProjectionTriangulation<pcl::PointNormal> gp3;
+    pcl::PolygonMesh triangles;
+
+    // set the maximum distance between connected points (maximum edge length)
+    gp3.setSearchRadius(0.025);
+
+    // Sst typical values for the parameters
+    gp3.setMu(2.5);
+    gp3.setMaximumNearestNeighbors(100);
+    gp3.setMaximumSurfaceAngle(M_PI / 4);  // 45 degrees
+    gp3.setMinimumAngle(M_PI / 18);        // 10 degrees
+    gp3.setMaximumAngle(2 * M_PI / 3);     // 120 degrees
+    gp3.setNormalConsistency(false);
+
+    // get result
+    gp3.setInputCloud(mesh);
+    gp3.setSearchMethod(tree2);
+    gp3.reconstruct(triangles);
+
+    // initialise the field
+    canonicalMesh = triangles;
+
+    std::cout << "polygon mesh done" << std::endl;
 }
 
 void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }
@@ -184,6 +241,8 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
 
     liveFrame = std::make_shared<dynfu::Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
+
+pcl::PolygonMesh DynFusion::getCanonicalMesh() { return canonicalMesh; }
 
 std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return canonicalWarpedToLive; }
 
