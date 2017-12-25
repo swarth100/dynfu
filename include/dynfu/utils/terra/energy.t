@@ -26,7 +26,7 @@ function huberPenalty(a, delta) -- the value of delta?
 end
 
 -- function to calculate the tukey penalty
-function tukeyPenalty(x, c) -- the value of c is highly dependent on the quality of data; for alessandro recorded with realsense we recommend c = 4
+function tukeyPenalty(x, c)
   if lesseq(abs(x), c) then
     return x * pow(1.0 - (x * x) / (c * c), 2)
   else
@@ -72,7 +72,6 @@ for _,i in ipairs(nodes) do
     -- totalRotation = totalRotation + rotation(G["n"..i]) -- FIXME (dig15): use rotations
 end
 
-Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
--- local c = 40
--- Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c))
--- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): understand how to use the normals
+local c = 1
+Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c))
+-- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): use the normals
