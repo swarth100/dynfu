@@ -84,6 +84,9 @@ CREATE_TEST(dynfu_test)
 target_link_libraries(dynfu_test
   dynfu
   ${CUDA_CUDART_LIBRARY}
+  ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
+  ${PCL_LIBRARIES}
+  ${TERRA_LIBRARIES}
 )
 
 # Generate coverage commands
