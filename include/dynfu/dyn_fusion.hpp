@@ -77,10 +77,10 @@ private:
                                                          std::vector<cv::Vec3f> canonicalNormals,
                                                          std::vector<cv::Vec3f> liveVertices);
 
-    /* check if kfusion::Point contains NaN's */
-    static bool DynFusion::isNaN(kfusion::Point pt);
-    /* check if kfusion::Normal contains NaN's */
-    static bool DynFusion::isNormalNaN(kfusion::Normal n);
+    /* check if kfusion::point contains nan's */
+    static bool isNaN(kfusion::Point pt);
+    /* check if kfusion::normal contains nan's */
+    static bool isNormalNaN(kfusion::Normal n);
 
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);

@@ -201,14 +201,14 @@ std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return can
 /* define the static field */
 bool DynFusion::nextFrameReady = false;
 
-static bool DynFusion::isNaN(kfusion::Point pt) {
+bool DynFusion::isNaN(kfusion::Point pt) {
     if (std::isnan(pt.x) || std::isnan(pt.y) || std::isnan(pt.z)) {
         return true;
     }
     return false;
 }
 
-static bool DynFusion::isNormalNaN(kfusion::Normal n) {
+bool DynFusion::isNormalNaN(kfusion::Normal n) {
     if (std::isnan(n.x) || std::isnan(n.y) || std::isnan(n.z)) {
         return true;
     }

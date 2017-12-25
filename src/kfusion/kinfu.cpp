@@ -190,8 +190,9 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
                                           prev_.normals_pyr);
         dynfu->updateAffine(affine);
 #endif
-        if (!ok)
+        if (!ok) {
             return reset(), false;
+        }
     }
 
     poses_.push_back(poses_.back() * affine);  // curr -> global

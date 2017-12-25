@@ -58,7 +58,7 @@ std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(cv::Vec3f point) {
     return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
 }
 
-std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(cv::Affine3f affineLiveToCanonical,
+std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(cv::Affine3f /* affineLiveToCanonical */,
                                                          std::shared_ptr<dynfu::Frame> liveFrame) {
     auto vertices = liveFrame->getVertices();
     auto normals  = liveFrame->getNormals();
@@ -82,7 +82,7 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(cv::Affine3f affineLive
     return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);
 }
 
-std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(cv::Affine3f affineCanonicalToLive,
+std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(cv::Affine3f /* affineCanonicalToLive */,
                                                     std::shared_ptr<dynfu::Frame> canonicalFrame) {
     auto vertices = canonicalFrame->getVertices();
     auto normals  = canonicalFrame->getNormals();
