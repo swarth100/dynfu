@@ -229,32 +229,11 @@ kfusion::cuda::Cloud DynFusion::matToCloud(cv::Mat matrix) {
     return cloud;
 }
 
-cv::Mat DynFusion::depthToMat(kfusion::cuda::Depth depths) {
-    cv::Mat depthHost;
-    depthHost.create(depths.rows(), depths.cols(), CV_32FC1);
-    depths.download(depthHost.ptr<kfusion::Point>(), depthHost.step);
-    return depthHost;
-}
-
-kfusion::cuda::Depth DynFusion::matToDepth(cv::Mat matrix) {
-    kfusion::cuda::Depth depths;
-    depths.create(matrix.rows, matrix.cols);
-    depths.upload(matrix.data, matrix.step, matrix.rows, matrix.cols);
-    return depths;
-}
-
 cv::Mat DynFusion::normalsToMat(kfusion::cuda::Normals normals) {
     cv::Mat normalsHost;
     normalsHost.create(normals.rows(), normals.cols(), CV_32FC4);
     normals.download(normalsHost.ptr<kfusion::Normal>(), normalsHost.step);
     return normalsHost;
-}
-
-kfusion::cuda::Normals DynFusion::matToNormals(cv::Mat matrix) {
-    kfusion::cuda::Normals normals;
-    normals.create(matrix.rows, matrix.cols);
-    normals.upload(matrix.data, matrix.step, matrix.rows, matrix.cols);
-    return normals;
 }
 
 std::vector<cv::Vec3f> DynFusion::matToVector(cv::Mat matrix) {
