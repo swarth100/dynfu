@@ -11,37 +11,40 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonicalVertices(cloudHost.rows * cloudHost.cols);
 
-    std::cout << "no. of canonical vertices: " << cloudHost.cols * cloudHost.rows << std::endl;
-
-    for (int y = 0; y < cloudHost.rows; ++y) {
-        for (int x = 0; x < cloudHost.cols; ++x) {
-            auto point = cloudHost.at<kfusion::Point>(y, x);
-            if (!isNaN(point)) {
-                canonicalVertices[x + cloudHost.cols * y] = cv::Vec3f(point.x, point.y, point.z);
-            } else {
-                canonicalVertices[x + cloudHost.cols * y] = cv::Vec3f(0.f, 0.f, 0.f);
-            }
-        }
-    }
-
     cv::Mat normalHost = normalsToMat(normals);
     std::vector<cv::Vec3f> canonicalNormals(normalHost.rows * normalHost.cols);
 
-    for (int y = 0; y < normalHost.rows; ++y) {
-        for (int x = 0; x < normalHost.cols; ++x) {
-            auto point = normalHost.at<kfusion::Normal>(y, x);
+    std::vector<cv::Vec3f> nonzeroCanonicalVertices;
+    std::vector<cv::Vec3f> nonzeroCanonicalNormals;
 
-            if (!isNaN(point)) {
-                canonicalNormals[x + normalHost.cols * y] = cv::Vec3f(point.x, point.y, point.z);
+    std::cout << "no. of canonical vertices: " << cloudHost.cols * cloudHost.rows << std::endl;
+
+    /* assumes vertices and normals have the same size */
+    for (int y = 0; y < cloudHost.rows; ++y) {
+        for (int x = 0; x < cloudHost.cols; ++x) {
+            auto ptVertex = cloudHost.at<kfusion::Point>(y, x);
+            auto ptNormal = normalHost.at<kfusion::Normal>(y, x);
+
+            if (!isNaN(ptVertex) && !isNaN(ptNormal)) {
+                canonicalVertices[x + cloudHost.cols * y] = cv::Vec3f(ptVertex.x, ptVertex.y, ptVertex.z);
+                canonicalNormals[x + normalHost.cols * y] = cv::Vec3f(ptNormal.x, ptNormal.y, ptNormal.z);
+
+                if (!isZero(ptVertex) && !isZero(ptNormal)) {
+                    nonzeroCanonicalVertices.emplace_back(cv::Vec3f(ptVertex.x, ptVertex.y, ptVertex.z));
+                    nonzeroCanonicalNormals.emplace_back(cv::Vec3f(ptNormal.x, ptNormal.y, ptNormal.z));
+                }
+
             } else {
+                canonicalVertices[x + cloudHost.cols * y] = cv::Vec3f(0.f, 0.f, 0.f);
                 canonicalNormals[x + normalHost.cols * y] = cv::Vec3f(0.f, 0.f, 0.f);
             }
         }
     }
 
+    std::cout << "no. of non-zero vertices: " << nonzeroCanonicalVertices.size() << std::endl;
+
     initCanonicalFrame(canonicalVertices, canonicalNormals);
-    // initCanonicalMesh(canonicalVertices, canonicalNormals); // TODO (dig15): only pass in non-zero vertices;
-    // otherwise takes forever
+    // initCanonicalMesh(nonzeroCanonicalVertices, nonzeroCanonicalNormals);
 
     /* TODO (dig15): implement better sampling of deformation nodes */
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
@@ -69,44 +72,34 @@ void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector
 void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals) {
     std::cout << "constructing a polygon mesh" << std::endl;
 
-    auto cloudVertices = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-    auto cloudNormals  = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloudVertices(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::Normal>::Ptr cloudNormals(new pcl::PointCloud<pcl::Normal>);
 
     (*cloudVertices).width  = vertices.size();
     (*cloudVertices).height = 1;
-
     (*cloudVertices).points.resize((*cloudVertices).width * (*cloudVertices).height);
 
     (*cloudNormals).width  = normals.size();
     (*cloudNormals).height = 1;
-
     (*cloudNormals).points.resize((*cloudNormals).width * (*cloudNormals).height);
 
     /* iterate through vectors */
     for (size_t i = 0; i < vertices.size(); i++) {
         const cv::Vec3f &ptVertices = vertices[i];
-        const cv::Vec3f &ptNormals  = normals[i];
+        pcl::PointXYZ pointVertex   = pcl::PointXYZ(ptVertices[0], ptVertices[1], ptVertices[2]);
+        (*cloudVertices).points[i]  = pointVertex;
 
-        pcl::PointXYZ pointVertex = pcl::PointXYZ();
-        pointVertex.x             = ptVertices[0];
-        pointVertex.y             = ptVertices[1];
-        pointVertex.z             = ptVertices[2];
-
-        pcl::PointXYZ pointNormal = pcl::PointXYZ();
-        pointNormal.x             = ptNormals[0];
-        pointNormal.y             = ptNormals[1];
-        pointNormal.z             = ptNormals[2];
-
-        (*cloudVertices).points[i] = pointVertex;
+        const cv::Vec3f &ptNormals = normals[i];
+        pcl::Normal pointNormal    = pcl::Normal(ptNormals[0], ptNormals[1], ptNormals[2]);
         (*cloudNormals).points[i]  = pointNormal;
     }
 
-    pcl::PointCloud<pcl::PointNormal>::Ptr mesh(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::concatenateFields(*cloudVertices, *cloudNormals, *mesh);
+    pcl::PointCloud<pcl::PointNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointNormal>);
+    pcl::concatenateFields(*cloudVertices, *cloudNormals, *cloudWithNormals);
 
     // create search tree*
     pcl::search::KdTree<pcl::PointNormal>::Ptr tree2(new pcl::search::KdTree<pcl::PointNormal>);
-    tree2->setInputCloud(mesh);
+    tree2->setInputCloud(cloudWithNormals);
 
     // initialize objects
     pcl::GreedyProjectionTriangulation<pcl::PointNormal> gp3;
@@ -115,16 +108,16 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
     // set the maximum distance between connected points (maximum edge length)
     gp3.setSearchRadius(0.025);
 
-    // Sst typical values for the parameters
+    // set typical values for the parameters
     gp3.setMu(2.5);
-    gp3.setMaximumNearestNeighbors(100);
+    gp3.setMaximumNearestNeighbors(128);
     gp3.setMaximumSurfaceAngle(M_PI / 4);  // 45 degrees
     gp3.setMinimumAngle(M_PI / 18);        // 10 degrees
     gp3.setMaximumAngle(2 * M_PI / 3);     // 120 degrees
     gp3.setNormalConsistency(false);
 
     // get result
-    gp3.setInputCloud(mesh);
+    gp3.setInputCloud(cloudWithNormals);
     gp3.setSearchMethod(tree2);
     gp3.reconstruct(triangles);
 
@@ -256,8 +249,8 @@ bool DynFusion::isNaN(kfusion::Point pt) {
     return false;
 }
 
-bool DynFusion::isNormalNaN(kfusion::Normal n) {
-    if (std::isnan(n.x) || std::isnan(n.y) || std::isnan(n.z)) {
+bool DynFusion::isZero(kfusion::Point pt) {
+    if (cv::norm(cv::Vec3f(pt.x, pt.y, pt.z)) == 0) {
         return true;
     }
     return false;

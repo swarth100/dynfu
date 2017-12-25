@@ -170,15 +170,15 @@ struct DynFuApp {
                 cv::namedWindow("canonical warped to live", cv::WINDOW_AUTOSIZE);
             }
 
+            if (i == 1) {
+                // save_polygon_mesh(&kinfu);
+            }
+
             if (has_image) {
                 show_raycasted(&kinfu, i);
                 show_canonical_warped_to_live(&kinfu, i);
 
                 save_canonical_warped_to_live_point_cloud(&kinfu, i);
-            }
-
-            if (i == 2) {
-                save_polygon_mesh(&kinfu);
             }
 
             // show_depth(depth);

@@ -233,6 +233,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     if (frame_counter_ == 1) {
         /* initialise the warpfield */
         dynfu->init(prev_.points_pyr[0], prev_.normals_pyr[0]);
+        /* get the polygon mesh of the canonical model */
+        // canonicalMesh = dynfu->getCanonicalMesh();
 
         return ++frame_counter_, false;
     }
@@ -241,8 +243,6 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     dynfu->addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
     /* warp canonical frame to live frame */
     dynfu->warpCanonicalToLiveOpt();
-    /* get the polygon mesh of the canonical model */
-    canonicalMesh = dynfu->getCanonicalMesh();
     /* get the canonical frame as warped to live */
     canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
 

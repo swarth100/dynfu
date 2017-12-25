@@ -89,3 +89,6 @@ frames
 
 # ignore helper MATLAB script to display point clouds
 show_pcl.m
+
+# ignore output folder
+out

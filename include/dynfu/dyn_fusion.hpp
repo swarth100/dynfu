@@ -91,8 +91,8 @@ private:
 
     /* check if kfusion::point contains nan's */
     static bool isNaN(kfusion::Point pt);
-    /* check if kfusion::normal contains nan's */
-    static bool isNormalNaN(kfusion::Normal n);
+    /* check if kfusion::point is 0 */
+    static bool isZero(kfusion::Point pt);
 
     /* convert cloud to OpenCV matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
