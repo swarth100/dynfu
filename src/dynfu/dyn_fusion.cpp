@@ -245,12 +245,16 @@ cv::Mat DynFusion::vectorToMat(std::vector<cv::Vec3f> vec) {
     for (int y = 0; y < rowLen; ++y) {
         for (int x = 0; x < colLen; ++x) {
             int index = x + y * colLen;
+
             kfusion::Point p;
+
             if (index < vec.size() && (vec[index][0] || vec[index][1] || vec[index][2])) {
                 p = kfusion::Point({{vec[index][0], vec[index][1], vec[index][2]}});
             } else {
-                p = kfusion::Point({{std::nan(""), std::nan(""), std::nan("")}});
+                p = kfusion::Point({{static_cast<float>(std::nan("")), static_cast<float>(std::nan("")),
+                                     static_cast<float>(std::nan(""))}});
             }
+
             mat.at<kfusion::Point>(y, x) = p;
         }
     }
