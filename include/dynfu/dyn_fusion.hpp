@@ -16,7 +16,7 @@
 #include <kfusion/types.hpp>
 
 /* pcl includes */
-#include <pcl/PolygonMesh.h>
+// #include <pcl/PolygonMesh.h>
 
 /* sys headers */
 #include <math.h>
@@ -58,7 +58,7 @@ public:
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
     /* get the canonical model mesh from point cloud via marching cubes */
-    pcl::PolygonMesh getCanonicalMesh();
+    // pcl::PolygonMesh getCanonicalMesh();
     /* get the canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
 
@@ -76,7 +76,7 @@ private:
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
     std::shared_ptr<dynfu::Frame> liveFrame;
 
-    pcl::PolygonMesh canonicalMesh;
+    // pcl::PolygonMesh canonicalMesh;
 
     cv::Affine3f affineLiveToCanonical;
     std::shared_ptr<Warpfield> warpfield;

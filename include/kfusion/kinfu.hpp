@@ -13,7 +13,7 @@
 #include <kfusion/types.hpp>
 
 /* pcl includes */
-#include <pcl/point_types.h>
+// #include <pcl/point_types.h>
 
 /* sys headers */
 #include <string>
@@ -79,7 +79,7 @@ public:
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
 
-    pcl::PolygonMesh canonicalMesh;
+    // pcl::PolygonMesh canonicalMesh;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
 
     void renderImage(cuda::Image &image, int flag = 0);

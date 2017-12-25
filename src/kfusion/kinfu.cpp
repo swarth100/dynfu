@@ -234,7 +234,7 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
         /* initialise the warpfield */
         dynfu->init(prev_.points_pyr[0], prev_.normals_pyr[0]);
         /* get the polygon mesh of the canonical model */
-        canonicalMesh = dynfu->getCanonicalMesh();
+        // canonicalMesh = dynfu->getCanonicalMesh();
 
         return ++frame_counter_, false;
     }

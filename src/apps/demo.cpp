@@ -7,8 +7,8 @@
 
 /* pcl includes */
 #include <pcl/io/pcd_io.h>
-#include <pcl/io/vtk_io.h>
-#include <pcl/point_types.h>
+// #include <pcl/io/vtk_io.h>
+// #include <pcl/point_types.h>
 
 /* sys headers */
 #include <iostream>
@@ -58,12 +58,12 @@ struct DynFuApp {
         cv::imwrite(path, canonical_to_live_view_host_);
     }
 
-    void save_polygon_mesh(KinFu *kinfu) {
-        auto mesh = kinfu->canonicalMesh;
-        pcl::io::saveVTKFile(outPath_ + "/canonicalModelMesh.vtk", mesh);
-
-        std::cout << "saved canonical model mesh to .vtk" << std::endl;
-    }
+    // void save_polygon_mesh(KinFu *kinfu) {
+    //     auto mesh = kinfu->canonicalMesh;
+    //     pcl::io::saveVTKFile(outPath_ + "/canonicalModelMesh.vtk", mesh);
+    //
+    //     std::cout << "saved canonical model mesh to .vtk" << std::endl;
+    // }
 
     void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
         auto vertices = kinfu->canonicalWarpedToLive->getVertices();
@@ -171,7 +171,7 @@ struct DynFuApp {
             }
 
             if (i == 1) {
-                save_polygon_mesh(&kinfu);
+                // save_polygon_mesh(&kinfu);
             }
 
             if (has_image) {
