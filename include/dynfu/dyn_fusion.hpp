@@ -63,8 +63,6 @@ public:
     kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
 
 private:
-    int global_counter;
-
     std::shared_ptr<dynfu::Frame> canonicalFrame;
     std::shared_ptr<dynfu::Frame> canonicalFrameAffine;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
@@ -89,9 +87,6 @@ private:
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
     /* convert OpenCV matrix to vector of Vec3f */
     std::vector<cv::Vec3f> matToVector(cv::Mat);
-
-    /* save the point cloud as pcd*/
-    void savePointCloud(std::vector<cv::Vec3f> vertices, std::string filename, int i);
 };
 
 /* DYNFU_DYNFUSION_HPP */

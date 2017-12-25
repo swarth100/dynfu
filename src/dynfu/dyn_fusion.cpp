@@ -1,9 +1,5 @@
 #include <dynfu/dyn_fusion.hpp>
 
-/* pcl includes */
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-
 /* TODO: Add comment */
 DynFusion::DynFusion() = default;
 
@@ -12,8 +8,6 @@ DynFusion::~DynFusion() = default;
 
 /* initialise dynamicfusion with the initial vertices and normals */
 void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
-    global_counter = 0;
-
     cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonicalVertices(cloudHost.rows * cloudHost.cols);
 
@@ -49,7 +43,9 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     int step                     = 50;
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
+
     std::vector<std::shared_ptr<Node>> deformationNodes;
+
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
         deformationNodes.push_back(std::make_shared<Node>(canonicalFrameVertices[i], dq, 2.f));
@@ -144,19 +140,12 @@ void DynFusion::warpCanonicalToLiveOpt() {
 
     auto correspondingCanonicalFrame = findCorrespondingFrame(canonicalVertices, canonicalNormals, liveFrameVertices);
 
-    savePointCloud(liveFrameVertices, "LiveFrame", global_counter);
-    // savePointCloud(correspondingCanonicalFrame->getVertices(), "CanonicalCorresponding", global_counter);
-
     combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame);
     combinedSolver.solveAll();
 
     std::cout << "solved" << std::endl;
 
     canonicalWarpedToLive = warpfield->warpToLive(affineCanonicalToLive, canonicalFrame);
-
-    savePointCloud(canonicalWarpedToLive->getVertices(), "CanonicalWarpedToLive", global_counter);
-
-    global_counter++;
 }
 
 std::shared_ptr<dynfu::Frame> DynFusion::findCorrespondingFrame(std::vector<cv::Vec3f> canonicalVertices,
@@ -266,26 +255,4 @@ cv::Mat DynFusion::vectorToMat(std::vector<cv::Vec3f> vec) {
         }
     }
     return mat;
-}
-
-void DynFusion::savePointCloud(std::vector<cv::Vec3f> vertices, std::string filename, int i) {
-    /* initialise the point cloud */
-    auto cloud    = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-    cloud->width  = vertices.size();
-    cloud->height = 1;
-    cloud->points.resize(cloud->width * cloud->height);
-
-    /* iterate through vectors */
-    for (size_t i = 0; i < vertices.size(); i++) {
-        const cv::Vec3f &pt = vertices[i];
-        cloud->points[i]    = pcl::PointXYZ(pt[0], pt[1], pt[2]);
-    }
-
-    /* save to PCL */
-    std::string filenameStr = ("files/" + filename + std::to_string(i) + ".pcd");
-    try {
-        pcl::io::savePCDFileASCII(filenameStr, (*cloud));
-    } catch (...) {
-        std::cout << "Could not save to " + filenameStr << std::endl;
-    }
 }

@@ -5,6 +5,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+/* pcl includes */
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
 /* sys headers */
 #include <iostream>
 
@@ -20,11 +24,14 @@ struct DynFuApp {
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
+
         if (visualizer_) {
             cv::imshow("Scene", view_host_);
             cvWaitKey(10);
         }
+
         std::string path = outPath_ + "/" + std::to_string(i) + ".png";
+
         cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
         cv::imwrite(path, view_host_);
     }
@@ -32,19 +39,46 @@ struct DynFuApp {
     void show_canonical_warped_to_live(KinFu *kinfu, int i) {
         const int mode = 3;
         kinfu->renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
+
         canonical_to_live_view_host_.create(canonical_to_live_view_device_.rows(),
                                             canonical_to_live_view_device_.cols(), CV_8UC4);
         canonical_to_live_view_device_.download(canonical_to_live_view_host_.ptr<void>(),
-
                                                 canonical_to_live_view_host_.step);
+
         if (visualizer_) {
             /* FROM THE GPU */
             cv::imshow("CanonicalToLive", canonical_to_live_view_host_);
             cvWaitKey(10);
         }
+
         std::string path = outPath_ + "/canonicalToLive" + std::to_string(i) + ".png";
+
         cv::cvtColor(canonical_to_live_view_host_, canonical_to_live_view_host_, CV_BGR2GRAY);
         cv::imwrite(path, canonical_to_live_view_host_);
+    }
+
+    void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
+        auto vertices = kinfu->canonicalWarpedToLive->getVertices();
+
+        /* initialise the point cloud */
+        auto cloud    = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+        cloud->width  = vertices.size();
+        cloud->height = 1;
+        cloud->points.resize(cloud->width * cloud->height);
+
+        /* iterate through vertices */
+        for (size_t i = 0; i < vertices.size(); i++) {
+            const cv::Vec3f &pt = vertices[i];
+            cloud->points[i]    = pcl::PointXYZ(pt[0], pt[1], pt[2]);
+        }
+
+        /* save to PCL */
+        std::string filenameStr = ("files/CanonicalWarpedToLive" + std::to_string(i) + ".pcd");
+        try {
+            pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+        } catch (...) {
+            std::cout << "Could not save to " + filenameStr << std::endl;
+        }
     }
 
     void take_cloud(KinFu *kinfu) {
@@ -66,6 +100,7 @@ struct DynFuApp {
 
         cv::glob(filePath_ + "/depth", *depths);
         cv::glob(filePath_ + "/color", *images);
+
         std::sort((*depths).begin(), (*depths).end());
         std::sort((*images).begin(), (*images).end());
     }
@@ -94,9 +129,6 @@ struct DynFuApp {
         double time_ms = 0;
         bool has_image = false;
 
-        if (visualizer_) {
-        }
-
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
 
@@ -114,6 +146,7 @@ struct DynFuApp {
             }
 
             depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
+
             {
                 SampledScopeTime fps(time_ms);
                 (void) fps;
@@ -139,7 +172,10 @@ struct DynFuApp {
             if (has_image) {
                 show_raycasted(&kinfu, i);
                 show_canonical_warped_to_live(&kinfu, i);
+
+                save_canonical_warped_to_live_point_cloud(&kinfu, i);
             }
+
             // show_depth(depth);
         }
 

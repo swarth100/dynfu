@@ -239,8 +239,9 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     /* add new live frame to dynfu */
     dynfu->addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
-
+    /* warp canonical frame to live frame */
     dynfu->warpCanonicalToLiveOpt();
+    /* get the canonical frame as warped to live */
     canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
 
     return ++frame_counter_, true;
