@@ -16,10 +16,7 @@
 #include <kfusion/types.hpp>
 
 /* pcl includes */
-#include <pcl/features/normal_3d.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/point_types.h>
-#include <pcl/surface/gp3.h>
+#include <pcl/PolygonMesh.h>
 
 /* sys headers */
 #include <math.h>
@@ -60,7 +57,7 @@ public:
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
-    /* get the canonical model mesh */
+    /* get the canonical model mesh from point cloud via marching cubes */
     pcl::PolygonMesh getCanonicalMesh();
     /* get the canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();

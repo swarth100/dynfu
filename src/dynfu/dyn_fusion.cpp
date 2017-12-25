@@ -1,5 +1,11 @@
 #include <dynfu/dyn_fusion.hpp>
 
+/* pcl includes */
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/point_types.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/surface/marching_cubes_rbf.h>
+
 /* TODO: Add comment */
 DynFusion::DynFusion() = default;
 
@@ -44,7 +50,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     std::cout << "no. of non-zero vertices: " << nonzeroCanonicalVertices.size() << std::endl;
 
     initCanonicalFrame(canonicalVertices, canonicalNormals);
-    // initCanonicalMesh(nonzeroCanonicalVertices, nonzeroCanonicalNormals);
+    initCanonicalMesh(nonzeroCanonicalVertices, nonzeroCanonicalNormals);
 
     /* TODO (dig15): implement better sampling of deformation nodes */
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
@@ -97,34 +103,21 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
     pcl::PointCloud<pcl::PointNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointNormal>);
     pcl::concatenateFields(*cloudVertices, *cloudNormals, *cloudWithNormals);
 
-    // create search tree*
-    pcl::search::KdTree<pcl::PointNormal>::Ptr tree2(new pcl::search::KdTree<pcl::PointNormal>);
-    tree2->setInputCloud(cloudWithNormals);
+    // create search tree
+    pcl::search::KdTree<pcl::PointNormal>::Ptr tree(new pcl::search::KdTree<pcl::PointNormal>);
+    tree->setInputCloud(cloudWithNormals);
 
-    // initialize objects
-    pcl::GreedyProjectionTriangulation<pcl::PointNormal> gp3;
-    pcl::PolygonMesh triangles;
+    std::cout << "begin marching cubes reconstruction" << std::endl;
 
-    // set the maximum distance between connected points (maximum edge length)
-    gp3.setSearchRadius(0.025);
+    pcl::MarchingCubesRBF<pcl::PointNormal> mc;
+    pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
+    mc.setInputCloud(cloudWithNormals);
+    mc.setSearchMethod(tree);
+    mc.reconstruct(*triangles);
 
-    // set typical values for the parameters
-    gp3.setMu(2.5);
-    gp3.setMaximumNearestNeighbors(128);
-    gp3.setMaximumSurfaceAngle(M_PI / 4);  // 45 degrees
-    gp3.setMinimumAngle(M_PI / 18);        // 10 degrees
-    gp3.setMaximumAngle(2 * M_PI / 3);     // 120 degrees
-    gp3.setNormalConsistency(false);
+    canonicalMesh = *triangles;
 
-    // get result
-    gp3.setInputCloud(cloudWithNormals);
-    gp3.setSearchMethod(tree2);
-    gp3.reconstruct(triangles);
-
-    // initialise the field
-    canonicalMesh = triangles;
-
-    std::cout << "polygon mesh done" << std::endl;
+    std::cout << triangles->polygons.size() << " triangles created" << std::endl;
 }
 
 void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }

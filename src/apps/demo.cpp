@@ -171,7 +171,7 @@ struct DynFuApp {
             }
 
             if (i == 1) {
-                // save_polygon_mesh(&kinfu);
+                save_polygon_mesh(&kinfu);
             }
 
             if (has_image) {
