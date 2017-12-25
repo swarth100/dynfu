@@ -235,19 +235,9 @@ std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return can
 /* define the static field */
 bool DynFusion::nextFrameReady = false;
 
-bool DynFusion::isNaN(kfusion::Point pt) {
-    if (std::isnan(pt.x) || std::isnan(pt.y) || std::isnan(pt.z)) {
-        return true;
-    }
-    return false;
-}
+bool DynFusion::isNaN(kfusion::Point pt) { return (std::isnan(pt.x) || std::isnan(pt.y) || std::isnan(pt.z)); }
 
-bool DynFusion::isZero(kfusion::Point pt) {
-    if (cv::norm(cv::Vec3f(pt.x, pt.y, pt.z)) == 0) {
-        return true;
-    }
-    return false;
-}
+bool DynFusion::isZero(kfusion::Point pt) { return (cv::norm(cv::Vec3f(pt.x, pt.y, pt.z)) == 0); }
 
 cv::Mat DynFusion::cloudToMat(kfusion::cuda::Cloud cloud) {
     cv::Mat cloudHost;
@@ -291,16 +281,16 @@ cv::Mat DynFusion::vectorToMat(std::vector<cv::Vec3f> vec) {
         for (int x = 0; x < colLen; ++x) {
             int index = x + y * colLen;
 
-            kfusion::Point p;
+            kfusion::Point point;
 
             if (index < vec.size() && (vec[index][0] || vec[index][1] || vec[index][2])) {
-                p = kfusion::Point({{vec[index][0], vec[index][1], vec[index][2]}});
+                point = kfusion::Point({{vec[index][0], vec[index][1], vec[index][2]}});
             } else {
-                p = kfusion::Point({{static_cast<float>(std::nan("")), static_cast<float>(std::nan("")),
-                                     static_cast<float>(std::nan(""))}});
+                point = kfusion::Point({{static_cast<float>(std::nan("")), static_cast<float>(std::nan("")),
+                                         static_cast<float>(std::nan(""))}});
             }
 
-            mat.at<kfusion::Point>(y, x) = p;
+            mat.at<kfusion::Point>(y, x) = point;
         }
     }
     return mat;
