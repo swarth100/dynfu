@@ -26,16 +26,17 @@ struct DynFuApp {
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
 
         if (visualizer_) {
-            cv::imshow("Scene", view_host_);
+            cv::imshow("scene", view_host_);
             cvWaitKey(10);
         }
 
-        std::string path = outPath_ + "/" + std::to_string(i) + ".png";
+        std::string path = outPath_ + "/raycast" + std::to_string(i) + ".png";
 
         cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
         cv::imwrite(path, view_host_);
     }
 
+    /* data from the gpu */
     void show_canonical_warped_to_live(KinFu *kinfu, int i) {
         const int mode = 3;
         kinfu->renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
@@ -46,12 +47,11 @@ struct DynFuApp {
                                                 canonical_to_live_view_host_.step);
 
         if (visualizer_) {
-            /* FROM THE GPU */
-            cv::imshow("CanonicalToLive", canonical_to_live_view_host_);
+            cv::imshow("canonical warped to live", canonical_to_live_view_host_);
             cvWaitKey(10);
         }
 
-        std::string path = outPath_ + "/canonicalToLive" + std::to_string(i) + ".png";
+        std::string path = outPath_ + "/canonical_to_live" + std::to_string(i) + ".png";
 
         cv::cvtColor(canonical_to_live_view_host_, canonical_to_live_view_host_, CV_BGR2GRAY);
         cv::imwrite(path, canonical_to_live_view_host_);
@@ -73,7 +73,7 @@ struct DynFuApp {
         }
 
         /* save to PCL */
-        std::string filenameStr = ("files/CanonicalWarpedToLive" + std::to_string(i) + ".pcd");
+        std::string filenameStr = outPath_ + "/pcl_canonical_to_live" + std::to_string(i) + ".pcd";
         try {
             pcl::io::savePCDFileASCII(filenameStr, (*cloud));
         } catch (...) {
@@ -89,12 +89,12 @@ struct DynFuApp {
 
     void loadFiles(std::vector<cv::String> *depths, std::vector<cv::String> *images) {
         if (!boost::filesystem::exists(filePath_)) {
-            std::cerr << "Error: Directory '" << filePath_ << "' does not exist. Exiting..." << std::endl;
+            std::cerr << "Error: Directory '" << filePath_ << "' does not exist. Exiting" << std::endl;
             exit(EXIT_FAILURE);
         }
 
         if (!boost::filesystem::exists(filePath_ + "/depth") || !boost::filesystem::exists(filePath_ + "/color")) {
-            std::cerr << "Error: Directory should contain 'color' and 'depth' directories. Exiting..." << std::endl;
+            std::cerr << "Error: Directory should contain 'color' and 'depth' directories. Exiting" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -110,15 +110,8 @@ struct DynFuApp {
         outPath_ = filePath_ + "/out";
         boost::filesystem::path dir(outPath_);
 
-        outWarpedPath_ = filePath_ + "/out/warped";
-        boost::filesystem::path dirWarped(outWarpedPath_);
-
         if (boost::filesystem::create_directory(dir)) {
             std::cout << "created output directory" << std::endl;
-        }
-
-        if (boost::filesystem::create_directory(dirWarped)) {
-            std::cout << "created output directory for warped frames" << std::endl;
         }
     }
 
@@ -154,19 +147,19 @@ struct DynFuApp {
             }
 
             if (visualizer_ && i == 0) {
-                cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
-                cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("image", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("depth", cv::WINDOW_AUTOSIZE);
             }
 
             if (visualizer_) {
-                cv::imshow("Image", image);
-                cv::imshow("Depth", depth);
+                cv::imshow("image", image);
+                cv::imshow("depth", depth);
                 cv::waitKey(10);
             }
 
             if (visualizer_ && i == 1) {
-                cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE);
-                cv::namedWindow("CanonicalToLive", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("scene", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("canonical warped to live", cv::WINDOW_AUTOSIZE);
             }
 
             if (has_image) {
@@ -185,7 +178,7 @@ struct DynFuApp {
     KinFu::Ptr kinfu_;
 
     std::string filePath_;
-    std::string outPath_, outWarpedPath_;
+    std::string outPath_;
 
     /* point cloud viz */
     std::shared_ptr<PointCloudViz> pointCloudViz;
