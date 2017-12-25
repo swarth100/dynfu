@@ -148,7 +148,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesTest) {
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
-    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(0.01, 0.01, 0.01));
     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
 
@@ -185,7 +185,7 @@ TEST_F(OptTest, OneGroupOfVerticesTwoGroupsOfDeformationNodes) {
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
-    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(0.01, 0.01, 0.01));
     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
 
@@ -223,7 +223,7 @@ TEST_F(OptTest, TwoGroupsOfVerticesTwoGroupsOfDeformationNodes) {
     /* group 1 of source vertices */
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
-    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(0.01, 0.01, 0.01));
     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
 
@@ -275,7 +275,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
-    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(0.01, 0.01, 0.01));
     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
 
@@ -335,7 +335,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesNonRigidTest) {
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
-    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(0.01, 0.01, 0.01));
     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
 
@@ -343,7 +343,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesNonRigidTest) {
 
     targetVertices.emplace_back(cv::Vec3f(-2.95, -2.95, -2.95));
     targetVertices.emplace_back(cv::Vec3f(-2.0, -2.0, -2.0));
-    targetVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    targetVertices.emplace_back(cv::Vec3f(0.01, 0, 0));
     targetVertices.emplace_back(cv::Vec3f(2.5, 2.5, 2.5));
     targetVertices.emplace_back(cv::Vec3f(2.75, 2.75, 2.75));
 
@@ -389,7 +389,7 @@ TEST_F(OptTest, RandomNonRigidTest) {
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
-    sourceVertices.emplace_back(cv::Vec3f(0, 0, 0));
+    sourceVertices.emplace_back(cv::Vec3f(0.01, 0.01, 0.01));
     sourceVertices.emplace_back(cv::Vec3f(2, 2, 2));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
     sourceVertices.emplace_back(cv::Vec3f(3, 3, 3));
