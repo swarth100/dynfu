@@ -16,4 +16,5 @@ target_link_libraries(app
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
     ${PCL_IO_LIBRARIES}
     ${TERRA_LIBRARIES}
+    ${OPENMESH_LIBRARIES}
 )
