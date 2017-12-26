@@ -7,6 +7,9 @@ ADD_PCL()
 # set path to the terra solver file
 target_compile_definitions(dynfu PUBLIC TERRA_SOLVER_FILE=${CMAKE_SOURCE_DIR}/include/dynfu/utils/terra/energy.t)
 
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 # Link to dynfu library
 target_link_libraries(dynfu
     ceres

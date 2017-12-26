@@ -56,12 +56,13 @@ endif()
 # ---------------------------------------------------------------------------- #
 # DEPENDENCIES
 # ---------------------------------------------------------------------------- #
-find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
+find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
-find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
-find_package(Threads REQUIRED)
+find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(OpenMesh REQUIRED)
+# find_package(PCL 1.8 REQUIRED COMPONENTS common features geometry io surface search)
+find_package(Threads REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
