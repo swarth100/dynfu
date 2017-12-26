@@ -79,7 +79,7 @@ public:
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
 
-    pcl::PolygonMesh canonicalMesh;
+    pcl::PolygonMesh::Ptr canonicalMesh;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
 
     void renderImage(cuda::Image &image, int flag = 0);

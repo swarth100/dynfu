@@ -109,7 +109,7 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
     mc.setSearchMethod(tree);
     mc.reconstruct(*triangles);
 
-    canonicalMesh = *triangles;
+    canonicalMesh = triangles;
 
     std::cout << triangles->polygons.size() << " triangles created" << std::endl;
 }
@@ -222,7 +222,7 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     liveFrame = std::make_shared<dynfu::Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
-pcl::PolygonMesh DynFusion::getCanonicalMesh() { return canonicalMesh; }
+pcl::PolygonMesh::Ptr DynFusion::getCanonicalMesh() { return canonicalMesh; }
 
 std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return canonicalWarpedToLive; }
 
