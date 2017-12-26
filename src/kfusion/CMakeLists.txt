@@ -7,6 +7,5 @@ target_link_libraries(kfusion
   ${CUDA_CUDART_LIBRARY}
   ${OpenCV_LIBS}
   ${OPT_LIBRARIES}
-  ${PCL_LIBRARIES}
   ${TERRA_LIBRARIES}
 )

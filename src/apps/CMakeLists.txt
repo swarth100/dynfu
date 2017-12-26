@@ -1,6 +1,9 @@
 # Link source files to executables
 add_application(app)
 
+# Link PCL to sub-project
+ADD_PCL()
+
 # Link to all libraries
 target_link_libraries(app
     ceres
@@ -11,6 +14,6 @@ target_link_libraries(app
     ${CUDA_CUDART_LIBRARY}
     ${OpenCV_LIBS}
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
-    ${PCL_LIBRARIES}
+    ${PCL_IO_LIBRARIES}
     ${TERRA_LIBRARIES}
 )

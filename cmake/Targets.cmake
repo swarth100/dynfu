@@ -104,3 +104,12 @@ macro(CREATE_TEST target)
   add_test(NAME ${target} COMMAND ${target})
   default_properties(${target})
 endmacro()
+
+################################################################################################
+# PCL Macro
+macro(ADD_PCL)
+  find_package(PCL 1.8 REQUIRED COMPONENTS io)
+  include_directories(${PCL_INCLUDE_DIRS})
+  link_directories(${PCL_LIBRARY_DIRS})
+  add_definitions(${PCL_DEFINITIONS})
+endmacro()
