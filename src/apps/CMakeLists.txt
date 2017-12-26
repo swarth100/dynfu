@@ -14,7 +14,7 @@ target_link_libraries(app
     ${CUDA_CUDART_LIBRARY}
     ${OpenCV_LIBS}
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
-    ${PCL_IO_LIBRARIES}
+    ${PCL_LIBRARIES}
     ${TERRA_LIBRARIES}
     ${OPENMESH_LIBRARIES}
 )

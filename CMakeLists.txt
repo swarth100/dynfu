@@ -61,7 +61,6 @@ find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(OpenMesh REQUIRED)
-# find_package(PCL 1.8 REQUIRED COMPONENTS common features geometry io surface search)
 find_package(Threads REQUIRED)
 
 # ---------------------------------------------------------------------------- #

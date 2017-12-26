@@ -19,7 +19,7 @@ target_link_libraries(dynfu
     ${Boost_LIBRARIES}
     ${CUDA_CUDART_LIBRARY}
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
-    ${PCL_IO_LIBRARIES}
+    ${PCL_LIBRARIES}
     ${TERRA_LIBRARIES}
     ${OPENMESH_LIBRARIES}
 )
