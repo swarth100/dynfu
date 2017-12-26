@@ -59,7 +59,7 @@ struct DynFuApp {
 
     void save_polygon_mesh(KinFu *kinfu) {
         auto mesh = kinfu->canonicalMesh;
-        pcl::io::saveVTKFile(outPath_ + "/canonicalModelMesh.vtk", mesh);
+        // pcl::io::saveVTKFile(outPath_ + "/canonicalModelMesh.vtk", mesh);
 
         std::cout << "saved canonical model mesh to .vtk" << std::endl;
     }

@@ -20,6 +20,7 @@
 #include <pcl/point_types.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/surface/marching_cubes_rbf.h>
+#include <pcl/surface/impl/marching_cubes_rbf.hpp>
 
 /* sys headers */
 #include <math.h>

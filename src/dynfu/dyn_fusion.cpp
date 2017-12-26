@@ -103,11 +103,12 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
 
     std::cout << "begin marching cubes reconstruction" << std::endl;
 
-    pcl::MarchingCubesRBF<pcl::PointNormal> mc;
+    /* TODO: dig15, linking error */
+    // pcl::MarchingCubesRBF<pcl::PointNormal> mc;
     pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
-    mc.setInputCloud(cloudWithNormals);
-    mc.setSearchMethod(tree);
-    mc.reconstruct(*triangles);
+    // mc.setInputCloud(cloudWithNormals);
+    // mc.setSearchMethod(tree);
+    // mc.reconstruct(*triangles);
 
     canonicalMesh = triangles;
 
