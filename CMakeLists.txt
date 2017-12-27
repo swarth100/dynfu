@@ -62,6 +62,7 @@ find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(OpenMesh REQUIRED)
 find_package(Threads REQUIRED)
+find_package(PCL 1.8 REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -93,7 +94,16 @@ include_directories(include
   ${OPENMESH_INCLUDE_DIRS}
   ${OPT_INCLUDE_DIRS}
   ${TERRA_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
+
+
+# ---------------------------------------------------------------------------- #
+# PCL CUSTOM COMMANDS
+# ---------------------------------------------------------------------------- #
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+REMOVE_VTK_DEFINITIONS()
 
 # ---------------------------------------------------------------------------- #
 # BUILD SRC DIRECTORY

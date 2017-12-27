@@ -1,9 +1,6 @@
 # Link source files to executables
 add_application(app)
 
-# Link PCL to sub-project
-ADD_PCL()
-
 # Link to all libraries
 target_link_libraries(app
     ceres

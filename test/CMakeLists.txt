@@ -74,9 +74,6 @@ include_directories("${source_dir}/googletest/include"
 # ---------------------------------------------------------------------------- #
 # CREATE TESTS
 # ---------------------------------------------------------------------------- #
-# Use PCL in testing phase
-ADD_PCL()
-
 # Force test build
 set(gtest_build_samples ON)
 
