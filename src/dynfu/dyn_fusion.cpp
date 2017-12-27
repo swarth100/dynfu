@@ -44,7 +44,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     std::cout << "no. of non-zero vertices: " << nonzeroCanonicalVertices.size() << std::endl;
 
     initCanonicalFrame(canonicalVertices, canonicalNormals);
-    // initCanonicalMesh(nonzeroCanonicalVertices, nonzeroCanonicalNormals);
+    initCanonicalMesh(nonzeroCanonicalVertices, nonzeroCanonicalNormals);
 
     /* TODO (dig15): implement better sampling of deformation nodes */
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
@@ -72,6 +72,7 @@ void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector
 void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals) {
     std::cout << "constructing a polygon mesh" << std::endl;
 
+    // set point clouds with vertices and normals
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloudVertices(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::Normal>::Ptr cloudNormals(new pcl::PointCloud<pcl::Normal>);
 
@@ -83,7 +84,7 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
     (*cloudNormals).height = 1;
     (*cloudNormals).points.resize((*cloudNormals).width * (*cloudNormals).height);
 
-    /* iterate through vectors */
+    // iterate through vectors with vertices and normals
     for (size_t i = 0; i < vertices.size(); i++) {
         const cv::Vec3f &ptVertices = vertices[i];
         pcl::PointXYZ pointVertex   = pcl::PointXYZ(ptVertices[0], ptVertices[1], ptVertices[2]);
@@ -94,6 +95,7 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
         (*cloudNormals).points[i]  = pointNormal;
     }
 
+    // put vertices and normals in one point cloud
     pcl::PointCloud<pcl::PointNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointNormal>);
     pcl::concatenateFields(*cloudVertices, *cloudNormals, *cloudWithNormals);
 
@@ -103,16 +105,18 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
 
     std::cout << "begin marching cubes reconstruction" << std::endl;
 
-    /* TODO: dig15, linking error */
-    // pcl::MarchingCubesRBF<pcl::PointNormal> mc;
-    pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
-    // mc.setInputCloud(cloudWithNormals);
-    // mc.setSearchMethod(tree);
-    // mc.reconstruct(*triangles);
+    // perform reconstruction via marching cubes
+    pcl::MarchingCubes<pcl::PointNormal>::Ptr mc;
+    pcl::PolygonMesh triangles;
+
+    mc->setInputCloud(cloudWithNormals);
+    mc->setSearchMethod(tree);
+
+    mc->reconstruct(triangles);
 
     canonicalMesh = triangles;
 
-    std::cout << triangles->polygons.size() << " triangles created" << std::endl;
+    std::cout << triangles.polygons.size() << " triangles created" << std::endl;
 }
 
 void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }
@@ -223,7 +227,7 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     liveFrame = std::make_shared<dynfu::Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
-pcl::PolygonMesh::Ptr DynFusion::getCanonicalMesh() { return canonicalMesh; }
+pcl::PolygonMesh DynFusion::getCanonicalMesh() { return canonicalMesh; }
 
 std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return canonicalWarpedToLive; }
 

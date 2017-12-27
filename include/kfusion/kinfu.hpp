@@ -12,9 +12,6 @@
 #include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
 
-/* pcl includes */
-// #include <pcl/point_types.h>
-
 /* sys headers */
 #include <string>
 #include <vector>
@@ -79,7 +76,7 @@ public:
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
 
-    pcl::PolygonMesh::Ptr canonicalMesh;
+    pcl::PolygonMesh canonicalMesh;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
 
     void renderImage(cuda::Image &image, int flag = 0);
