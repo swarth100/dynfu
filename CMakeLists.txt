@@ -62,7 +62,7 @@ find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(OpenMesh REQUIRED)
 find_package(Threads REQUIRED)
-find_package(PCL 1.8 REQUIRED)
+find_package(PCL 1.8.1 REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -104,12 +104,6 @@ include_directories(include
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 REMOVE_VTK_DEFINITIONS()
-
-# Import PCL Surface Library
-add_library(PCL_SURFACE_LIBS SHARED IMPORTED)
-set_target_properties(PCL_SURFACE_LIBS PROPERTIES IMPORTED_LOCATION "${PCL_LIBRARY_DIRS}/libpcl_surface.so.1.8.1")
-
-# LIST(APPEND PCL_LIBRARIES "${PCL_LIBRARY_DIRS}/libpcl_surface.so.1.8.1")
 
 # ---------------------------------------------------------------------------- #
 # BUILD SRC DIRECTORY

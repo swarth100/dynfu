@@ -10,7 +10,6 @@ target_link_libraries(dynfu
     kfusion
     gcov
     Threads::Threads
-    PCL_SURFACE_LIBS
     ${Boost_LIBRARIES}
     ${CUDA_CUDART_LIBRARY}
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
