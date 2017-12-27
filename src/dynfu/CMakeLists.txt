@@ -10,11 +10,11 @@ target_link_libraries(dynfu
     kfusion
     gcov
     Threads::Threads
+    PCL_SURFACE_LIBS
     ${Boost_LIBRARIES}
     ${CUDA_CUDART_LIBRARY}
     ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
     ${PCL_LIBRARIES}
     ${TERRA_LIBRARIES}
     ${OPENMESH_LIBRARIES}
-    /vol/project/2017/362/g1736211/lib/libpcl_surface.so.1.8.1
 )

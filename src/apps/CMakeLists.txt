@@ -6,6 +6,7 @@ target_link_libraries(app
     ceres
     dynfu
     kfusion
+    PCL_SURFACE_LIBS
     ${Boost_LIBRARIES}
     ${CUDA_CUDA_LIBRARY}
     ${CUDA_CUDART_LIBRARY}
