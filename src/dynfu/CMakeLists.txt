@@ -16,4 +16,5 @@ target_link_libraries(dynfu
     ${PCL_LIBRARIES}
     ${TERRA_LIBRARIES}
     ${OPENMESH_LIBRARIES}
+    /vol/project/2017/362/g1736211/lib/libpcl_surface.so.1.8.1
 )
