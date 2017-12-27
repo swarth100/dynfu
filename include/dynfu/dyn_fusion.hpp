@@ -19,7 +19,7 @@
 #include <pcl/PolygonMesh.h>
 #include <pcl/point_types.h>
 #include <pcl/search/kdtree.h>
-#include <pcl/surface/marching_cubes.h>
+#include <pcl/surface/marching_cubes_rbf.h>
 
 /* sys headers */
 #include <math.h>

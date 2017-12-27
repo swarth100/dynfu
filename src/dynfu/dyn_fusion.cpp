@@ -106,17 +106,18 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
     std::cout << "begin marching cubes reconstruction" << std::endl;
 
     // perform reconstruction via marching cubes
-    pcl::MarchingCubes<pcl::PointNormal>::Ptr mc;
-    pcl::PolygonMesh triangles;
+    pcl::MarchingCubes<pcl::PointNormal> *mc;
+    mc = new pcl::MarchingCubesRBF<pcl::PointNormal>();
+    pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
 
     mc->setInputCloud(cloudWithNormals);
     mc->setSearchMethod(tree);
 
-    mc->reconstruct(triangles);
+    mc->reconstruct(*triangles);
 
-    canonicalMesh = triangles;
+    canonicalMesh = *triangles;
 
-    std::cout << triangles.polygons.size() << " triangles created" << std::endl;
+    std::cout << triangles->polygons.size() << " triangles created" << std::endl;
 }
 
 void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }
