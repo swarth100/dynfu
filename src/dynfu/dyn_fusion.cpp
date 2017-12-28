@@ -31,7 +31,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
                 if (!isZero(ptVertex) && !isZero(ptNormal)) {
                     nonzeroCanonicalVertices.emplace_back(cv::Vec3f(ptVertex.x, ptVertex.y, ptVertex.z));
-                    nonzeroCanonicalNormals.emplace_back(cv::Vec3f(ptNormal.x, ptNormal.y, ptNormal.z));
+                    nonzeroCanonicalNormals.emplace_back(cv::Vec3f(1.f, 1.f, 1.f));
                 }
 
             } else {
@@ -72,7 +72,8 @@ void DynFusion::initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector
 void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals) {
     std::cout << "constructing a polygon mesh" << std::endl;
 
-    // set point clouds with vertices and normals
+    /* MARCHING CUBES RECONSTRUCTION */
+    // init point clouds with vertices and normals
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloudVertices(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::Normal>::Ptr cloudNormals(new pcl::PointCloud<pcl::Normal>);
 
@@ -85,7 +86,7 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
     (*cloudNormals).points.resize((*cloudNormals).width * (*cloudNormals).height);
 
     // iterate through vectors with vertices and normals
-    for (size_t i = 0; i < vertices.size(); i++) {
+    for (size_t i = 0; i < 8; i++) {
         const cv::Vec3f &ptVertices = vertices[i];
         pcl::PointXYZ pointVertex   = pcl::PointXYZ(ptVertices[0], ptVertices[1], ptVertices[2]);
         (*cloudVertices).points[i]  = pointVertex;
@@ -93,15 +94,17 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
         const cv::Vec3f &ptNormals = normals[i];
         pcl::Normal pointNormal    = pcl::Normal(ptNormals[0], ptNormals[1], ptNormals[2]);
         (*cloudNormals).points[i]  = pointNormal;
+
+        // std::cout << (*cloudVertices).points[i].x << " " << (*cloudVertices).points[i].y << " "
+        //           << (*cloudVertices).points[i].z << std::endl;
+
+        // std::cout << (*cloudNormals).points[i].data_c[0] << " " << (*cloudNormals).points[i].data_c[1] << " "
+        //           << (*cloudNormals).points[i].data_c[2] << std::endl;
     }
 
     // put vertices and normals in one point cloud
     pcl::PointCloud<pcl::PointNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointNormal>);
     pcl::concatenateFields(*cloudVertices, *cloudNormals, *cloudWithNormals);
-
-    // create search tree
-    pcl::search::KdTree<pcl::PointNormal>::Ptr tree(new pcl::search::KdTree<pcl::PointNormal>);
-    tree->setInputCloud(cloudWithNormals);
 
     std::cout << "begin marching cubes reconstruction" << std::endl;
 
@@ -111,11 +114,59 @@ void DynFusion::initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<
     pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
 
     mc->setInputCloud(cloudWithNormals);
-    mc->setSearchMethod(tree);
-
     mc->reconstruct(*triangles);
 
     canonicalMesh = *triangles;
+
+    // /* MINIMAL EXAMPLE */
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudVertices(new pcl::PointCloud<pcl::PointXYZ>);
+    //
+    // (*cloudVertices).width  = 8;
+    // (*cloudVertices).height = 1;
+    // (*cloudVertices).points.resize((*cloudVertices).width * (*cloudVertices).height);
+    //
+    // for (size_t i = 0; i < 8; i++) {
+    //     pcl::PointXYZ pointVertex  = pcl::PointXYZ(i + 1, i / 3, 7 * i);
+    //     (*cloudVertices).points[i] = pointVertex;
+    // }
+    //
+    // pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> ne;
+    //
+    // pcl::search::KdTree<pcl::PointXYZ>::Ptr tree1(new pcl::search::KdTree<pcl::PointXYZ>);
+    // tree1->setInputCloud(cloudVertices);
+    //
+    // ne.setInputCloud(cloudVertices);
+    // ne.setSearchMethod(tree1);
+    // ne.setKSearch(20);
+    //
+    // pcl::PointCloud<pcl::Normal>::Ptr cloudNormals(new pcl::PointCloud<pcl::Normal>);
+    // ne.compute(*cloudNormals);
+    //
+    // // for (size_t i = 0; i < 8; i++) {
+    // //     std::cout << (*cloudNormals).points[i].data_c[0] << " " << (*cloudNormals).points[i].data_c[1] << " "
+    // //               << (*cloudNormals).points[i].data_c[2] << std::endl;
+    // //     std::cout << (*cloudVertices).points[i].x << " " << (*cloudVertices).points[i].y << " "
+    // //               << (*cloudVertices).points[i].z << std::endl;
+    // // }
+    //
+    // // Concatenate the XYZ and normal fields
+    // pcl::PointCloud<pcl::PointNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointNormal>);
+    // concatenateFields(*cloudVertices, *cloudNormals, *cloudWithNormals);
+    //
+    // // Create search tree
+    // pcl::search::KdTree<pcl::PointNormal>::Ptr tree(new pcl::search::KdTree<pcl::PointNormal>);
+    // tree->setInputCloud(cloudWithNormals);
+    //
+    // std::cout << "begin marching cubes reconstruction" << std::endl;
+    //
+    // // perform reconstruction via marching cubes
+    // pcl::MarchingCubes<pcl::PointNormal> *mc;
+    // mc = new pcl::MarchingCubesRBF<pcl::PointNormal>();
+    // pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
+    //
+    // mc->setInputCloud(cloudWithNormals);
+    // mc->setSearchMethod(tree);
+    // mc->reconstruct(*triangles);
 
     std::cout << triangles->polygons.size() << " triangles created" << std::endl;
 }

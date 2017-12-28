@@ -17,6 +17,7 @@
 
 /* pcl includes */
 #include <pcl/PolygonMesh.h>
+// #include <pcl/features/normal_3d_omp.h>
 #include <pcl/point_types.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/surface/marching_cubes_rbf.h>
