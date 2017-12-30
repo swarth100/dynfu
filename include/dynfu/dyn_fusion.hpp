@@ -37,8 +37,6 @@ public:
     void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
     void initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals);
-    /* construct a polygon mesh for the canonical model via marching cubes */
-    void initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals);
 
     // void updateCanonicalFrame();
 
@@ -60,8 +58,9 @@ public:
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
-    /* get the canonical model mesh from point cloud via marching cubes */
-    pcl::PolygonMesh getCanonicalMesh();
+    /* construct a polygon mesh from the vertices and normals via marching cubes */
+    pcl::PolygonMesh reconstructSurface();
+
     /* get the canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
 
@@ -78,8 +77,6 @@ private:
     std::shared_ptr<dynfu::Frame> canonicalFrameAffine;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
     std::shared_ptr<dynfu::Frame> liveFrame;
-
-    pcl::PolygonMesh canonicalMesh;
 
     cv::Affine3f affineLiveToCanonical;
     std::shared_ptr<Warpfield> warpfield;

@@ -57,11 +57,11 @@ struct DynFuApp {
         cv::imwrite(path, canonical_to_live_view_host_);
     }
 
-    void save_polygon_mesh(KinFu *kinfu) {
-        auto mesh = kinfu->canonicalMesh;
-        pcl::io::saveVTKFile(outPath_ + "/canonicalModelMesh.vtk", mesh);
+    void save_polygon_mesh(KinFu *kinfu, int i) {
+        auto mesh = kinfu->canonicalWarpedToLiveMesh;
+        pcl::io::saveVTKFile(outPath_ + "/" + std::to_string(i) + "_mesh.vtk", mesh);
 
-        std::cout << "saved canonical model mesh to .vtk" << std::endl;
+        std::cout << "saved model mesh to .vtk" << std::endl;
     }
 
     void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
@@ -169,8 +169,8 @@ struct DynFuApp {
                 cv::namedWindow("canonical warped to live", cv::WINDOW_AUTOSIZE);
             }
 
-            if (i == 1) {
-                save_polygon_mesh(&kinfu);
+            if (i > 1) {
+                save_polygon_mesh(&kinfu, i);
             }
 
             if (has_image) {

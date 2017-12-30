@@ -76,8 +76,8 @@ public:
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
 
-    pcl::PolygonMesh canonicalMesh;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
+    pcl::PolygonMesh canonicalWarpedToLiveMesh;
 
     void renderImage(cuda::Image &image, int flag = 0);
     void renderImage(cuda::Image &image, const Affine3f &pose, int flag = 0);
@@ -97,7 +97,6 @@ private:
     std::shared_ptr<DynFusion> dynfu;
 
     std::vector<Affine3f> poses_;
-
     cuda::Dists dists_;
     cuda::Frame curr_, prev_;
 
