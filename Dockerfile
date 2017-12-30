@@ -1,7 +1,7 @@
 FROM nvidia/cuda:8.0-devel
 ARG CUDA_GENERATION=Auto
 
-RUN apt-get update && apt-get install -y cmake libvtk5-dev python pkg-config libgtk2.0-dev
+RUN apt-get update && apt-get install -y cmake libvtk5-dev pkg-config libgtk2.0-dev
 
 # Install OpenCV
 ADD https://github.com/opencv/opencv/archive/3.2.0.tar.gz .
@@ -11,9 +11,36 @@ WORKDIR opencv-3.2.0
 RUN rm -rf platforms/android platforms/ios platforms/maven platforms/osx samples/*
 RUN mkdir build
 WORKDIR build
-RUN cmake -D WITH_VTK=ON -D BUILD_opencv_calib3d=ON -D BUILD_opencv_imgproc=ON -D CMAKE_BUILD_TYPE=RELEASE -D BUILD_PYTHON_SUPPORT=ON -D CUDA_GENERATION=${CUDA_GENERATION:-Auto} -D WITH_OPENGL=ON -D WITH_GTK_2_X=ON ..
-RUN make -j`nproc`
-RUN make install
+RUN cmake -D BUILD_DOCS=OFF \
+          -D BUILD_PACKAGE=OFF \
+          -D BUILD_PERF_TESTS=OFF \
+          -D BUILD_TESTS=OFF \
+          -D BUILD_WITH_DEBUG_INFO=OFF \
+          -D BUILD_opencv_apps=OFF \
+          -D BUILD_opencv_calib3d=ON \
+          -D BUILD_opencv_core=ON \
+          -D BUILD_opencv_features2d=ON \
+          -D BUILD_opencv_flann=ON \
+          -D BUILD_opencv_highgui=ON \
+          -D BUILD_opencv_imgcodecs=ON \
+          -D BUILD_opencv_imgproc=ON \
+          -D BUILD_opencv_ml=ON \
+          -D BUILD_opencv_objdetect=OFF \
+          -D BUILD_opencv_photo=OFF \
+          -D BUILD_opencv_shape=OFF \
+          -D BUILD_opencv_stitching=OFF \
+          -D BUILD_opencv_superres=OFF \
+          -D BUILD_opencv_ts=OFF \
+          -D BUILD_opencv_video=OFF \
+          -D BUILD_opencv_videoio=OFF \
+          -D BUILD_opencv_videostab=OFF \
+          -D BUILD_opencv_viz=ON \
+          -D BUILD_opencv_video=OFF \
+          -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CUDA_GENERATION=${CUDA_GENERATION:-Auto} \
+          -D WITH_VTK=ON \
+    ..
+RUN make -j`nproc` install
 WORKDIR ../..
 RUN rm -rf opencv-3.2.0
 
@@ -44,6 +71,7 @@ RUN cmake -D BUILD_keypoints=OFF \
           -D BUILD_people=OFF \
           -D BUILD_recognition=OFF \
           -D BUILD_registration=OFF \
+          -D BUILD_sample_consensus=OFF \
           -D BUILD_segmentation=OFF \
           -D BUILD_simulation=OFF \
           -D BUILD_stereo=OFF \
