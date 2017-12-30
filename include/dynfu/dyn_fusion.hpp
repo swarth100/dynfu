@@ -17,7 +17,6 @@
 
 /* pcl includes */
 #include <pcl/PolygonMesh.h>
-// #include <pcl/features/normal_3d_omp.h>
 #include <pcl/point_types.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/surface/marching_cubes_rbf.h>
@@ -38,7 +37,7 @@ public:
     void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
     void initCanonicalFrame(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals);
-    /* construct a polygon mesh for the canonical model */
+    /* construct a polygon mesh for the canonical model via marching cubes */
     void initCanonicalMesh(std::vector<cv::Vec3f> &vertices, std::vector<cv::Vec3f> &normals);
 
     // void updateCanonicalFrame();
