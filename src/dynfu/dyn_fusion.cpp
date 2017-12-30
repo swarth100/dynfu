@@ -61,7 +61,7 @@ void DynFusion::warpCanonicalToLive() {
     options.num_threads = noCores;
 
     WarpProblem warpProblem(options);
-    warpProblem.optimiseWarpField(*warpfield, this->canonicalFrame, this->liveFrame);
+    warpProblem.optimiseWarpField(warpfield, this->canonicalFrame, this->liveFrame);
 
     auto parameters = warpProblem.getParameters();
 
@@ -94,7 +94,7 @@ void DynFusion::warpCanonicalToLiveOpt() {
     params.useOptLM      = true;
     params.earlyOut      = true;
 
-    CombinedSolver combinedSolver(*warpfield, params);
+    CombinedSolver combinedSolver(warpfield, params);
     combinedSolver.initializeProblemInstance(this->canonicalFrame, this->liveFrame);
     combinedSolver.solveAll();
 

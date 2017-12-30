@@ -98,7 +98,7 @@ public:
     /* destructor */
     ~WarpProblem() {}
 
-    void optimiseWarpField(Warpfield warpfield, std::shared_ptr<dynfu::Frame> canonicalFrame,
+    void optimiseWarpField(std::shared_ptr<Warpfield> warpfield, std::shared_ptr<dynfu::Frame> canonicalFrame,
                            std::shared_ptr<dynfu::Frame> liveFrame) {
         ceres::Problem problem;
         ceres::Solver::Summary summary;
@@ -109,7 +109,7 @@ public:
         int i = 0;
         for (auto vertex : liveFrame->getVertices()) {
             values.clear();
-            auto neighbours = warpfield.findNeighbors(KNN, vertex);
+            auto neighbours = warpfield->findNeighbors(KNN, vertex);
 
             for (auto neighbour : neighbours) {
                 values.emplace_back(neighbour->getParams());
