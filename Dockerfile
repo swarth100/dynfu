@@ -26,14 +26,36 @@ RUN cmake . && make install
 WORKDIR ..
 RUN rm -rf ceres-solver
 
+# Install FLANN
+RUN apt-get install -y libflann-dev
+
+# Install boost
+RUN apt-get update && apt-get install -y libboost-all-dev
+
 # Install pcl
-RUN apt-get install -y libpcl-dev
+ADD https://github.com/PointCloudLibrary/pcl/archive/pcl-1.8.1.tar.gz .
+RUN tar xzf pcl-1.8.1.tar.gz
+WORKDIR pcl-pcl-1.8.1
+RUN mkdir build
+WORKDIR build
+RUN cmake -D BUILD_keypoints=OFF \
+          -D BUILD_ml=OFF \
+          -D BUILD_outofcore=OFF \
+          -D BUILD_people=OFF \
+          -D BUILD_recognition=OFF \
+          -D BUILD_registration=OFF \
+          -D BUILD_segmentation=OFF \
+          -D BUILD_simulation=OFF \
+          -D BUILD_stereo=OFF \
+          -D BUILD_tools=OFF \
+          -D BUILD_features=ON \
+    ..
+RUN make install
+WORKDIR ../..
+RUN rm -rf pcl*
 
 # Install libproj
 RUN apt-get install -y libproj-dev
-
-# Required for libvtk-proj4 due to bug in vtk6
-RUN ln -s /usr/lib/x86_64-linux-gnu/libvtkCommonCore-6.2.so /usr/lib/libvtkproj4.so
 
 # Make dynfu build dir
 RUN mkdir -p dynfu/build
@@ -61,14 +83,16 @@ WORKDIR build
 RUN cmake .. && make install
 WORKDIR ../..
 RUN rm -rf OpenMesh*
-
 WORKDIR ../..
 RUN rm -rf OpenMesh*
+
+# Add source files
 ADD CMakeLists.txt /dynfu
 ADD cmake /dynfu/cmake
 ADD src /dynfu/src
 ADD include /dynfu/include
 
+# Build dynfu
 WORKDIR dynfu/build
 RUN cmake -D CUDA_CUDA_LIBRARY="/usr/local/cuda/lib64/stubs/libcuda.so" ..
 RUN make -j`nproc`
