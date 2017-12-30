@@ -18,7 +18,7 @@
 
 class CombinedSolver : public CombinedSolverBase {
 public:
-    CombinedSolver(Warpfield warpfield, CombinedSolverParameters params);
+    CombinedSolver(std::shared_ptr<Warpfield> warpfield, CombinedSolverParameters params);
 
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
                                    const std::shared_ptr<dynfu::Frame> liveFrame);
@@ -42,7 +42,7 @@ public:
     void copyResultToCPUFromFloat3();
 
 private:
-    Warpfield m_warpfield;
+    std::shared_ptr<Warpfield> m_warpfield;
     CombinedSolverParameters m_solverParameters;
 
     std::vector<unsigned int> m_dims;  // curent index in the solver

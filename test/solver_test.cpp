@@ -64,7 +64,7 @@ protected:
 
 /* */
 TEST_F(SolverTest, SingleVertexTest) {
-    Warpfield warpfield;
+    std::shared_ptr<Warpfield> warpfield;
     std::vector<cv::Vec3f> sourceVertices;
     std::vector<cv::Vec3f> targetVertices;
 
@@ -103,7 +103,8 @@ TEST_F(SolverTest, SingleVertexTest) {
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
     nodes.push_back(node);
 
-    warpfield.init(nodes);
+    warpfield = std::make_shared<Warpfield>();
+    warpfield->init(nodes);
 
     cv::Vec3f sourceVertex(1.05, 0.05, 1);
     sourceVertices.emplace_back(sourceVertex);
@@ -128,7 +129,7 @@ TEST_F(SolverTest, SingleVertexTest) {
         i++;
     }
 
-    auto totalTransformation = warpfield.calcDQB(sourceVertex);
+    auto totalTransformation = warpfield->calcDQB(sourceVertex);
     auto result              = sourceVertex + totalTransformation->getTranslation();
 
     max_error = 0.01;
@@ -139,7 +140,7 @@ TEST_F(SolverTest, SingleVertexTest) {
 
 /* */
 TEST_F(SolverTest, MultipleVerticesTest) {
-    Warpfield warpfield;
+    std::shared_ptr<Warpfield> warpfield;
     std::vector<cv::Vec3f> sourceVertices;
     std::vector<cv::Vec3f> targetVertices;
 
@@ -178,7 +179,8 @@ TEST_F(SolverTest, MultipleVerticesTest) {
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
     nodes.emplace_back(node);
 
-    warpfield.init(nodes);
+    warpfield = std::make_shared<Warpfield>();
+    warpfield->init(nodes);
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
@@ -212,7 +214,7 @@ TEST_F(SolverTest, MultipleVerticesTest) {
             i++;
         }
 
-        auto totalTransformation = warpfield.calcDQB(vertex);
+        auto totalTransformation = warpfield->calcDQB(vertex);
         auto result              = vertex + totalTransformation->getTranslation();
 
         ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
@@ -226,7 +228,7 @@ TEST_F(SolverTest, MultipleVerticesTest) {
 
 /* */
 TEST_F(SolverTest, SingleVertexTestOpt) {
-    Warpfield warpfield;
+    std::shared_ptr<Warpfield> warpfield;
     std::vector<cv::Vec3f> sourceVertices;
     std::vector<cv::Vec3f> targetVertices;
 
@@ -265,7 +267,8 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
     nodes.push_back(node);
 
-    warpfield.init(nodes);
+    warpfield = std::make_shared<Warpfield>();
+    warpfield->init(nodes);
 
     cv::Vec3f sourceVertex(1.05, 0.05, 1);
     sourceVertices.emplace_back(sourceVertex);
@@ -293,7 +296,7 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
+        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -312,7 +315,7 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto totalTransformation = warpfield.calcDQB(vertex);
+    //     auto totalTransformation = warpfield->calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
     //
     //     ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
@@ -325,7 +328,7 @@ TEST_F(SolverTest, SingleVertexTestOpt) {
 
 /* */
 TEST_F(SolverTest, MultipleVerticesTestOpt) {
-    Warpfield warpfield;
+    std::shared_ptr<Warpfield> warpfield;
     std::vector<cv::Vec3f> sourceVertices;
     std::vector<cv::Vec3f> targetVertices;
 
@@ -364,7 +367,8 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
     nodes.push_back(node);
 
-    warpfield.init(nodes);
+    warpfield = std::make_shared<Warpfield>();
+    warpfield->init(nodes);
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
@@ -398,7 +402,7 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
+        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -417,7 +421,7 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto totalTransformation = warpfield.calcDQB(vertex);
+    //     auto totalTransformation = warpfield->calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
     //
     //     ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
@@ -430,7 +434,7 @@ TEST_F(SolverTest, MultipleVerticesTestOpt) {
 
 /* */
 TEST_F(SolverTest, WarpAndReverseTestOpt) {
-    Warpfield warpfield;
+    std::shared_ptr<Warpfield> warpfield;
     std::vector<cv::Vec3f> sourceVertices;
     std::vector<cv::Vec3f> targetVertices;
 
@@ -469,7 +473,8 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     node = std::make_shared<Node>(dg_v, dg_se3, dg_w);
     nodes.push_back(node);
 
-    warpfield.init(nodes);
+    warpfield = std::make_shared<Warpfield>();
+    warpfield->init(nodes);
 
     sourceVertices.emplace_back(cv::Vec3f(-3, -3, -3));
     sourceVertices.emplace_back(cv::Vec3f(-2, -2, -2));
@@ -503,7 +508,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
+        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -522,7 +527,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto totalTransformation = warpfield.calcDQB(vertex);
+    //     auto totalTransformation = warpfield->calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
     //
     //     ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
@@ -545,7 +550,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         cv::Vec3f totalTranslation;
 
-        auto neighbourNodes = warpfield.findNeighbors(KNN, vertex);
+        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
 
         for (auto neighbour : neighbourNodes) {
             cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
@@ -564,7 +569,7 @@ TEST_F(SolverTest, WarpAndReverseTestOpt) {
     // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
     //     cv::Vec3f totalTranslation;
     //
-    //     auto totalTransformation = warpfield.calcDQB(vertex);
+    //     auto totalTransformation = warpfield->calcDQB(vertex);
     //     auto result              = vertex + totalTransformation->getTranslation();
     //
     //     ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
