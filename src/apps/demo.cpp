@@ -1,12 +1,16 @@
-/* sys headers */
-#include <iostream>
-
 /* kinfu includes */
 #include <kfusion/kinfu.hpp>
 
 /* opencv includes */
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
+/* pcl includes */
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/vtk_io.h>
+
+/* sys headers */
+#include <iostream>
 
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
@@ -20,28 +24,68 @@ struct DynFuApp {
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
+
         if (visualizer_) {
             cv::imshow("scene", view_host_);
             cvWaitKey(10);
         }
-        std::string path = outPath_ + "/" + std::to_string(i) + ".png";
+
+        std::string path = outPath_ + "/raycast" + std::to_string(i) + ".png";
+
         cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
         cv::imwrite(path, view_host_);
     }
 
+    /* data from the gpu */
     void show_canonical_warped_to_live(KinFu *kinfu, int i) {
         const int mode = 3;
-        (*kinfu).renderCanonicalWarpedToLive(view_device_, mode);
+        kinfu->renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
 
-        view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
-        view_device_.download(view_host_.ptr<void>(), view_host_.step);
+        canonical_to_live_view_host_.create(canonical_to_live_view_device_.rows(),
+                                            canonical_to_live_view_device_.cols(), CV_8UC4);
+        canonical_to_live_view_device_.download(canonical_to_live_view_host_.ptr<void>(),
+                                                canonical_to_live_view_host_.step);
+
         if (visualizer_) {
-            cv::imshow("canonical frame warped to live", view_host_);
+            cv::imshow("canonical warped to live", canonical_to_live_view_host_);
             cvWaitKey(10);
         }
-        std::string path = outPath_ + "/warped/" + std::to_string(i) + ".png";
-        cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
-        cv::imwrite(path, view_host_);
+
+        std::string path = outPath_ + "/canonical_to_live" + std::to_string(i) + ".png";
+
+        cv::cvtColor(canonical_to_live_view_host_, canonical_to_live_view_host_, CV_BGR2GRAY);
+        cv::imwrite(path, canonical_to_live_view_host_);
+    }
+
+    void save_polygon_mesh(KinFu *kinfu, int i) {
+        auto mesh = kinfu->canonicalWarpedToLiveMesh;
+        pcl::io::saveVTKFile(outPath_ + "/" + std::to_string(i) + "_mesh.vtk", mesh);
+
+        std::cout << "saved model mesh to .vtk" << std::endl;
+    }
+
+    void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
+        auto vertices = kinfu->canonicalWarpedToLive->getVertices();
+
+        /* initialise the point cloud */
+        auto cloud    = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+        cloud->width  = vertices.size();
+        cloud->height = 1;
+        cloud->points.resize(cloud->width * cloud->height);
+
+        /* iterate through vertices */
+        for (size_t i = 0; i < vertices.size(); i++) {
+            const cv::Vec3f &pt = vertices[i];
+            cloud->points[i]    = pcl::PointXYZ(pt[0], pt[1], pt[2]);
+        }
+
+        /* save to PCL */
+        std::string filenameStr = outPath_ + "/pcl_canonical_to_live" + std::to_string(i) + ".pcd";
+        try {
+            pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+        } catch (...) {
+            std::cout << "Could not save to " + filenameStr << std::endl;
+        }
     }
 
     void take_cloud(KinFu *kinfu) {
@@ -52,17 +96,18 @@ struct DynFuApp {
 
     void loadFiles(std::vector<cv::String> *depths, std::vector<cv::String> *images) {
         if (!boost::filesystem::exists(filePath_)) {
-            std::cerr << "Error: Directory '" << filePath_ << "' does not exist. Exiting..." << std::endl;
+            std::cerr << "Error: Directory '" << filePath_ << "' does not exist. Exiting" << std::endl;
             exit(EXIT_FAILURE);
         }
 
         if (!boost::filesystem::exists(filePath_ + "/depth") || !boost::filesystem::exists(filePath_ + "/color")) {
-            std::cerr << "Error: Directory should contain 'color' and 'depth' directories. Exiting..." << std::endl;
+            std::cerr << "Error: Directory should contain 'color' and 'depth' directories. Exiting" << std::endl;
             exit(EXIT_FAILURE);
         }
 
         cv::glob(filePath_ + "/depth", *depths);
         cv::glob(filePath_ + "/color", *images);
+
         std::sort((*depths).begin(), (*depths).end());
         std::sort((*images).begin(), (*images).end());
     }
@@ -72,15 +117,8 @@ struct DynFuApp {
         outPath_ = filePath_ + "/out";
         boost::filesystem::path dir(outPath_);
 
-        outWarpedPath_ = filePath_ + "/out/warped";
-        boost::filesystem::path dirWarped(outWarpedPath_);
-
         if (boost::filesystem::create_directory(dir)) {
             std::cout << "created output directory" << std::endl;
-        }
-
-        if (boost::filesystem::create_directory(dirWarped)) {
-            std::cout << "created output directory for warped frames" << std::endl;
         }
     }
 
@@ -90,12 +128,6 @@ struct DynFuApp {
 
         double time_ms = 0;
         bool has_image = false;
-
-        if (visualizer_) {
-            cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
-            cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE);
-            cv::namedWindow("Scene", cv::WINDOW_AUTOSIZE);
-        }
 
         std::vector<cv::String> depths;
         std::vector<cv::String> images;
@@ -114,22 +146,41 @@ struct DynFuApp {
             }
 
             depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
+
             {
                 SampledScopeTime fps(time_ms);
                 (void) fps;
                 has_image = kinfu(depth_device_);
             }
 
+            if (visualizer_ && i == 0) {
+                cv::namedWindow("image", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("depth", cv::WINDOW_AUTOSIZE);
+            }
+
+            if (visualizer_) {
+                cv::imshow("image", image);
+                cv::imshow("depth", depth);
+                cv::waitKey(10);
+            }
+
+            if (visualizer_ && i == 1) {
+                cv::namedWindow("scene", cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("canonical warped to live", cv::WINDOW_AUTOSIZE);
+            }
+
+            if (i > 1) {
+                save_polygon_mesh(&kinfu, i);
+            }
+
             if (has_image) {
                 show_raycasted(&kinfu, i);
                 show_canonical_warped_to_live(&kinfu, i);
+
+                save_canonical_warped_to_live_point_cloud(&kinfu, i);
             }
 
             // show_depth(depth);
-            if (visualizer_) {
-                cv::imshow("Image", image);
-                cv::imshow("Depth", depth);
-            }
         }
 
         return true;
@@ -138,12 +189,21 @@ struct DynFuApp {
     KinFu::Ptr kinfu_;
 
     std::string filePath_;
-    std::string outPath_, outWarpedPath_;
+    std::string outPath_;
+
+    /* point cloud viz */
+    std::shared_ptr<PointCloudViz> pointCloudViz;
+    /* point cloud viz thread */
+    std::shared_ptr<std::thread> vizThread;
 
     bool exit_, visualizer_;
 
     cv::Mat view_host_;
+    cv::Mat canonical_to_live_view_host_;
+
     cuda::Image view_device_;
+    cuda::Image canonical_to_live_view_device_;
+
     cuda::Depth depth_device_;
     cuda::DeviceArray<Point> cloud_buffer;
 };

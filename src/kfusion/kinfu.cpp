@@ -92,12 +92,8 @@ void kfusion::KinFu::allocate_buffers() {
     prev_.depth_pyr.resize(LEVELS);
     prev_.normals_pyr.resize(LEVELS);
 
-    canonicalWarpedToLive_.depth_pyr.resize(LEVELS);
-    canonicalWarpedToLive_.normals_pyr.resize(LEVELS);
-
     curr_.points_pyr.resize(LEVELS);
     prev_.points_pyr.resize(LEVELS);
-    canonicalWarpedToLive_.points_pyr.resize(LEVELS);
 
     for (int i = 0; i < LEVELS; ++i) {
         curr_.depth_pyr[i].create(rows, cols);
@@ -106,12 +102,8 @@ void kfusion::KinFu::allocate_buffers() {
         prev_.depth_pyr[i].create(rows, cols);
         prev_.normals_pyr[i].create(rows, cols);
 
-        canonicalWarpedToLive_.depth_pyr[i].create(rows, cols);
-        canonicalWarpedToLive_.normals_pyr[i].create(rows, cols);
-
         curr_.points_pyr[i].create(rows, cols);
         prev_.points_pyr[i].create(rows, cols);
-        canonicalWarpedToLive_.points_pyr[i].create(rows, cols);
 
         cols /= 2;
         rows /= 2;
@@ -133,13 +125,21 @@ void kfusion::KinFu::reset() {
     volume_->clear();
 }
 
+bool kfusion::KinFu::getDynfuNextFrameReady() { return dynfu->nextFrameReady; }
+
+void kfusion::KinFu::setDynfuNextFrameReady(bool status) { dynfu->nextFrameReady = status; }
+
 kfusion::Affine3f kfusion::KinFu::getCameraPose(int time) const {
-    if (time > (int) poses_.size() || time < 0)
-        time = (int) poses_.size() - 1;
+    if ((time > static_cast<int>(poses_.size())) || (time < 0)) {
+        time = static_cast<int>(poses_.size()) - 1;
+    }
+
     return poses_[time];
 }
 
 bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion::cuda::Image & /*image*/) {
+    std::cout << "frame no. " << frame_counter_ << std::endl;
+
     const KinFuParams &p = params_;
     const int LEVELS     = icp_->getUsedLevelsNum();
 
@@ -164,9 +164,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     // can't do more with the first frame
     if (frame_counter_ == 0) {
-        /* initialise the warpfield */
-        dynfu->init(curr_.points_pyr[0], curr_.normals_pyr[0]);
         volume_->integrate(dists_, poses_.back(), p.intr);
+
 #if defined USE_DEPTH
         curr_.depth_pyr.swap(prev_.depth_pyr);
 #else
@@ -185,23 +184,18 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 #if defined USE_DEPTH
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.depth_pyr, curr_.normals_pyr, prev_.depth_pyr,
                                           prev_.normals_pyr);
+        dynfu->updateAffine(affine);
 #else
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.points_pyr, curr_.normals_pyr, prev_.points_pyr,
                                           prev_.normals_pyr);
+        dynfu->updateAffine(affine);
 #endif
-        if (!ok)
+        if (!ok) {
             return reset(), false;
+        }
     }
 
     poses_.push_back(poses_.back() * affine);  // curr -> global
-
-    /* add new live frame to dynfu */
-    dynfu->addLiveFrame(frame_counter_, curr_.points_pyr[0], curr_.normals_pyr[0]);
-
-    /* TODO (dig15): apply warp and get the result; probably need to upload the data back to curr_.points and
-     * curr_.normals */
-    dynfu->warpCanonicalToLiveOpt();
-    auto canonicalWarpedToLiveCloud = dynfu->getCanonicalWarpedToLive();
 
     /*
      * VOLUME INTEGRATION
@@ -211,10 +205,11 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     float tnorm    = static_cast<float>(cv::norm(affine.translation()));
     bool integrate = (rnorm + tnorm) / 2 >= p.tsdf_min_camera_movement;
 
-    if (integrate) {
-        // ScopeTime time("tsdf");
-        volume_->integrate(dists_, poses_.back(), p.intr);
-    }
+    // if (integrate) {
+    // ScopeTime time("tsdf");
+    volume_->clear();
+    volume_->integrate(dists_, poses_.back(), p.intr);
+    //}
 
     /*
      * RAYCASTING
@@ -234,6 +229,22 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 #endif
         cuda::waitAllDefaultStream();
     }
+
+    if (frame_counter_ == 1) {
+        /* initialise the warpfield */
+        dynfu->init(prev_.points_pyr[0], prev_.normals_pyr[0]);
+
+        return ++frame_counter_, false;
+    }
+
+    /* add new live frame to dynfu */
+    dynfu->addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
+    /* warp canonical frame to live frame */
+    dynfu->warpCanonicalToLiveOpt();
+    /* get the canonical frame as warped to live */
+    canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
+    /* get the polygon mesh of the model */
+    canonicalWarpedToLiveMesh = dynfu->reconstructSurface();
 
     return ++frame_counter_, true;
 }
@@ -290,29 +301,23 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
         cuda::renderImage(PASS1, normals_, params_.intr, params_.light_pose, i1);
         cuda::renderTangentColors(normals_, i2);
     }
-#undef PASS1
 }
 
 void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
     const KinFuParams &p = params_;
     image.create(p.rows, flag != 3 ? p.cols : p.cols * 2);
-
-#if defined USE_DEPTH
-#define PASS1 canonicalWarpedToLive_.depth_pyr
-#else
-#define PASS1 canonicalWarpedToLive_.points_pyr
-#endif
+    auto vertices = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getVertices()));
+    auto normals  = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getNormals()));
 
     if ((flag < 1 || flag > 3)) {
-        cuda::renderImage(PASS1[0], canonicalWarpedToLive_.normals_pyr[0], params_.intr, params_.light_pose, image);
+        cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, image);
     } else if (flag == 2) {
-        cuda::renderTangentColors(canonicalWarpedToLive_.normals_pyr[0], image);
+        cuda::renderTangentColors(normals, image);
     } else /* if (flag == 3) */ {
         DeviceArray2D<RGB> i1(p.rows, p.cols, image.ptr(), image.step());
         DeviceArray2D<RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
 
-        cuda::renderImage(PASS1[0], canonicalWarpedToLive_.normals_pyr[0], params_.intr, params_.light_pose, i1);
-        cuda::renderTangentColors(canonicalWarpedToLive_.normals_pyr[0], i2);
+        cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, i1);
+        cuda::renderTangentColors(normals, i2);
     }
-#undef PASS1
 }

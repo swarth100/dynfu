@@ -6,4 +6,5 @@ target_link_libraries(kfusion
   dynfu
   ${CUDA_CUDART_LIBRARY}
   ${OpenCV_LIBS}
+  ${PCL_LIBRARIES}
 )

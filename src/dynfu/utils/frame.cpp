@@ -10,6 +10,6 @@ dynfu::Frame::~Frame() = default;
 
 int dynfu::Frame::getId() { return this->id; }
 
-std::vector<cv::Vec3f> dynfu::Frame::getVertices() { return this->vertices; }
+std::vector<cv::Vec3f>& dynfu::Frame::getVertices() { return this->vertices; }
 
-std::vector<cv::Vec3f> dynfu::Frame::getNormals() { return this->normals; }
+std::vector<cv::Vec3f>& dynfu::Frame::getNormals() { return this->normals; }

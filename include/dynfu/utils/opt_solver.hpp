@@ -3,12 +3,12 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-/* kinfu includes */
-#include <kfusion/types.hpp>
-
 /* dynfu includes */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/warp_field.hpp>
+
+/* kinfu includes */
+#include <kfusion/types.hpp>
 
 /* opt includes */
 #include <CombinedSolverBase.h>
@@ -18,12 +18,12 @@
 
 class CombinedSolver : public CombinedSolverBase {
 public:
-    CombinedSolver(std::shared_ptr<Warpfield> warpfield, CombinedSolverParameters params);
+    CombinedSolver(Warpfield warpfield, CombinedSolverParameters params);
 
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
                                    const std::shared_ptr<dynfu::Frame> liveFrame);
 
-    void initializeConnectivity(std::vector<cv::Vec3f> canonicalVertices);
+    void initializeConnectivity();
 
     void combinedSolveInit() override;
 
@@ -42,7 +42,7 @@ public:
     void copyResultToCPUFromFloat3();
 
 private:
-    std::shared_ptr<Warpfield> m_warpfield;
+    Warpfield m_warpfield;
     CombinedSolverParameters m_solverParameters;
 
     std::vector<unsigned int> m_dims;  // curent index in the solver

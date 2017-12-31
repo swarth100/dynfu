@@ -18,8 +18,8 @@ public:
     ~Frame();
 
     int getId();
-    std::vector<cv::Vec3f> getVertices();
-    std::vector<cv::Vec3f> getNormals();
+    std::vector<cv::Vec3f> &getVertices();
+    std::vector<cv::Vec3f> &getNormals();
 
 private:
     int id;

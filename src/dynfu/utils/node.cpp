@@ -25,7 +25,11 @@ std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se
 float Node::getRadialBasisWeight() { return dg_w; }
 
 float Node::getTransformationWeight(cv::Vec3f vertexPosition) {
-    return getTransformationWeightT<float>(vertexPosition);
+    auto position = this->getPosition();
+    auto weight   = this->getRadialBasisWeight();
+    auto dist     = pow(position[0] - vertexPosition[0], 2) + pow(position[1] - vertexPosition[1], 2) +
+                pow(position[2] - vertexPosition[2], 2);
+    return exp(-dist / (2 * pow(weight, 2)));
 }
 
 template <typename T>
@@ -61,3 +65,9 @@ void Node::setRotation(boost::math::quaternion<float> real) {
 void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
 
 void Node::setRadialBasisWeight(float newWeight) { dg_w = newWeight; }
+
+void Node::updateTranslation(cv::Vec3f translation) {
+    auto real = dg_se3->getReal();
+    translation += dg_se3->getTranslation();
+    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
+}

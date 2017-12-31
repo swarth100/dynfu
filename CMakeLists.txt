@@ -56,12 +56,13 @@ endif()
 # ---------------------------------------------------------------------------- #
 # DEPENDENCIES
 # ---------------------------------------------------------------------------- #
-find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
+find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
 find_package(Ceres REQUIRED)
 find_package(CUDA REQUIRED)
-find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
-find_package(Threads REQUIRED)
+find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(OpenMesh REQUIRED)
+find_package(Threads REQUIRED)
+find_package(PCL 1.8.1 REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS
@@ -93,7 +94,16 @@ include_directories(include
   ${OPENMESH_INCLUDE_DIRS}
   ${OPT_INCLUDE_DIRS}
   ${TERRA_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
+
+
+# ---------------------------------------------------------------------------- #
+# PCL CUSTOM COMMANDS
+# ---------------------------------------------------------------------------- #
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+REMOVE_VTK_DEFINITIONS()
 
 # ---------------------------------------------------------------------------- #
 # BUILD SRC DIRECTORY

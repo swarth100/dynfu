@@ -3,6 +3,10 @@
 /* boost includes */
 #include <boost/filesystem.hpp>
 
+/* dynfu includes */
+#include <dynfu/dyn_fusion.hpp>
+#include <dynfu/warp_field.hpp>
+
 /* kinfu includes */
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>
@@ -11,10 +15,6 @@
 /* sys headers */
 #include <string>
 #include <vector>
-
-/* dynfu includes */
-#include <dynfu/dyn_fusion.hpp>
-#include <dynfu/warp_field.hpp>
 
 namespace kfusion {
 namespace cuda {
@@ -76,9 +76,15 @@ public:
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
 
+    std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
+    pcl::PolygonMesh canonicalWarpedToLiveMesh;
+
     void renderImage(cuda::Image &image, int flag = 0);
     void renderImage(cuda::Image &image, const Affine3f &pose, int flag = 0);
-    void renderCanonicalWarpedToLive(cuda::Image &image, int flag = 0);
+    void renderCanonicalWarpedToLive(cuda::Image &image, int flag);
+
+    bool getDynfuNextFrameReady();
+    void setDynfuNextFrameReady(bool status);
 
     Affine3f getCameraPose(int time = -1) const;
 
@@ -88,10 +94,11 @@ private:
     int frame_counter_;
     KinFuParams params_;
 
-    std::vector<Affine3f> poses_;
+    std::shared_ptr<DynFusion> dynfu;
 
+    std::vector<Affine3f> poses_;
     cuda::Dists dists_;
-    cuda::Frame curr_, prev_, canonicalWarpedToLive_;
+    cuda::Frame curr_, prev_;
 
     cuda::Cloud points_;
     cuda::Normals normals_;
@@ -99,7 +106,5 @@ private:
 
     cv::Ptr<cuda::TsdfVolume> volume_;
     cv::Ptr<cuda::ProjectiveICP> icp_;
-
-    std::shared_ptr<DynFusion> dynfu;
 };
 }  // namespace kfusion

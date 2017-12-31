@@ -1,34 +1,37 @@
 -- function definitions
 
--- function to calculate the norm of a vector
+-- calculates the norm of a 3-D vector
 function norm(v)
   return pow(pow(v(0), 2) + pow(v(1), 2) + pow(v(2), 2), 0.5)
 end
 
+-- calculates the dot product of 3-D vectors
+function dotProduct(a, b)
+  local dot = a(0) * b(0) + a(1) * b(1) + a(2) * b(2)
+  return dot
+end
+
+-- calculates the transformation weight given the coordinates of a vertex and a node and the radial basis weight of the node
 function calculateTransformationWeight(vertexCoordinates, nodeCoordinates, radialBasisWeight)
-  if eq(vertexCoordinates, nodeCoordinates) then
-    return 1
-  else
-    return exp(-pow(norm(vertexCoordinates - nodeCoordinates), 2) / (2 * pow(radialBasisWeight, 2)))
-  end
+  return exp(-pow(norm(vertexCoordinates - nodeCoordinates), 2) / (2 * pow(radialBasisWeight, 2)))
 end
 
 -- function to calculate the huber penalty
-function huberPenalty(a, delta) -- delta = 0.00001
-    if lesseq(abs(a), delta) then
-        return a * a / 2
-    else
-        return delta * abs(a) - delta *  delta / 2
-    end
+function huberPenalty(a, delta) -- the value of delta?
+  if lesseq(abs(a), delta) then
+    return a * a / 2
+  else
+    return delta * abs(a) - delta *  delta / 2
+  end
 end
 
 -- function to calculate the tukey penalty
-function tukeyPenalty(x, c) -- c = 0.01
-    if lesseq(abs(x), c) then
-        return x * pow(1.0 - (x * x) / (c * c), 2)
-    else
-        return 0
-    end
+function tukeyPenalty(x, c)
+  if lesseq(abs(x), c) then
+    return x * pow(1.0 - (x * x) / (c * c), 2)
+  else
+    return 0
+  end
 end
 
 -- energy specifciation
@@ -39,7 +42,7 @@ local nodeCoordinates = Array("nodeCoordinates",opt_float3,{D},0) -- used to cal
 
 local rotation = Unknown("rotation",opt_float3,{D},1)
 local translation = Unknown("translation",opt_float3,{D},2)
-local radialBasisWeights = Unknown("transformationWeights",opt_float,{D},3)
+local radialBasisWeights = Unknown("radialBasisWeights",opt_float,{D},3)
 
 local canonicalVertices = Array("canonicalVertices",opt_float3,{N},4)
 local canonicalNormals = Array("canonicalNormals",opt_float3,{N},5)
@@ -63,12 +66,12 @@ local totalRotation = 0
 
 nodes = {0,1,2,3,4,5,6,7}
 
-
 for _,i in ipairs(nodes) do
-    totalTranslation = totalTranslation + translation(G["n"..i])
-    -- totalTranslation = totalTranslation + transformationWeights(G.v)(i) * translation(G["n"..i]) -- FIXME (dig15): use transformation weights
+    local transformationWeight = calculateTransformationWeight(canonicalVertices(G.v), nodeCoordinates(G["n"..i]), radialBasisWeights(G["n"..i]))
+    totalTranslation = totalTranslation + transformationWeight * translation(G["n"..i])
     -- totalRotation = totalRotation + rotation(G["n"..i]) -- FIXME (dig15): use rotations
 end
 
-Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
--- Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, 0.01)) -- FIXME (dig15): works for real data but will cause tests to fail
+local c = 1
+Energy(tukeyPenalty(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation, c))
+-- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): use the normals

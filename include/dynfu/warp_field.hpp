@@ -1,26 +1,29 @@
 #ifndef DYNFU_WARP_FIELD_HPP
 #define DYNFU_WARP_FIELD_HPP
 
-/* kinfu includes */
-#include <kfusion/types.hpp>
+/* ceres includes */
+#include <ceres/ceres.h>
 
 /* dynfu includes */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
 
-/* ceres includes */
-#include <ceres/ceres.h>
+/* kinfu includes */
+#include <kfusion/types.hpp>
 
-/* sys headers */
-#include <iostream>
-#include <memory>
-#include <vector>
-
-/* Nanoflann dependencies */
+/* nanoflann dependencies */
 #include <nanoflann/nanoflann.hpp>
 #include <nanoflann/pointcloud.hpp>
 
-/* Set max amount of closest neighbours to consider */
+/* sys headers */
+#include <cmath>
+#include <ctgmath>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+
+/* set the no. of nearest neighbours to consider */
 #define KNN 8
 
 typedef nanoflann::L2_Simple_Adaptor<float, nanoflann::PointCloud> nanoflannAdaptor;
@@ -30,32 +33,37 @@ class Warpfield {
     /* Type for the index tree */
 public:
     Warpfield();
-    ~Warpfield();
     Warpfield(const Warpfield& w);
+
+    ~Warpfield();
 
     /* initialise the warp field */
     void init(std::vector<std::shared_ptr<Node>> nodes);
 
-    /* add new deformation node to the warp field */
-    void addNode(Node newNode);
-
     /* return a vector of all nodes in the warp field */
     std::vector<std::shared_ptr<Node>> getNodes();
 
-    /* return a dual quaternion which represents the dual quaternion blending for a point */
+    /* add new deformation node to the warp field */
+    void addNode(std::shared_ptr<Node> newNode);
+
+    /* return a dual quaternion which represents the dual quaternion blending for a given point */
     std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
 
-    /* warp a canonical frame according to the data stored in the warpfield */
-    void warp(std::shared_ptr<dynfu::Frame> liveFrame);
+    /* warp live frame to canonical frame */
+    std::shared_ptr<dynfu::Frame> warpToCanonical(cv::Affine3f affineLiveToCanonical,
+                                                  std::shared_ptr<dynfu::Frame> liveFrame);
+    /* warp canonical frame to live frame */
+    std::shared_ptr<dynfu::Frame> warpToLive(cv::Affine3f affineCanonicalToLive,
+                                             std::shared_ptr<dynfu::Frame> canonicalFrame);
 
-    /* Find a set amount of closest neighbours */
+    /* find a given no. of closest neighbours of a vertex */
     std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);
 
-    /* Find index of set amount of closest neighbours */
+    /* find a given no. of closest neighbours of a vertex */
     std::vector<size_t> findNeighborsIndex(int numNeighbor, cv::Vec3f vertex);
 
 private:
-    /* PCL frame counter */
+    /* frame counter */
     int frameNum = 0;
 
     /* list of currently held deformation nodes */
@@ -67,11 +75,8 @@ private:
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;
 
-    /* Getter for pcl cloud counter */
+    /* getter for the pcl cloud counter */
     int getFrameNum();
-
-    /* Save the given vec3s to PCL format */
-    void saveToPcl(std::vector<cv::Vec3f> vectors);
 };
 
 /* DYNFU_WARP_FIELD_HPP */
