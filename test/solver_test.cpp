@@ -328,19 +328,8 @@ TEST_F(SolverTest, OneGroupOfVerticesTwoGroupsOfDeformationNodesOpt) {
 
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
-<<<<<<< HEAD
-        cv::Vec3f totalTranslation;
-
-        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
-
-        for (auto neighbour : neighbourNodes) {
-            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-            totalTranslation += translation;
-        }
-=======
         auto totalTransformation = warpfield.calcDQB(vertex);
         auto result              = vertex + totalTransformation->getTranslation();
->>>>>>> 8142940... test/solver_test.cpp: Add Use of DQB in tests
 
         ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
         ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
@@ -348,24 +337,6 @@ TEST_F(SolverTest, OneGroupOfVerticesTwoGroupsOfDeformationNodesOpt) {
 
         j++;
     }
-<<<<<<< HEAD
-
-    // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // int j = 0;
-    // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
-    //     cv::Vec3f totalTranslation;
-    //
-    //     auto totalTransformation = warpfield->calcDQB(vertex);
-    //     auto result              = vertex + totalTransformation->getTranslation();
-    //
-    //     ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
-    //     ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
-    //     ASSERT_NEAR(result[2], liveFrame->getVertices()[j][2], max_error);
-    //
-    //     j++;
-    // }
-=======
->>>>>>> 8142940... test/solver_test.cpp: Add Use of DQB in tests
 }
 
 /* */
@@ -480,19 +451,8 @@ TEST_F(SolverTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTestO
 
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
-<<<<<<< HEAD
-        cv::Vec3f totalTranslation;
-
-        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
-
-        for (auto neighbour : neighbourNodes) {
-            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-            totalTranslation += translation;
-        }
-=======
         auto totalTransformation = warpfield.calcDQB(vertex);
         auto result              = vertex + totalTransformation->getTranslation();
->>>>>>> 8142940... test/solver_test.cpp: Add Use of DQB in tests
 
         ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
         ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
@@ -501,24 +461,6 @@ TEST_F(SolverTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTestO
         j++;
     }
 
-<<<<<<< HEAD
-    // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // int j = 0;
-    // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
-    //     cv::Vec3f totalTranslation;
-    //
-    //     auto totalTransformation = warpfield->calcDQB(vertex);
-    //     auto result              = vertex + totalTransformation->getTranslation();
-    //
-    //     ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
-    //     ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
-    //     ASSERT_NEAR(result[2], liveFrame->getVertices()[j][2], max_error);
-    //
-    //     j++;
-    // }
-
-=======
->>>>>>> 8142940... test/solver_test.cpp: Add Use of DQB in tests
     /* reverse */
     auto temp                  = liveFrame;
     liveFrame                  = canonicalFrameWarpedToLive;
@@ -530,19 +472,8 @@ TEST_F(SolverTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTestO
 
     j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
-<<<<<<< HEAD
-        cv::Vec3f totalTranslation;
-
-        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
-
-        for (auto neighbour : neighbourNodes) {
-            cv::Vec3f translation = neighbour->getTransformation()->getTranslation();
-            totalTranslation += translation;
-        }
-=======
         auto totalTransformation = warpfield.calcDQB(vertex);
         auto result              = vertex + totalTransformation->getTranslation();
->>>>>>> 8142940... test/solver_test.cpp: Add Use of DQB in tests
 
         ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
         ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
@@ -550,24 +481,6 @@ TEST_F(SolverTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTestO
 
         j++;
     }
-<<<<<<< HEAD
-
-    // // FIXME (dig15): can't use yet because Opt doesn't solve for weights
-    // j = 0;
-    // for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
-    //     cv::Vec3f totalTranslation;
-    //
-    //     auto totalTransformation = warpfield->calcDQB(vertex);
-    //     auto result              = vertex + totalTransformation->getTranslation();
-    //
-    //     ASSERT_NEAR(result[0], liveFrame->getVertices()[j][0], max_error);
-    //     ASSERT_NEAR(result[1], liveFrame->getVertices()[j][1], max_error);
-    //     ASSERT_NEAR(result[2], liveFrame->getVertices()[j][2], max_error);
-    //
-    //     j++;
-    // }
-=======
->>>>>>> 8142940... test/solver_test.cpp: Add Use of DQB in tests
 }
 
 /* */
