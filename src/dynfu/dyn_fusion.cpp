@@ -1,5 +1,7 @@
 #include <dynfu/dyn_fusion.hpp>
-
+/* pcl includes */
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
 /* TODO: Add comment */
 DynFusion::DynFusion() = default;
 
@@ -8,6 +10,7 @@ DynFusion::~DynFusion() = default;
 
 /* initialise dynamicfusion with the initial vertices and normals */
 void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
+    global_counter    = 0;
     cv::Mat cloudHost = cloudToMat(vertices);
     std::vector<cv::Vec3f> canonicalVertices(cloudHost.rows * cloudHost.cols);
     std::cout << "no. of canonical vertices: " << cloudHost.cols * cloudHost.rows << std::endl;
@@ -15,7 +18,6 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     for (int y = 0; y < cloudHost.rows; ++y) {
         for (int x = 0; x < cloudHost.cols; ++x) {
             auto point = cloudHost.at<kfusion::Point>(y, x);
-
             if (!isNaN(point)) {
                 canonicalVertices[x + cloudHost.cols * y] = cv::Vec3f(point.x, point.y, point.z);
             } else {
@@ -41,19 +43,30 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     initCanonicalFrame(canonicalVertices, canonicalNormals);
 
-    /* sample the deformation nodes */
-    int noDeformationNodes = 8192;
-
+    int step                     = 50;
+    auto &canonicalFrameVertices = canonicalFrame->getVertices();
     std::vector<std::shared_ptr<Node>> deformationNodes;
-
-    int i = 1;
-    while (i <= noDeformationNodes) {
-        auto k = rand() % (canonicalVertices.size() - 1);
-
+    std::vector<cv::Vec3f> temp;
+    for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
         auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[k], dq, 2.f));
-        i++;
+        deformationNodes.push_back(std::make_shared<Node>(canonicalFrameVertices[i], dq, 2.f));
+        temp.push_back(canonicalFrameVertices[i]);
     }
+
+    savePointCloud(temp, "DeformationNodes", global_counter);
+    //[> sample the deformation nodes <]
+    // int noDeformationNodes = 8192;
+
+    // std::vector<std::shared_ptr<Node>> deformationNodes;
+
+    // int i = 1;
+    // while (i <= noDeformationNodes) {
+    // auto k = rand() % (canonicalVertices.size() - 1);
+
+    // auto dq = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+    // deformationNodes.push_back(std::make_shared<Node>(canonicalVertices[k], dq, 2.f));
+    // i++;
+    //}
 
     /* Initialise the warp field with the inital frames vertices */
     warpfield = std::make_shared<Warpfield>();
@@ -87,9 +100,9 @@ void DynFusion::updateWarpfield() {
     std::cout << "no. of unsupported vertices: " << unsupportedVertices.size() << std::endl;
 
     /* TODO (dig15): sample the new deformation nodes in a more intelligent way */
-    for (int i = 0; i < unsupportedVertices.size(); i += 5) {
+    int step = 5;
+    for (int i = 0; i < unsupportedVertices.size(); i += step) {
         auto dg_se3 = warpfield->calcDQB(unsupportedVertices[i]);
-
         warpfield->addNode(std::make_shared<Node>(unsupportedVertices[i], dg_se3, 2.f));
     }
 
@@ -97,43 +110,8 @@ void DynFusion::updateWarpfield() {
 }
 
 /* TODO: Add comment */
-void DynFusion::warpCanonicalToLive() {
-    ceres::Solver::Options options;
-    options.linear_solver_type           = ceres::SPARSE_NORMAL_CHOLESKY;
-    options.minimizer_progress_to_stdout = true;
-    options.max_num_iterations           = 64;
-
-    int noCores         = sysconf(_SC_NPROCESSORS_ONLN);
-    options.num_threads = noCores;
-
-    WarpProblem warpProblem(options);
-    warpProblem.optimiseWarpField(warpfield, this->canonicalFrame, this->liveFrame);
-
-    auto parameters = warpProblem.getParameters();
-
-    int i = 0;
-    int j = 0;
-    for (auto vertex : canonicalFrame->getVertices()) {
-        cv::Vec3f totalTranslation;
-
-        auto neighbourNodes = warpfield->findNeighbors(KNN, vertex);
-
-        for (auto neighbour : neighbourNodes) {
-            cv::Vec3f translation(parameters[i][1], parameters[i][2], parameters[i][3]);
-            neighbour->setRadialBasisWeight(parameters[i][0]);
-            neighbour->setTranslation(translation);
-
-            totalTranslation += translation * neighbour->getTransformationWeight(vertex);
-            i++;
-        }
-        i = 0;
-        j++;
-    }
-}
-
 void DynFusion::warpCanonicalToLiveOpt() {
     // updateWarpfield();
-
     CombinedSolverParameters params;
     params.numIter       = 20;
     params.nonLinearIter = 15;
@@ -144,16 +122,20 @@ void DynFusion::warpCanonicalToLiveOpt() {
 
     std::cout << "solving" << std::endl;
     CombinedSolver combinedSolver(*warpfield, params);
-
-    auto canonicalWarped             = (canonicalFrame);
+    auto canonicalWarped             = warpfield->warpToLive(canonicalFrame);
     auto canonicalNormals            = canonicalWarped->getNormals();
     auto canonicalVertices           = canonicalWarped->getVertices();
     auto liveFrameVertices           = liveFrame->getVertices();
     auto correspondingCanonicalFrame = findCorrespondingFrame(canonicalVertices, canonicalNormals, liveFrameVertices);
-    combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame);
+    savePointCloud(liveFrameVertices, "LiveFrame", global_counter);
+    // savePointCloud(correspondingCanonicalFrame->getVertices(), "CanonicalCorresponding", global_counter);
+    combinedSolver.initializeProblemInstance(canonicalFrame, this->liveFrame);
     combinedSolver.solveAll();
     std::cout << "solved" << std::endl;
-    canonicalWarpedToLive = warpfield->warpToLive(canonicalFrame);
+
+    canonicalWarpedToLive = warpfield->warpToCanonical(liveFrame);
+    savePointCloud(canonicalWarpedToLive->getVertices(), "WarpedLiveFrame", global_counter);
+    global_counter++;
 }
 
 std::shared_ptr<dynfu::Frame> DynFusion::findCorrespondingFrame(std::vector<cv::Vec3f> canonicalVertices,
@@ -284,4 +266,26 @@ cv::Mat DynFusion::vectorToMat(std::vector<cv::Vec3f> vec) {
         }
     }
     return mat;
+}
+
+void DynFusion::savePointCloud(std::vector<cv::Vec3f> vertices, std::string filename, int i) {
+    /* initialise the point cloud */
+    auto cloud    = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    cloud->width  = vertices.size();
+    cloud->height = 1;
+    cloud->points.resize(cloud->width * cloud->height);
+
+    /* iterate through vectors */
+    for (size_t i = 0; i < vertices.size(); i++) {
+        const cv::Vec3f &pt = vertices[i];
+        cloud->points[i]    = pcl::PointXYZ(pt[0], pt[1], pt[2]);
+    }
+
+    /* save to PCL */
+    std::string filenameStr = ("files/" + filename + std::to_string(i) + ".pcd");
+    try {
+        pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+    } catch (...) {
+        std::cout << "Could not save to " + filenameStr << std::endl;
+    }
 }

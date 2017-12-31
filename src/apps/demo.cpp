@@ -31,7 +31,7 @@ struct DynFuApp {
 
     void show_canonical_warped_to_live(KinFu *kinfu, int i) {
         const int mode = 3;
-        (*kinfu).renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
+        kinfu->renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
         canonical_to_live_view_host_.create(canonical_to_live_view_device_.rows(),
                                             canonical_to_live_view_device_.cols(), CV_8UC4);
         canonical_to_live_view_device_.download(canonical_to_live_view_host_.ptr<void>(),

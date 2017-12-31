@@ -60,6 +60,7 @@ public:
     kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
 
 private:
+    int global_counter;
     std::shared_ptr<dynfu::Frame> canonicalFrame;
     std::shared_ptr<dynfu::Frame> canonicalFrameAffine;
     std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
@@ -92,6 +93,8 @@ private:
     std::shared_ptr<dynfu::Frame> findCorrespondingFrame(std::vector<cv::Vec3f> canonicalVertices,
                                                          std::vector<cv::Vec3f> canonicalNormals,
                                                          std::vector<cv::Vec3f> liveVertices);
+    /* save the point cloud as pcd*/
+    void savePointCloud(std::vector<cv::Vec3f> vertices, std::string filename, int i);
 };
 
 /* DYNFU_DYNFUSION_HPP */
