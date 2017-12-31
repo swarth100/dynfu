@@ -1,5 +1,5 @@
-/* kinfu includes */
-#include <kfusion/kinfu.hpp>
+/* dynfu includes */
+#include <dynfu/dyn_fusion.hpp>
 
 /* opencv includes */
 #include <opencv2/highgui/highgui.hpp>
@@ -14,13 +14,13 @@
 
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
-        KinFuParams params = KinFuParams::default_params();
-        kinfu_             = KinFu::Ptr(new KinFu(params));
+        kfusion::KinFuParams params = kfusion::KinFuParams::default_params();
+        dynfu                       = std::make_shared<DynFusion>(params);
     }
 
-    void show_raycasted(KinFu *kinfu, int i) {
+    void show_raycasted(std::shared_ptr<DynFusion> dynfu, int i) {
         const int mode = 3;
-        (*kinfu).renderImage(view_device_, mode);
+        (*dynfu).renderImage(view_device_, mode);
 
         view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
         view_device_.download(view_host_.ptr<void>(), view_host_.step);
@@ -37,9 +37,9 @@ struct DynFuApp {
     }
 
     /* data from the gpu */
-    void show_canonical_warped_to_live(KinFu *kinfu, int i) {
+    void show_canonical_warped_to_live(std::shared_ptr<DynFusion> dynfu, int i) {
         const int mode = 3;
-        kinfu->renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
+        dynfu->renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
 
         canonical_to_live_view_host_.create(canonical_to_live_view_device_.rows(),
                                             canonical_to_live_view_device_.cols(), CV_8UC4);
@@ -57,15 +57,15 @@ struct DynFuApp {
         cv::imwrite(path, canonical_to_live_view_host_);
     }
 
-    void save_polygon_mesh(KinFu *kinfu, int i) {
-        auto mesh = kinfu->canonicalWarpedToLiveMesh;
+    void save_polygon_mesh(std::shared_ptr<DynFusion> dynfu, int i) {
+        auto mesh = dynfu->getCanonicalWarpedToLiveSurface();
         pcl::io::saveVTKFile(outPath_ + "/" + std::to_string(i) + "_mesh.vtk", mesh);
 
         std::cout << "saved model mesh to .vtk" << std::endl;
     }
 
-    void save_canonical_warped_to_live_point_cloud(KinFu *kinfu, int i) {
-        auto vertices = kinfu->canonicalWarpedToLive->getVertices();
+    void save_canonical_warped_to_live_point_cloud(std::shared_ptr<DynFusion> dynfu, int i) {
+        auto vertices = dynfu->getCanonicalWarpedToLive()->getVertices();
 
         /* initialise the point cloud */
         auto cloud    = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
@@ -88,10 +88,10 @@ struct DynFuApp {
         }
     }
 
-    void take_cloud(KinFu *kinfu) {
-        cuda::DeviceArray<Point> cloud = (*kinfu).tsdf().fetchCloud(cloud_buffer);
+    void take_cloud(std::shared_ptr<DynFusion> dynfu) {
+        kfusion::cuda::DeviceArray<kfusion::Point> cloud = (*dynfu).tsdf().fetchCloud(cloud_buffer);
         cv::Mat cloud_host(1, static_cast<int>(cloud.size()), CV_32FC4);
-        cloud.download(cloud_host.ptr<Point>());
+        cloud.download(cloud_host.ptr<kfusion::Point>());
     }
 
     void loadFiles(std::vector<cv::String> *depths, std::vector<cv::String> *images) {
@@ -123,7 +123,7 @@ struct DynFuApp {
     }
 
     bool execute() {
-        KinFu &kinfu = *kinfu_;
+        dynfu = dynfu;
         cv::Mat depth, image;
 
         double time_ms = 0;
@@ -148,9 +148,9 @@ struct DynFuApp {
             depth_device_.upload(depth.data, depth.step, depth.rows, depth.cols);
 
             {
-                SampledScopeTime fps(time_ms);
-                (void) fps;
-                has_image = kinfu(depth_device_);
+                kfusion::SampledScopeTime fps(time_ms);
+                // (void) kfusion::fps;
+                has_image = (*(dynfu))(depth_device_);
             }
 
             if (visualizer_ && i == 0) {
@@ -170,14 +170,14 @@ struct DynFuApp {
             }
 
             if (i > 1) {
-                save_polygon_mesh(&kinfu, i);
+                save_polygon_mesh(dynfu, i);
             }
 
             if (has_image) {
-                show_raycasted(&kinfu, i);
-                show_canonical_warped_to_live(&kinfu, i);
+                show_raycasted(dynfu, i);
+                show_canonical_warped_to_live(dynfu, i);
 
-                save_canonical_warped_to_live_point_cloud(&kinfu, i);
+                save_canonical_warped_to_live_point_cloud(dynfu, i);
             }
 
             // show_depth(depth);
@@ -186,7 +186,7 @@ struct DynFuApp {
         return true;
     }
 
-    KinFu::Ptr kinfu_;
+    std::shared_ptr<DynFusion> dynfu;
 
     std::string filePath_;
     std::string outPath_;
@@ -201,11 +201,11 @@ struct DynFuApp {
     cv::Mat view_host_;
     cv::Mat canonical_to_live_view_host_;
 
-    cuda::Image view_device_;
-    cuda::Image canonical_to_live_view_device_;
+    kfusion::cuda::Image view_device_;
+    kfusion::cuda::Image canonical_to_live_view_device_;
 
-    cuda::Depth depth_device_;
-    cuda::DeviceArray<Point> cloud_buffer;
+    kfusion::cuda::Depth depth_device_;
+    kfusion::cuda::DeviceArray<kfusion::Point> cloud_buffer;
 };
 
 /* Parse the input flag and determine the file path and whether or not to enable visualizer
@@ -233,10 +233,10 @@ void parseFlags(std::vector<std::string> args, std::string *filePath, bool *visu
 
 int main(int argc, char *argv[]) {
     int device = 0;
-    cuda::setDevice(device);
-    cuda::printShortCudaDeviceInfo(device);
+    kfusion::cuda::setDevice(device);
+    kfusion::cuda::printShortCudaDeviceInfo(device);
 
-    if (cuda::checkIfPreFermiGPU(device)) {
+    if (kfusion::cuda::checkIfPreFermiGPU(device)) {
         std::cout << std::endl
                   << "Kinfu is not supported for pre-Fermi GPU "
                      "architectures, and not built for them by "
@@ -271,9 +271,9 @@ int main(int argc, char *argv[]) {
     try {
         app.execute();
     } catch (const std::bad_alloc & /*e*/) {
-        std::cout << "Bad alloc" << std::endl;
+        std::cout << "std::bad_alloc" << std::endl;
     } catch (const std::exception & /*e*/) {
-        std::cout << "Exception" << std::endl;
+        std::cout << "std::exception" << std::endl;
     }
 
     return 0;
