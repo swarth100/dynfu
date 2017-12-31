@@ -65,20 +65,8 @@ RUN tar xzf pcl-1.8.1.tar.gz
 WORKDIR pcl-pcl-1.8.1
 RUN mkdir build
 WORKDIR build
-RUN cmake -D BUILD_keypoints=OFF \
-          -D BUILD_ml=OFF \
-          -D BUILD_outofcore=OFF \
-          -D BUILD_people=OFF \
-          -D BUILD_recognition=OFF \
-          -D BUILD_registration=OFF \
-          -D BUILD_sample_consensus=OFF \
-          -D BUILD_segmentation=OFF \
-          -D BUILD_simulation=OFF \
-          -D BUILD_stereo=OFF \
-          -D BUILD_tools=OFF \
-          -D BUILD_features=ON \
-    ..
-RUN make install
+RUN cmake ..
+RUN make -j`nproc` install
 WORKDIR ../..
 RUN rm -rf pcl*
 
