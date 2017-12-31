@@ -3,8 +3,5 @@ add_module_library(kfusion)
 
 # Link to kfusion library
 target_link_libraries(kfusion
-  dynfu
   ${CUDA_CUDART_LIBRARY}
-  ${OpenCV_LIBS}
-  ${PCL_LIBRARIES}
 )

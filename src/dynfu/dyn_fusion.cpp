@@ -1,10 +1,131 @@
 #include <dynfu/dyn_fusion.hpp>
 
+#include <kfusion/internal.hpp>
+#include <kfusion/precomp.hpp>
+
 /* TODO: Add comment */
-DynFusion::DynFusion() = default;
+DynFusion::DynFusion(const kfusion::KinFuParams &params) : kfusion::KinFu::KinFu(params){};
 
 /* TODO: Add comment */
 DynFusion::~DynFusion() = default;
+
+bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cuda::Image & /*image*/) {
+    std::cout << "frame no. " << frame_counter_ << std::endl;
+
+    const kfusion::KinFuParams &p = params_;
+    const int LEVELS              = icp_->getUsedLevelsNum();
+
+    kfusion::cuda::computeDists(depth, dists_, p.intr);
+    depthBilateralFilter(depth, curr_.depth_pyr[0], p.bilateral_kernel_size, p.bilateral_sigma_spatial,
+                         p.bilateral_sigma_depth);
+
+    if (p.icp_truncate_depth_dist > 0) {
+        kfusion::cuda::depthTruncation(curr_.depth_pyr[0], p.icp_truncate_depth_dist);
+    }
+
+    for (int i = 1; i < LEVELS; ++i) {
+        kfusion::cuda::depthBuildPyramid(curr_.depth_pyr[i - 1], curr_.depth_pyr[i], p.bilateral_sigma_depth);
+    }
+
+    for (int i = 0; i < LEVELS; ++i) {
+#if defined USE_DEPTH
+        kfusion::cuda::computeNormalsAndMaskDepth(p.intr(i), curr_.depth_pyr[i], curr_.normals_pyr[i]);
+#else
+        kfusion::cuda::computePointNormals(p.intr(i), curr_.depth_pyr[i], curr_.points_pyr[i], curr_.normals_pyr[i]);
+#endif
+    }
+
+    kfusion::cuda::waitAllDefaultStream();
+
+    // can't do more with the first frame
+    if (frame_counter_ == 0) {
+        volume_->integrate(dists_, poses_.back(), p.intr);
+
+#if defined USE_DEPTH
+        curr_.depth_pyr.swap(prev_.depth_pyr);
+#else
+        curr_.points_pyr.swap(prev_.points_pyr);
+#endif
+        curr_.normals_pyr.swap(prev_.normals_pyr);
+        return ++frame_counter_, false;
+    }
+
+    /*
+     * ITERATIVE CLOSET POINT
+     */
+    cv::Affine3f affine;  // current -> previous
+    {
+// ScopeTime time("icp");
+#if defined USE_DEPTH
+        bool ok = icp_->estimateTransform(affine, p.intr, curr_.depth_pyr, curr_.normals_pyr, prev_.depth_pyr,
+                                          prev_.normals_pyr);
+        updateAffine(affine);
+#else
+        bool ok = icp_->estimateTransform(affine, p.intr, curr_.points_pyr, curr_.normals_pyr, prev_.points_pyr,
+                                          prev_.normals_pyr);
+        updateAffine(affine);
+#endif
+        if (!ok) {
+            return reset(), false;
+        }
+    }
+
+    poses_.push_back(poses_.back() * affine);  // curr -> global
+
+    /*
+     * VOLUME INTEGRATION
+     * we don't integrate volume if the camera doesn't move
+     */
+    float rnorm    = static_cast<float>(cv::norm(affine.rvec()));
+    float tnorm    = static_cast<float>(cv::norm(affine.translation()));
+    bool integrate = (rnorm + tnorm) / 2 >= p.tsdf_min_camera_movement;
+
+    // if (integrate) {
+    // ScopeTime time("tsdf");
+    volume_->clear();
+    volume_->integrate(dists_, poses_.back(), p.intr);
+    //}
+
+    /*
+     * RAYCASTING
+     */
+    {
+// ScopeTime time("ray-cast-all");
+#if defined USE_DEPTH
+        volume_->raycast(poses_.back(), p.intr, prev_.depth_pyr[0], prev_.normals_pyr[0]);
+        for (int i = 1; i < LEVELS; ++i) {
+            resizeDepthNormals(prev_.depth_pyr[i - 1], prev_.normals_pyr[i - 1], prev_.depth_pyr[i],
+                               prev_.normals_pyr[i]);
+        }
+#else
+        volume_->raycast(poses_.back(), p.intr, prev_.points_pyr[0], prev_.normals_pyr[0]);
+        for (int i = 1; i < LEVELS; ++i) {
+            resizePointsNormals(prev_.points_pyr[i - 1], prev_.normals_pyr[i - 1], prev_.points_pyr[i],
+                                prev_.normals_pyr[i]);
+        }
+#endif
+
+        kfusion::cuda::waitAllDefaultStream();
+    }
+
+    if (frame_counter_ == 1) {
+        /* initialise the warpfield */
+        init(prev_.points_pyr[0], prev_.normals_pyr[0]);
+
+        return ++frame_counter_, false;
+    }
+
+    /* add new live frame to dynfu */
+    addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
+    /* warp canonical frame to live frame */
+    warpCanonicalToLiveOpt();
+    /* get the canonical frame as warped to live */
+    canonicalWarpedToLive = getCanonicalWarpedToLive();
+    /* get the polygon mesh of the model */
+    canonicalWarpedToLiveMesh = reconstructSurface();
+
+    return ++frame_counter_, true;
+}
 
 /* initialise dynamicfusion with the initial vertices and normals */
 void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals) {
@@ -238,6 +359,27 @@ pcl::PolygonMesh DynFusion::reconstructSurface() {
 }
 
 std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return canonicalWarpedToLive; }
+
+pcl::PolygonMesh DynFusion::getCanonicalWarpedToLiveSurface() { return canonicalWarpedToLiveMesh; }
+
+void DynFusion::renderCanonicalWarpedToLive(kfusion::cuda::Image &image, int flag) {
+    const kfusion::KinFuParams &p = params_;
+    image.create(p.rows, flag != 3 ? p.cols : p.cols * 2);
+    auto vertices = matToCloud(vectorToMat(canonicalWarpedToLive->getVertices()));
+    auto normals  = matToCloud(vectorToMat(canonicalWarpedToLive->getNormals()));
+
+    if ((flag < 1 || flag > 3)) {
+        kfusion::cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, image);
+    } else if (flag == 2) {
+        kfusion::cuda::renderTangentColors(normals, image);
+    } else /* if (flag == 3) */ {
+        kfusion::device::DeviceArray2D<kfusion::RGB> i1(p.rows, p.cols, image.ptr(), image.step());
+        kfusion::device::DeviceArray2D<kfusion::RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
+
+        kfusion::cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, i1);
+        kfusion::cuda::renderTangentColors(normals, i2);
+    }
+}
 
 /* define the static field */
 bool DynFusion::nextFrameReady = false;

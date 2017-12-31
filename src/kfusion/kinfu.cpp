@@ -43,10 +43,8 @@ kfusion::KinFuParams kfusion::KinFuParams::default_params() {
     return p;
 }
 
-kfusion::KinFu::KinFu(const KinFuParams &params) : frame_counter_(0), params_(params) {
+kfusion::KinFu::KinFu(const kfusion::KinFuParams &params) : frame_counter_(0), params_(params) {
     CV_Assert(params.volume_dims[0] % 32 == 0);
-
-    dynfu = std::make_shared<DynFusion>();
 
     volume_ = cv::Ptr<cuda::TsdfVolume>(new cuda::TsdfVolume(params_.volume_dims));
 
@@ -125,10 +123,6 @@ void kfusion::KinFu::reset() {
     volume_->clear();
 }
 
-bool kfusion::KinFu::getDynfuNextFrameReady() { return dynfu->nextFrameReady; }
-
-void kfusion::KinFu::setDynfuNextFrameReady(bool status) { dynfu->nextFrameReady = status; }
-
 kfusion::Affine3f kfusion::KinFu::getCameraPose(int time) const {
     if ((time > static_cast<int>(poses_.size())) || (time < 0)) {
         time = static_cast<int>(poses_.size()) - 1;
@@ -138,8 +132,6 @@ kfusion::Affine3f kfusion::KinFu::getCameraPose(int time) const {
 }
 
 bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion::cuda::Image & /*image*/) {
-    std::cout << "frame no. " << frame_counter_ << std::endl;
-
     const KinFuParams &p = params_;
     const int LEVELS     = icp_->getUsedLevelsNum();
 
@@ -184,11 +176,9 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 #if defined USE_DEPTH
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.depth_pyr, curr_.normals_pyr, prev_.depth_pyr,
                                           prev_.normals_pyr);
-        dynfu->updateAffine(affine);
 #else
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.points_pyr, curr_.normals_pyr, prev_.points_pyr,
                                           prev_.normals_pyr);
-        dynfu->updateAffine(affine);
 #endif
         if (!ok) {
             return reset(), false;
@@ -231,20 +221,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     }
 
     if (frame_counter_ == 1) {
-        /* initialise the warpfield */
-        dynfu->init(prev_.points_pyr[0], prev_.normals_pyr[0]);
-
         return ++frame_counter_, false;
     }
-
-    /* add new live frame to dynfu */
-    dynfu->addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
-    /* warp canonical frame to live frame */
-    dynfu->warpCanonicalToLiveOpt();
-    /* get the canonical frame as warped to live */
-    canonicalWarpedToLive = dynfu->getCanonicalWarpedToLive();
-    /* get the polygon mesh of the model */
-    canonicalWarpedToLiveMesh = dynfu->reconstructSurface();
 
     return ++frame_counter_, true;
 }
@@ -300,24 +278,5 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
 
         cuda::renderImage(PASS1, normals_, params_.intr, params_.light_pose, i1);
         cuda::renderTangentColors(normals_, i2);
-    }
-}
-
-void kfusion::KinFu::renderCanonicalWarpedToLive(cuda::Image &image, int flag) {
-    const KinFuParams &p = params_;
-    image.create(p.rows, flag != 3 ? p.cols : p.cols * 2);
-    auto vertices = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getVertices()));
-    auto normals  = dynfu->matToCloud(dynfu->vectorToMat(canonicalWarpedToLive->getNormals()));
-
-    if ((flag < 1 || flag > 3)) {
-        cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, image);
-    } else if (flag == 2) {
-        cuda::renderTangentColors(normals, image);
-    } else /* if (flag == 3) */ {
-        DeviceArray2D<RGB> i1(p.rows, p.cols, image.ptr(), image.step());
-        DeviceArray2D<RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
-
-        cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, i1);
-        cuda::renderTangentColors(normals, i2);
     }
 }
