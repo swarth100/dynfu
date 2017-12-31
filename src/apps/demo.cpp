@@ -157,9 +157,7 @@ struct DynFuApp {
                 cv::namedWindow("canonical warped to live", cv::WINDOW_AUTOSIZE);
             }
 
-            if (i > 1) {
-                save_polygon_mesh(dynfu, i);
-            }
+            save_polygon_mesh(dynfu, i);
 
             if (has_image) {
                 show_raycasted(dynfu, i);

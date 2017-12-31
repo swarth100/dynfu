@@ -15,6 +15,7 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     unsigned int D = m_warpfield.getNodes().size();
     unsigned int N = m_canonicalVerticesPCL.size();
 
+    /* TODO (dig15): figure out why this no. changes between frames */
     std::cout << "no. of non-zero canonical vertices: " << N << std::endl;
 
     m_dims = {D, N};

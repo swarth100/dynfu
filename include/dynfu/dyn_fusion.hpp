@@ -12,7 +12,7 @@
 
 /* pcl includes */
 #include <pcl/PolygonMesh.h>
-#include <pcl/filters/random_sample.h>
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/point_types.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/surface/marching_cubes_rbf.h>
@@ -48,7 +48,7 @@ public:
     cv::Affine3f getLiveToCanonicalAffine();
 
     /* warp canonical frame to live frame using Opt */
-    void warpCanonicalToLiveOpt();
+    bool warpCanonicalToLiveOpt();
 
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
@@ -73,7 +73,7 @@ public:
     /* convert OpenCV matrix to cloud */
     kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
 
-    void renderCanonicalWarpedToLive(kfusion::cuda::Image &image, int flag);
+    void renderCanonicalWarpedToLive(kfusion::cuda::Image /* &image */, int /* flag */);
 
 private:
     std::shared_ptr<dynfu::Frame> canonicalFrame;
@@ -102,6 +102,4 @@ private:
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
     /* convert normals to OpenCV matrix */
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
-    /* convert OpenCV matrix to vector of Vec3f */
-    std::vector<cv::Vec3f> matToVector(cv::Mat);
 };
