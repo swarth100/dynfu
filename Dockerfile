@@ -1,8 +1,20 @@
 FROM nvidia/cuda:8.0-devel
 ARG CUDA_GENERATION=Auto
 
-RUN apt-get update && apt-get install -y cmake libvtk5-dev python pkg-config libgtk2.0-dev
-RUN apt-get install -y git zip clang libsuitesparse-dev liblapack-dev libblas-dev libeigen3-dev libgoogle-glog-dev libproj-dev
+RUN apt-get update && apt-get install -y \
+    clang \
+    cmake \
+    git \
+    libblas-dev \
+    libeigen3-dev \
+    libgoogle-glog-dev \
+    libgtk2.0-dev \
+    liblapack-dev \
+    libproj-dev \
+    libsuitesparse-dev \
+    libvtk5-dev \
+    pkg-config \
+    zip
 
 # Make dynfu build dir
 RUN mkdir -p dynfu/build
@@ -127,3 +139,11 @@ WORKDIR ..
 
 # Run dynamicfusion using /data
 CMD ./build/bin/app /data
+
+# Rmeove unnecessary packages
+RUN apt-get remove -y \
+    clang \
+    curl \
+    git \
+    pkg-config \
+    zip
