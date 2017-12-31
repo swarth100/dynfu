@@ -26,6 +26,8 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
         k++;
     }
 
+    std::cout << "no. of non-zero canonical vertices: " << N << std::endl;
+
     m_dims = {D, N};
 
     m_canonicalVertices = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
@@ -51,14 +53,16 @@ void CombinedSolver::initializeConnectivity(std::vector<cv::Vec3f> canonicalVert
 
     std::vector<std::vector<int>> indices(9, std::vector<int>(N));
 
-    for (int count = 0; count < canonicalVertices.size(); count++) {
-        indices[0].push_back(count);
+    for (int count = 0; count < N; count++) {
+        if (cv::norm(canonicalVertices[count]) != 0) {
+            indices[0].push_back(count);
 
-        auto vertexNeighbours    = m_warpfield->findNeighbors(KNN, canonicalVertices[count]);
-        auto vertexNeighboursIdx = m_warpfield->findNeighborsIndex(KNN, canonicalVertices[count]);
+            auto vertexNeighbours    = m_warpfield.findNeighbors(KNN, canonicalVertices[count]);
+            auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, canonicalVertices[count]);
 
-        for (int i = 1; i < indices.size(); i++) {
-            indices[i].push_back(vertexNeighboursIdx[i - 1]);
+            for (int i = 1; i < indices.size(); i++) {
+                indices[i].push_back(vertexNeighboursIdx[i - 1]);
+            }
         }
     }
 
