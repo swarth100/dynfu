@@ -47,10 +47,10 @@ private:
 
     std::vector<unsigned int> m_dims;  // curent index in the solver
 
-    std::vector<cv::Vec3f> m_canonicalVerticesOpenCV;
-    std::vector<cv::Vec3f> m_liveVerticesOpenCV;
-    std::vector<cv::Vec3f> m_canonicalNormalsOpenCV;
-    std::vector<cv::Vec3f> m_liveNormalsOpenCV;
+    pcl::PointCloud<pcl::PointXYZ> m_canonicalVerticesPCL;
+    pcl::PointCloud<pcl::PointXYZ> m_liveVerticesPCL;
+    pcl::PointCloud<pcl::Normal> m_canonicalNormalsPCL;
+    pcl::PointCloud<pcl::Normal> m_liveNormalsPCL;
 
     std::shared_ptr<OptImage> m_canonicalVertices;
     std::shared_ptr<OptImage> m_canonicalNormals;

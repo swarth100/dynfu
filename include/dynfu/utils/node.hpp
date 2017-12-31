@@ -8,6 +8,9 @@
 #include <opencv2/core/affine.hpp>
 #include <opencv2/core/core.hpp>
 
+/* pcl includes */
+#include <pcl/point_types.h>
+
 /* sys headers */
 #include <memory>
 #include <vector>
@@ -30,30 +33,29 @@
 class Node {
 public:
     Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight);
+
     ~Node();
 
     cv::Vec3f getPosition();
-    std::shared_ptr<DualQuaternion<float>>& getTransformation();
-    float getRadialBasisWeight();
-    /* get transformation weight for a point */
-    float getTransformationWeight(cv::Vec3f vertexPosition);
-    template <typename T>
-    T getTransformationWeightT(cv::Vec3f vertexPosition);
 
-    double* getParams();
+    std::shared_ptr<DualQuaternion<float>>& getTransformation();
+
+    float getRadialBasisWeight();
+
+    /* get transformation weight for a vertex */
+    float getTransformationWeight(pcl::PointXYZ vertexPosition);
 
     void setTranslation(cv::Vec3f translation);
     void setRotation(boost::math::quaternion<float> real);
     void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
     void setRadialBasisWeight(float newWeight);
+
     void updateTranslation(cv::Vec3f translation);
 
 private:
     cv::Vec3f dg_v;
     std::shared_ptr<DualQuaternion<float>> dg_se3;
     float dg_w;
-
-    double* params;
 };
 
 /* DYNFU_NODE_HPP */

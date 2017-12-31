@@ -35,7 +35,7 @@ void Warpfield::addNode(std::shared_ptr<Node> newNode) { nodes.emplace_back(newN
 /* calculate DQB */
 /* get dg_se3 from each of the nodes, multiply it by the transformation weight, and sum */
 /* before returning, normalise the dual quaternion */
-std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(cv::Vec3f point) {
+std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(pcl::PointXYZ point) {
     /* from the warp field get the 8 nearest deformation nodes */
     auto nearestNeighbors = this->findNeighbors(KNN, point);
 
@@ -63,22 +63,27 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(cv::Affine3f /* affineL
     auto vertices = liveFrame->getVertices();
     auto normals  = liveFrame->getNormals();
 
-    std::vector<cv::Vec3f> warpedVertices;
-    std::vector<cv::Vec3f> warpedNormals;
+    pcl::PointCloud<pcl::PointXYZ> warpedVertices;
+    pcl::PointCloud<pcl::Normal> warpedNormals;
 
     for (int i = 0; i < vertices.size(); i++) {
-        cv::Vec3f vertex = vertices[i];  // affineLiveToCanonical * vertices[i];
-        cv::Vec3f normal = normals[i];   // affineLiveToCanonical * normals[i];
+        pcl::PointXYZ vertex = vertices[i];  // affineLiveToCanonical * vertices[i];
+        pcl::Normal normal   = normals[i];   // affineLiveToCanonical * normals[i];
 
-        auto transformation   = calcDQB(vertex);
-        auto totalTranslation = transformation->getTranslation();
+        auto transformation = calcDQB(vertex);
 
-        vertex -= totalTranslation;
-        normal -= totalTranslation;
+        vertex = pcl::PointXYZ(vertex.x - transformation->getTranslation()[0],
+                               vertex.y - transformation->getTranslation()[1],
+                               vertex.z - transformation->getTranslation()[2]);
 
-        warpedVertices.emplace_back(vertex);
-        warpedNormals.emplace_back(normal);
+        normal = pcl::Normal(normal.data_c[0] - transformation->getTranslation()[0],
+                             normal.data_c[1] - transformation->getTranslation()[1],
+                             normal.data_c[2] - transformation->getTranslation()[2]);
+
+        warpedVertices.push_back(vertex);
+        warpedNormals.push_back(normal);
     }
+
     return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);
 }
 
@@ -87,27 +92,31 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(cv::Affine3f /* affineCanoni
     auto vertices = canonicalFrame->getVertices();
     auto normals  = canonicalFrame->getNormals();
 
-    std::vector<cv::Vec3f> warpedVertices;
-    std::vector<cv::Vec3f> warpedNormals;
+    pcl::PointCloud<pcl::PointXYZ> warpedVertices;
+    pcl::PointCloud<pcl::Normal> warpedNormals;
 
     for (int i = 0; i < vertices.size(); i++) {
-        cv::Vec3f vertex = vertices[i];  // affineCanonicalToLive * vertices[i];
-        cv::Vec3f normal = normals[i];   // affineCanonicalToLive * normals[i];
+        pcl::PointXYZ vertex = vertices[i];  // affineLiveToCanonical * vertices[i];
+        pcl::Normal normal   = normals[i];   // affineLiveToCanonical * normals[i];
 
-        auto transformation   = calcDQB(vertex);
-        auto totalTranslation = transformation->getTranslation();
+        auto transformation = calcDQB(vertex);
 
-        vertex += totalTranslation;
-        normal += totalTranslation;
+        vertex = pcl::PointXYZ(vertex.x + transformation->getTranslation()[0],
+                               vertex.y + transformation->getTranslation()[1],
+                               vertex.z + transformation->getTranslation()[2]);
 
-        warpedVertices.emplace_back(vertex);
-        warpedNormals.emplace_back(normal);
+        normal = pcl::Normal(normal.data_c[0] + transformation->getTranslation()[0],
+                             normal.data_c[1] + transformation->getTranslation()[1],
+                             normal.data_c[2] + transformation->getTranslation()[2]);
+
+        warpedVertices.push_back(vertex);
+        warpedNormals.push_back(normal);
     }
 
     return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);
 }
 
-std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv::Vec3f vertex) {
+std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, pcl::PointXYZ vertex) {
     auto retIndex = findNeighborsIndex(numNeighbor, vertex);
 
     std::vector<std::shared_ptr<Node>> neighborNodes;
@@ -119,13 +128,13 @@ std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, cv:
     return neighborNodes;
 }
 
-std::vector<size_t> Warpfield::findNeighborsIndex(int numNeighbor, cv::Vec3f vertex) {
+std::vector<size_t> Warpfield::findNeighborsIndex(int numNeighbor, pcl::PointXYZ vertex) {
     /* not used, ignores the distance to the nodes for now */
     std::vector<float> outDistSqr(numNeighbor);
     std::vector<size_t> retIndex(numNeighbor);
 
     /* unpack Vec3f into vector */
-    std::vector<float> query = {vertex[0], vertex[1], vertex[2]};
+    std::vector<float> query = {vertex.x, vertex.y, vertex.z};
     int n                    = kdTree->knnSearch(&query[0], numNeighbor, &retIndex[0], &outDistSqr[0]);
     retIndex.resize(n);
 

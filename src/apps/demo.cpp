@@ -67,22 +67,10 @@ struct DynFuApp {
     void save_canonical_warped_to_live_point_cloud(std::shared_ptr<DynFusion> dynfu, int i) {
         auto vertices = dynfu->getCanonicalWarpedToLive()->getVertices();
 
-        /* initialise the point cloud */
-        auto cloud    = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-        cloud->width  = vertices.size();
-        cloud->height = 1;
-        cloud->points.resize(cloud->width * cloud->height);
-
-        /* iterate through vertices */
-        for (size_t i = 0; i < vertices.size(); i++) {
-            const cv::Vec3f &pt = vertices[i];
-            cloud->points[i]    = pcl::PointXYZ(pt[0], pt[1], pt[2]);
-        }
-
         /* save to PCL */
         std::string filenameStr = outPath_ + "/pcl_canonical_to_live" + std::to_string(i) + ".pcd";
         try {
-            pcl::io::savePCDFileASCII(filenameStr, (*cloud));
+            pcl::io::savePCDFileASCII(filenameStr, vertices);
         } catch (...) {
             std::cout << "Could not save to " + filenameStr << std::endl;
         }

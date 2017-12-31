@@ -1,9 +1,6 @@
 #ifndef DYNFU_WARP_FIELD_HPP
 #define DYNFU_WARP_FIELD_HPP
 
-/* ceres includes */
-#include <ceres/ceres.h>
-
 /* dynfu includes */
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/utils/node.hpp>
@@ -47,7 +44,7 @@ public:
     void addNode(std::shared_ptr<Node> newNode);
 
     /* return a dual quaternion which represents the dual quaternion blending for a given point */
-    std::shared_ptr<DualQuaternion<float>> calcDQB(cv::Vec3f point);
+    std::shared_ptr<DualQuaternion<float>> calcDQB(pcl::PointXYZ point);
 
     /* warp live frame to canonical frame */
     std::shared_ptr<dynfu::Frame> warpToCanonical(cv::Affine3f affineLiveToCanonical,
@@ -57,10 +54,10 @@ public:
                                              std::shared_ptr<dynfu::Frame> canonicalFrame);
 
     /* find a given no. of closest neighbours of a vertex */
-    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, cv::Vec3f vertex);
+    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, pcl::PointXYZ vertex);
 
     /* find a given no. of closest neighbours of a vertex */
-    std::vector<size_t> findNeighborsIndex(int numNeighbor, cv::Vec3f vertex);
+    std::vector<size_t> findNeighborsIndex(int numNeighbor, pcl::PointXYZ vertex);
 
 private:
     /* frame counter */
