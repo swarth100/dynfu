@@ -1,6 +1,6 @@
 #include <dynfu/utils/opt_solver.hpp>
 
-CombinedSolver::CombinedSolver(std::shared_ptr<Warpfield> warpfield, CombinedSolverParameters params) {
+CombinedSolver::CombinedSolver(Warpfield warpfield, CombinedSolverParameters params) {
     m_warpfield                = warpfield;
     m_combinedSolverParameters = params;
 }
@@ -152,13 +152,13 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float> h_radialBasisWeight(D);
 
     for (int i = 0; i < D; i++) {
-        auto nodeCoordinates = m_warpfield->getNodes()[i]->getPosition();
+        auto nodeCoordinates = m_warpfield.getNodes()[i]->getPosition();
 
-        auto nodeTransformation = m_warpfield->getNodes()[i]->getTransformation();
+        auto nodeTransformation = m_warpfield.getNodes()[i]->getTransformation();
 
         auto nodeTranslation       = nodeTransformation->getTranslation();
         auto nodeRotation          = nodeTransformation->getRotation();
-        auto nodeRadialBasisWeight = m_warpfield->getNodes()[i]->getRadialBasisWeight();
+        auto nodeRadialBasisWeight = m_warpfield.getNodes()[i]->getRadialBasisWeight();
 
         h_coordinates[i] = make_float3(nodeCoordinates[0], nodeCoordinates[1], nodeCoordinates[2]);
 
@@ -186,6 +186,6 @@ void CombinedSolver::copyResultToCPUFromFloat3() {
     for (unsigned int i = 0; i < D; i++) {
         m_warpfield.getNodes()[i]->updateTranslation(
             cv::Vec3f(h_translation[i].x, h_translation[i].y, h_translation[i].z));
-        m_warpfield->getNodes()[i]->setRadialBasisWeight(h_radialBasisWeights[i]);
+        m_warpfield.getNodes()[i]->setRadialBasisWeight(h_radialBasisWeights[i]);
     }
 }

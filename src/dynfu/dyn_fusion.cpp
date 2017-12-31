@@ -95,6 +95,8 @@ void DynFusion::updateWarpfield() {
 }
 
 /* TODO: Add comment */
+void DynFusion::warpCanonicalToLive() {}
+
 void DynFusion::warpCanonicalToLiveOpt() {
     // updateWarpfield();
 
