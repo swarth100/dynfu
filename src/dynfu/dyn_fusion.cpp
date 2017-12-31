@@ -3,10 +3,6 @@
 #include <kfusion/internal.hpp>
 #include <kfusion/precomp.hpp>
 
-using namespace std;
-using namespace kfusion;
-using namespace kfusion::cuda;
-
 /* TODO: Add comment */
 DynFusion::DynFusion(const kfusion::KinFuParams &params) : kfusion::KinFu::KinFu(params){};
 
@@ -19,24 +15,27 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
     const kfusion::KinFuParams &p = params_;
     const int LEVELS              = icp_->getUsedLevelsNum();
 
-    cuda::computeDists(depth, dists_, p.intr);
+    kfusion::cuda::computeDists(depth, dists_, p.intr);
     depthBilateralFilter(depth, curr_.depth_pyr[0], p.bilateral_kernel_size, p.bilateral_sigma_spatial,
                          p.bilateral_sigma_depth);
 
-    if (p.icp_truncate_depth_dist > 0)
+    if (p.icp_truncate_depth_dist > 0) {
         kfusion::cuda::depthTruncation(curr_.depth_pyr[0], p.icp_truncate_depth_dist);
+    }
 
-    for (int i = 1; i < LEVELS; ++i)
-        cuda::depthBuildPyramid(curr_.depth_pyr[i - 1], curr_.depth_pyr[i], p.bilateral_sigma_depth);
+    for (int i = 1; i < LEVELS; ++i) {
+        kfusion::cuda::depthBuildPyramid(curr_.depth_pyr[i - 1], curr_.depth_pyr[i], p.bilateral_sigma_depth);
+    }
 
-    for (int i = 0; i < LEVELS; ++i)
+    for (int i = 0; i < LEVELS; ++i) {
 #if defined USE_DEPTH
-        cuda::computeNormalsAndMaskDepth(p.intr(i), curr_.depth_pyr[i], curr_.normals_pyr[i]);
+        kfusion::cuda::computeNormalsAndMaskDepth(p.intr(i), curr_.depth_pyr[i], curr_.normals_pyr[i]);
 #else
-        cuda::computePointNormals(p.intr(i), curr_.depth_pyr[i], curr_.points_pyr[i], curr_.normals_pyr[i]);
+        kfusion::cuda::computePointNormals(p.intr(i), curr_.depth_pyr[i], curr_.points_pyr[i], curr_.normals_pyr[i]);
 #endif
+    }
 
-    cuda::waitAllDefaultStream();
+    kfusion::cuda::waitAllDefaultStream();
 
     // can't do more with the first frame
     if (frame_counter_ == 0) {
@@ -54,7 +53,7 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
     /*
      * ITERATIVE CLOSET POINT
      */
-    Affine3f affine;  // current -> previous
+    cv::Affine3f affine;  // current -> previous
     {
 // ScopeTime time("icp");
 #if defined USE_DEPTH
@@ -94,16 +93,19 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
 // ScopeTime time("ray-cast-all");
 #if defined USE_DEPTH
         volume_->raycast(poses_.back(), p.intr, prev_.depth_pyr[0], prev_.normals_pyr[0]);
-        for (int i = 1; i < LEVELS; ++i)
+        for (int i = 1; i < LEVELS; ++i) {
             resizeDepthNormals(prev_.depth_pyr[i - 1], prev_.normals_pyr[i - 1], prev_.depth_pyr[i],
                                prev_.normals_pyr[i]);
+        }
 #else
         volume_->raycast(poses_.back(), p.intr, prev_.points_pyr[0], prev_.normals_pyr[0]);
-        for (int i = 1; i < LEVELS; ++i)
+        for (int i = 1; i < LEVELS; ++i) {
             resizePointsNormals(prev_.points_pyr[i - 1], prev_.normals_pyr[i - 1], prev_.points_pyr[i],
                                 prev_.normals_pyr[i]);
+        }
 #endif
-        cuda::waitAllDefaultStream();
+
+        kfusion::cuda::waitAllDefaultStream();
     }
 
     if (frame_counter_ == 1) {
@@ -371,8 +373,8 @@ void DynFusion::renderCanonicalWarpedToLive(kfusion::cuda::Image &image, int fla
     } else if (flag == 2) {
         kfusion::cuda::renderTangentColors(normals, image);
     } else /* if (flag == 3) */ {
-        DeviceArray2D<RGB> i1(p.rows, p.cols, image.ptr(), image.step());
-        DeviceArray2D<RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
+        kfusion::device::DeviceArray2D<kfusion::RGB> i1(p.rows, p.cols, image.ptr(), image.step());
+        kfusion::device::DeviceArray2D<kfusion::RGB> i2(p.rows, p.cols, image.ptr() + p.cols, image.step());
 
         kfusion::cuda::renderImage(vertices, normals, params_.intr, params_.light_pose, i1);
         kfusion::cuda::renderTangentColors(normals, i2);
