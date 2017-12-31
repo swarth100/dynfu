@@ -29,7 +29,7 @@ RUN ln -s /terra /dynfu/build/terra
 RUN git clone https://github.com/mbrookes1304/Opt.git
 WORKDIR Opt/API
 RUN git checkout env-variables
-RUN make -j`nproc`
+RUN make
 WORKDIR ../..
 RUN ln -s /Opt /dynfu/build/Opt
 
@@ -39,7 +39,7 @@ RUN tar xzf OpenMesh-6.3.tar.gz
 WORKDIR OpenMesh-6.3
 RUN mkdir build
 WORKDIR build
-RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make -j`nproc` install
+RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make install
 WORKDIR ../..
 RUN rm -rf OpenMesh*
 WORKDIR ../..
@@ -52,7 +52,7 @@ RUN cmake \
          -D BUILD_EXAMPLES=OFF \
          -D BUILD_TESTING=OFF \
          -D GFLAGS=OFF \
-. && make -j`nproc` install
+. && make install
 WORKDIR ..
 RUN rm -rf ceres-solver
 
@@ -79,7 +79,7 @@ RUN cmake -D BUILD_keypoints=OFF \
           -D BUILD_stereo=OFF \
           -D BUILD_tools=OFF \
     ..
-RUN make -j`nproc` install
+RUN make install
 WORKDIR ../..
 RUN rm -rf pcl*
 
@@ -120,7 +120,7 @@ RUN cmake -D BUILD_DOCS=OFF \
           -D CUDA_GENERATION=${CUDA_GENERATION:-Auto} \
           -D WITH_VTK=ON \
     ..
-RUN make -j`nproc`
+RUN make
 RUN make install
 WORKDIR ../..
 RUN rm -rf opencv-3.2.0
@@ -134,7 +134,7 @@ ADD include /dynfu/include
 # Build dynfu
 WORKDIR dynfu/build
 RUN cmake -D CUDA_CUDA_LIBRARY="/usr/local/cuda/lib64/stubs/libcuda.so" ..
-RUN make -j`nproc`
+RUN make
 WORKDIR ..
 
 # Run dynamicfusion using /data
