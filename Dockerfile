@@ -1,28 +1,58 @@
 FROM nvidia/cuda:8.0-devel
 ARG CUDA_GENERATION=Auto
 
-RUN apt-get update && apt-get install -y cmake libvtk5-dev python pkg-config libgtk2.0-dev
+RUN apt-get update && apt-get install -y \
+    clang \
+    cmake \
+    git \
+    libblas-dev \
+    libeigen3-dev \
+    libgoogle-glog-dev \
+    libgtk2.0-dev \
+    liblapack-dev \
+    libproj-dev \
+    libsuitesparse-dev \
+    libvtk5-dev \
+    pkg-config \
+    zip
 
-# Install OpenCV
-ADD https://github.com/opencv/opencv/archive/3.2.0.tar.gz .
-RUN tar xzf 3.2.0.tar.gz
-RUN rm 3.2.0.tar.gz
-WORKDIR opencv-3.2.0
-RUN rm -rf platforms/android platforms/ios platforms/maven platforms/osx samples/*
+# Make dynfu build dir
+RUN mkdir -p dynfu/build
+
+# Get terra
+ADD https://github.com/zdevito/terra/releases/download/release-2016-03-25/terra-Linux-x86_64-332a506.zip .
+RUN unzip -qq terra-Linux-x86_64-332a506.zip
+RUN mv terra-Linux-x86_64-332a506 terra
+RUN ln -s /terra /dynfu/build/terra
+
+# Get Opt
+RUN git clone https://github.com/mbrookes1304/Opt.git
+WORKDIR Opt/API
+RUN git checkout env-variables
+RUN make
+WORKDIR ../..
+RUN ln -s /Opt /dynfu/build/Opt
+
+# Install OpenMesh
+ADD http://www.openmesh.org/media/Releases/6.3/OpenMesh-6.3.tar.gz .
+RUN tar xzf OpenMesh-6.3.tar.gz
+WORKDIR OpenMesh-6.3
 RUN mkdir build
 WORKDIR build
-RUN cmake -D WITH_VTK=ON -D BUILD_opencv_calib3d=ON -D BUILD_opencv_imgproc=ON -D CMAKE_BUILD_TYPE=RELEASE -D BUILD_PYTHON_SUPPORT=ON -D CUDA_GENERATION=${CUDA_GENERATION:-Auto} -D WITH_OPENGL=ON -D WITH_GTK_2_X=ON ..
-RUN make -j`nproc`
-RUN make install
+RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make install
 WORKDIR ../..
-RUN rm -rf opencv-3.2.0
-
-RUN apt-get install -y git zip clang libsuitesparse-dev liblapack-dev libblas-dev libeigen3-dev libgoogle-glog-dev
+RUN rm -rf OpenMesh*
+WORKDIR ../..
+RUN rm -rf OpenMesh*
 
 # Install ceres-solver
 RUN git clone https://ceres-solver.googlesource.com/ceres-solver
 WORKDIR ceres-solver
-RUN cmake . && make install
+RUN cmake \
+         -D BUILD_EXAMPLES=OFF \
+         -D BUILD_TESTING=OFF \
+         -D GFLAGS=OFF \
+. && make install
 WORKDIR ..
 RUN rm -rf ceres-solver
 
@@ -48,43 +78,52 @@ RUN cmake -D BUILD_keypoints=OFF \
           -D BUILD_simulation=OFF \
           -D BUILD_stereo=OFF \
           -D BUILD_tools=OFF \
-          -D BUILD_features=ON \
     ..
 RUN make install
 WORKDIR ../..
 RUN rm -rf pcl*
 
-# Install libproj
-RUN apt-get install -y libproj-dev
-
-# Make dynfu build dir
-RUN mkdir -p dynfu/build
-
-# Get terra
-ADD https://github.com/zdevito/terra/releases/download/release-2016-03-25/terra-Linux-x86_64-332a506.zip .
-RUN unzip -qq terra-Linux-x86_64-332a506.zip
-RUN mv terra-Linux-x86_64-332a506 terra
-RUN ln -s /terra /dynfu/build/terra
-
-# Get Opt
-RUN git clone https://github.com/mbrookes1304/Opt.git
-WORKDIR Opt/API
-RUN git checkout env-variables
-RUN make
-WORKDIR ../..
-RUN ln -s /Opt /dynfu/build/Opt
-
-# Install OpenMesh
-ADD http://www.openmesh.org/media/Releases/6.3/OpenMesh-6.3.tar.gz .
-RUN tar xzf OpenMesh-6.3.tar.gz
-WORKDIR OpenMesh-6.3
+# Install OpenCV
+ADD https://github.com/opencv/opencv/archive/3.2.0.tar.gz .
+RUN tar xzf 3.2.0.tar.gz
+RUN rm 3.2.0.tar.gz
+WORKDIR opencv-3.2.0
+RUN rm -rf platforms/android platforms/ios platforms/maven platforms/osx samples/*
 RUN mkdir build
 WORKDIR build
-RUN cmake .. && make install
+RUN cmake -D BUILD_DOCS=OFF \
+          -D BUILD_PACKAGE=OFF \
+          -D BUILD_PERF_TESTS=OFF \
+          -D BUILD_TESTS=OFF \
+          -D BUILD_WITH_DEBUG_INFO=OFF \
+          -D BUILD_opencv_apps=OFF \
+          -D BUILD_opencv_calib3d=ON \
+          -D BUILD_opencv_core=ON \
+          -D BUILD_opencv_features2d=ON \
+          -D BUILD_opencv_flann=ON \
+          -D BUILD_opencv_highgui=ON \
+          -D BUILD_opencv_imgcodecs=ON \
+          -D BUILD_opencv_imgproc=ON \
+          -D BUILD_opencv_ml=ON \
+          -D BUILD_opencv_objdetect=OFF \
+          -D BUILD_opencv_photo=OFF \
+          -D BUILD_opencv_shape=OFF \
+          -D BUILD_opencv_stitching=OFF \
+          -D BUILD_opencv_superres=OFF \
+          -D BUILD_opencv_ts=OFF \
+          -D BUILD_opencv_video=OFF \
+          -D BUILD_opencv_videoio=OFF \
+          -D BUILD_opencv_videostab=OFF \
+          -D BUILD_opencv_viz=ON \
+          -D BUILD_opencv_video=OFF \
+          -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CUDA_GENERATION=${CUDA_GENERATION:-Auto} \
+          -D WITH_VTK=ON \
+    ..
+RUN make
+RUN make install
 WORKDIR ../..
-RUN rm -rf OpenMesh*
-WORKDIR ../..
-RUN rm -rf OpenMesh*
+RUN rm -rf opencv-3.2.0
 
 # Add source files
 ADD CMakeLists.txt /dynfu
@@ -95,8 +134,16 @@ ADD include /dynfu/include
 # Build dynfu
 WORKDIR dynfu/build
 RUN cmake -D CUDA_CUDA_LIBRARY="/usr/local/cuda/lib64/stubs/libcuda.so" ..
-RUN make -j`nproc`
+RUN make
 WORKDIR ..
 
 # Run dynamicfusion using /data
 CMD ./build/bin/app /data
+
+# Rmeove unnecessary packages
+RUN apt-get remove -y \
+    clang \
+    curl \
+    git \
+    pkg-config \
+    zip
