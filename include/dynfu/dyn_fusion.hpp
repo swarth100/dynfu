@@ -48,7 +48,7 @@ public:
     cv::Affine3f getLiveToCanonicalAffine();
 
     /* warp canonical frame to live frame using Opt */
-    bool warpCanonicalToLiveOpt();
+    void warpCanonicalToLiveOpt();
 
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);

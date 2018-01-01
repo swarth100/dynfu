@@ -118,7 +118,6 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     initCanonicalFrame(canonicalVertices, canonicalNormals);
 
-    /* TODO (dig15): implement better sampling of deformation nodes */
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
 
     int step = 10;
@@ -142,7 +141,8 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
 /* TODO: Add comment */
 void DynFusion::initCanonicalFrame(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals) {
-    this->canonicalFrame = std::make_shared<dynfu::Frame>(0, vertices, normals);
+    this->canonicalFrame        = std::make_shared<dynfu::Frame>(0, vertices, normals);
+    this->canonicalWarpedToLive = this->canonicalFrame;
 }
 
 void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }
@@ -184,8 +184,7 @@ void DynFusion::updateWarpfield() {
     std::cout << "finished updating the warpfield" << std::endl;
 }
 
-/* TODO (dig15): handle the frame_counter_ in a more elegant way */
-bool DynFusion::warpCanonicalToLiveOpt() {
+void DynFusion::warpCanonicalToLiveOpt() {
     // updateWarpfield();
 
     CombinedSolverParameters params;
@@ -201,25 +200,6 @@ bool DynFusion::warpCanonicalToLiveOpt() {
     CombinedSolver combinedSolver(*warpfield, params);
 
     auto affineCanonicalToLive = affineLiveToCanonical.inv();
-
-    if (frame_counter_ == 1) {
-        auto canonicalNormals  = canonicalFrame->getNormals();
-        auto canonicalVertices = canonicalFrame->getVertices();
-
-        auto liveFrameVertices = liveFrame->getVertices();
-
-        auto correspondingCanonicalFrame =
-            findCorrespondingFrame(canonicalVertices, canonicalNormals, liveFrameVertices);
-
-        combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame);
-        combinedSolver.solveAll();
-
-        std::cout << "solved" << std::endl;
-
-        canonicalWarpedToLive = warpfield->warpToLive(affineCanonicalToLive, canonicalFrame);
-
-        return true;
-    }
 
     auto canonicalWarped = warpfield->warpToLive(affineCanonicalToLive, canonicalFrame);
 
