@@ -216,8 +216,6 @@ void DynFusion::warpCanonicalToLiveOpt() {
     std::cout << "solved" << std::endl;
 
     canonicalWarpedToLive = warpfield->warpToLive(affineCanonicalToLive, canonicalFrame);
-
-    return true;
 }
 
 std::shared_ptr<dynfu::Frame> DynFusion::findCorrespondingFrame(pcl::PointCloud<pcl::PointXYZ> canonicalVertices,
@@ -290,26 +288,25 @@ void DynFusion::reconstructSurface() {
 
     pcl::VoxelGrid<pcl::PointNormal> sampler;
     sampler.setInputCloud(cloudWithNormals);
-    sampler.setLeafSize(0.08f, 0.08f, 0.08f);
+    sampler.setLeafSize(0.05, 0.05f, 0.05f);
     sampler.filter(*cloudWithNormalsDownsampled);
 
     std::cout << "no. of points used for reconstruction: " << cloudWithNormalsDownsampled->size() << std::endl;
 
     // perform reconstruction via marching cubes
-    pcl::MarchingCubes<pcl::PointNormal> *mc;
-    mc = new pcl::MarchingCubesRBF<pcl::PointNormal>();
+    pcl::MarchingCubesRBF<pcl::PointNormal> *mc(new pcl::MarchingCubesRBF<pcl::PointNormal>());
 
     mc->setInputCloud(cloudWithNormalsDownsampled);
 
-    /* TODO (dig15): find better values for these parametres */
     float iso_level                = 0.f;
     float extend_percentage        = 0.f;
-    int grid_res                   = 50;
-    float off_surface_displacement = 0.f;
+    int grid_res                   = 96;
+    float off_surface_displacement = 1e-3f;
 
     mc->setIsoLevel(iso_level);
     mc->setGridResolution(grid_res, grid_res, grid_res);
     mc->setPercentageExtendGrid(extend_percentage);
+    mc->setOffSurfaceDisplacement(off_surface_displacement);
 
     pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
 
