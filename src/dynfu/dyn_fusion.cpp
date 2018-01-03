@@ -46,7 +46,7 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
         /* initialise the warpfield */
         init(prev_.points_pyr[0], prev_.normals_pyr[0]);
         /* construct polygon mesh for the canonical frame */
-        reconstructSurface();
+        // reconstructSurface();
 
         return ++frame_counter_, false;
     }
@@ -90,7 +90,7 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
     /* warp canonical frame to live frame */
     warpCanonicalToLiveOpt();
     /* construct a polygon mesh of the warped model via marching cubes */
-    reconstructSurface();
+    // reconstructSurface();
 
     return ++frame_counter_, true;
 }

@@ -62,15 +62,14 @@ local G = Graph("dataGraph", 8,
                     "n7", {D}, 17)
 
 local totalTranslation = 0
-local totalRotation = 0
+local totalRotation = 0 -- FIXME (dig15): use rotations
 
 nodes = {0,1,2,3,4,5,6,7}
 
 for _,i in ipairs(nodes) do
     local transformationWeight = calculateTransformationWeight(canonicalVertices(G.v), nodeCoordinates(G["n"..i]), radialBasisWeights(G["n"..i]))
     totalTranslation = totalTranslation + transformationWeight * translation(G["n"..i])
-    -- totalRotation = totalRotation + rotation(G["n"..i]) -- FIXME (dig15): use rotations
 end
 
 Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
--- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): use the normals
+-- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): use the tukey penalty and the normals
