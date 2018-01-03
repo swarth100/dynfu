@@ -127,8 +127,6 @@ TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
     combinedSolver.solveAll();
 
     /* FIXME (dig15): figure out why the test fails */
-    maxError = 0.01;
-
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
@@ -203,8 +201,6 @@ TEST_F(OptTest, OneGroupOfVerticesTwoGroupsOfDeformationNodes) {
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
 
-    maxError = 1.0;
-
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
@@ -258,7 +254,8 @@ TEST_F(OptTest, TwoGroupsOfVerticesTwoGroupsOfDeformationNodes) {
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
 
-    maxError = 2.0;
+    /* TODO (dig15): figure out why the test fails */
+    maxError = 1.0;
 
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
@@ -297,6 +294,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
 
+    /* TODO (dig15): figure out why the test fails */
     maxError = 1.0;
 
     int j = 0;
@@ -356,8 +354,6 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesNonRigidTest) {
     CombinedSolver combinedSolver(warpfield, params);
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
-
-    maxError = 1.0;
 
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
