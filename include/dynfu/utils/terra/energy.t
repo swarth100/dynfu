@@ -1,75 +1,84 @@
 -- function definitions
 
--- calculates the norm of a 3-D vector
-function norm(v)
-  return pow(pow(v(0), 2) + pow(v(1), 2) + pow(v(2), 2), 0.5)
-end
-
--- calculates the dot product of 3-D vectors
-function dotProduct(a, b)
-  local dot = a(0) * b(0) + a(1) * b(1) + a(2) * b(2)
-  return dot
-end
-
--- calculates the transformation weight given the coordinates of a vertex and a node and the radial basis weight of the node
-function calculateTransformationWeight(vertexCoordinates, nodeCoordinates, radialBasisWeight)
-  return exp(-pow(norm(vertexCoordinates - nodeCoordinates), 2) / (2 * pow(radialBasisWeight, 2)))
-end
-
--- function to calculate the huber penalty
-function huberPenalty(a, delta) -- the value of delta?
-  if lesseq(abs(a), delta) then
-    return a * a / 2
-  else
-    return delta * abs(a) - delta *  delta / 2
-  end
-end
-
--- function to calculate the tukey penalty
-function tukeyPenalty(x, c)
-  if lesseq(abs(x), c) then
-    return x * pow(1.0 - (x * x) / (c * c), 2)
-  else
-    return 0
-  end
-end
+-- -- multiply two 3x3 matrices
+-- function MatrixMul(m1, m2)
+--   local mtx = {}
+--
+-- 	mtx[0] = m1(0) * m2(0) + m1(1) * m2(3) + m1(2) * m2(6)
+--   mtx[1] = m1(0) * m2(1) + m1(1) * m2(4) + m1(2) * m2(7)
+--   mtx[2] = m1(0) * m2(2) + m1(1) * m2(5) + m1(2) * m2(8)
+--
+--   mtx[3] = m1(3) * m2(0) + m1(4) * m2(3) + m1(5) * m2(6)
+--   mtx[4] = m1(3) * m2(1) + m1(4) * m2(4) + m1(5) * m2(7)
+--   mtx[5] = m1(3) * m2(2) + m1(4) * m2(5) + m1(5) * m2(8)
+--
+--   mtx[6] = m1(6) * m2(0) + m1(7) * m2(3) + m1(8) * m2(6)
+--   mtx[7] = m1(6) * m2(1) + m1(7) * m2(4) + m1(8) * m2(7)
+--   mtx[8] = m1(6) * m2(2) + m1(7) * m2(5) + m1(8) * m2(8)
+--
+--   return ad.Vector(mtx[0], mtx[1], mtx[2],
+--                    mtx[3], mtx[4], mtx[5],
+--                    mtx[6], mtx[7], mtx[8])
+-- end
+--
+-- -- convert Euler angles to a rotation matrix
+-- function eulerToMatrix(r)
+--     local alpha, beta, gamma = r(0), r(1), r(2)
+--     local CosAlpha, CosBeta, CosGamma, SinAlpha, SinBeta, SinGamma = ad.cos(alpha), ad.cos(beta), ad.cos(gamma), ad.sin(alpha), ad.sin(beta), ad.sin(gamma)
+--
+--     local matrix = ad.Vector(
+--           CosGamma*CosBeta,
+--           -SinGamma*CosAlpha + CosGamma*SinBeta*SinAlpha,
+--           SinGamma*SinAlpha + CosGamma*SinBeta*CosAlpha,
+--
+--           SinGamma*CosBeta,
+--           CosGamma*CosAlpha + SinGamma*SinBeta*SinAlpha,
+--           -CosGamma*SinAlpha + SinGamma*SinBeta*CosAlpha,
+--
+--           -SinBeta,
+--           CosBeta*SinAlpha,
+--           CosBeta*CosAlpha)
+--
+--     return matrix
+-- end
 
 -- energy specifciation
 
 local D,N = Dim("D",0), Dim("N",1)
 
-local nodeCoordinates = Array("nodeCoordinates",opt_float3,{D},0) -- used to calculate transformation weights from the radial basis weights
-
+local transformation = Unknown("transformation",opt_float3,{D},0)
 local rotation = Unknown("rotation",opt_float3,{D},1)
-local translation = Unknown("translation",opt_float3,{D},2)
-local radialBasisWeights = Unknown("radialBasisWeights",opt_float,{D},3)
+local transformationWeights = Array("transformationWeights",opt_float8,{N},2)
 
-local canonicalVertices = Array("canonicalVertices",opt_float3,{N},4)
-local canonicalNormals = Array("canonicalNormals",opt_float3,{N},5)
+local canonicalVertices = Array("canonicalVertices",opt_float3,{N},3)
+local canonicalNormals = Array("canonicalNormals",opt_float3,{N},4)
 
-local liveVertices = Array("liveVertices",opt_float3,{N},6)
-local liveNormals = Array("liveNormals",opt_float3,{N},7)
+local liveVertices = Array("liveVertices",opt_float3,{N},5)
+local liveNormals = Array("liveNormals",opt_float3,{N},6)
+
+local tukeyBiweights = Array("tukeyBiweights",opt_float,{N},7)
 
 local G = Graph("dataGraph", 8,
                     "v", {N}, 9,
-                    "n0", {D}, 10,
-                    "n1", {D}, 11,
-                    "n2", {D}, 12,
-                    "n3", {D}, 13,
-                    "n4", {D}, 14,
-                    "n5", {D}, 15,
-                    "n6", {D}, 16,
-                    "n7", {D}, 17)
+                    "w", {N}, 10, -- transformation weights
+                    "n0", {D}, 11,
+                    "n1", {D}, 12,
+                    "n2", {D}, 13,
+                    "n3", {D}, 14,
+                    "n4", {D}, 15,
+                    "n5", {D}, 16,
+                    "n6", {D}, 17,
+                    "n7", {D}, 18)
 
-local totalTranslation = 0
-local totalRotation = 0 -- FIXME (dig15): use rotations
-
-nodes = {0,1,2,3,4,5,6,7}
+local nodes = { 0, 1, 2, 3, 4, 5, 6, 7 }
+local totalTransformation = 0
+local totalRotation = 0
+-- local totalRotation = ad.Vector(1, 0, 0, 0, 1, 0, 0, 0, 1)
 
 for _,i in ipairs(nodes) do
-    local transformationWeight = calculateTransformationWeight(canonicalVertices(G.v), nodeCoordinates(G["n"..i]), radialBasisWeights(G["n"..i]))
-    totalTranslation = totalTranslation + transformationWeight * translation(G["n"..i])
+    -- totalRotation = rotation(G["n"..i])
+    totalTransformation = totalTransformation + transformationWeights(G.w)(i) * transformation(G["n"..i])
 end
 
-Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
--- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): use the tukey penalty and the normals
+Energy(sqrt(tukeyBiweights(G.v)) * (liveVertices(G.v) - canonicalVertices(G.v) - totalTransformation))
+-- Energy(liveVertices(G.v) - Rotate3D(totalRotation, canonicalVertices(G.v)))

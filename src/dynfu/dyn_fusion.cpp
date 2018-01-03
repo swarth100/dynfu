@@ -120,7 +120,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
 
-    int step = 10;
+    int step = 70;
     std::vector<std::shared_ptr<Node>> deformationNodes;
 
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
@@ -143,6 +143,8 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 void DynFusion::initCanonicalFrame(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals) {
     this->canonicalFrame        = std::make_shared<dynfu::Frame>(0, vertices, normals);
     this->canonicalWarpedToLive = this->canonicalFrame;
+
+    std::cout << "no. of canonical vertices: " << vertices.size() << std::endl;
 }
 
 void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = affineLiveToCanonical * newAffine; }
@@ -241,20 +243,14 @@ std::shared_ptr<dynfu::Frame> DynFusion::findCorrespondingFrame(pcl::PointCloud<
     for (auto vertex : liveVertices) {
         cv::Vec3f vertexCoordinates = cv::Vec3f(vertex.x, vertex.y, vertex.z);
 
-        if ((!vertexCoordinates[0] && !vertexCoordinates[1] && !vertexCoordinates[2]) ||
-            std::isnan(vertexCoordinates[0]) || std::isnan(vertexCoordinates[1]) || std::isnan(vertexCoordinates[2])) {
-            correspondingCanonicalVertices.push_back(
-                pcl::PointXYZ(vertexCoordinates[0], vertexCoordinates[1], vertexCoordinates[2]));
-            correspondingCanonicalNormals.push_back(
-                pcl::Normal(vertexCoordinates[0], vertexCoordinates[1], vertexCoordinates[2]));
-        } else {
-            std::vector<float> query = {vertexCoordinates[0], vertexCoordinates[1], vertexCoordinates[2]};
-            kdTree->knnSearch(&query[0], 1, &retIndex[0], &outDistSqr[0]);
-            size_t index = retIndex[0];
-            correspondingCanonicalVertices.push_back(canonicalVertices[index]);
-            correspondingCanonicalNormals.push_back(canonicalNormals[index]);
-        }
+        std::vector<float> query = {vertexCoordinates[0], vertexCoordinates[1], vertexCoordinates[2]};
+        kdTree->knnSearch(&query[0], 1, &retIndex[0], &outDistSqr[0]);
+        size_t index = retIndex[0];
+
+        correspondingCanonicalVertices.push_back(canonicalVertices[index]);
+        correspondingCanonicalNormals.push_back(canonicalNormals[index]);
     }
+
     return std::make_shared<dynfu::Frame>(0, correspondingCanonicalVertices, correspondingCanonicalNormals);
 }
 

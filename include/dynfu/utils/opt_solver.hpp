@@ -4,6 +4,7 @@
 #define TOSTRING(x) STRINGIFY(x)
 
 /* dynfu includes */
+#include <dynfu/utils/cuda_utils.h>
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/warp_field.hpp>
 
@@ -59,11 +60,20 @@ private:
 
     std::shared_ptr<OptGraph> m_dataGraph;
 
-    std::shared_ptr<OptImage> m_nodeCoordinates;
-
+    std::shared_ptr<OptImage> m_transformation;
     std::shared_ptr<OptImage> m_rotation;
-    std::shared_ptr<OptImage> m_translation;
-    std::shared_ptr<OptImage> m_radialBasisWeights;
+    std::shared_ptr<OptImage> m_transformationWeights;
 
-    std::vector<cv::Vec3f> m_results;
+    std::shared_ptr<OptImage> m_tukeyBiweights;
 };
+
+static float calcTukeyBiweight(pcl::PointXYZ canonicalVertex, pcl::PointXYZ liveVertex, float c) {
+    float d = sqrt(pow(canonicalVertex.x - liveVertex.x, 2) + pow(canonicalVertex.y - liveVertex.y, 2) +
+                   pow(canonicalVertex.z - liveVertex.z, 2));
+
+    if (d < c) {
+        return d * pow(1.0 - pow(d, 2) / pow(c, 2), 2);
+    } else {
+        return 0.f;
+    }
+}
