@@ -49,7 +49,7 @@ std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(pcl::PointXYZ point) {
         DualQuaternion<float> dg_se3                  = *node->getTransformation();
         DualQuaternion<float> weighted_transformation = dg_se3 * nodeWeight;
 
-        transformationSum += weighted_transformation;
+        transformationSum *= weighted_transformation;
     }
 
     /* normalise the sum */
