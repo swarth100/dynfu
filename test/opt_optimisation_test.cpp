@@ -43,6 +43,8 @@ protected:
         params.earlyOut           = true;
         params.optDoublePrecision = true;
 
+        float RAD90 = M_PI / 2;
+
         auto dg_se3 = std::make_shared<DualQuaternion<float>>(0, 0, 0, 0, 0, 0);  // transformation
         float dg_w  = 2;                                                          // radial basis weight
 
@@ -138,8 +140,6 @@ TEST_F(OptTest, SimpleRotationTest) {
     CombinedSolver combinedSolver(warpfield, params);
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
-
-    pcl::PointXYZ result = pcl::PointXYZ(0, 0, 1);
 
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {

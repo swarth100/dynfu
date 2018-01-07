@@ -72,13 +72,10 @@ local G = Graph("dataGraph", 8,
 
 local nodes = { 0, 1, 2, 3, 4, 5, 6, 7 }
 local totalTransformation = 0
-local totalRotation = 0
--- local totalRotation = ad.Vector(1, 0, 0, 0, 1, 0, 0, 0, 1)
+-- local totalRotation = 0
 
 for _,i in ipairs(nodes) do
-    -- totalRotation = rotation(G["n"..i])
     totalTransformation = totalTransformation + transformationWeights(G.w)(i) * transformation(G["n"..i])
 end
 
-Energy(sqrt(tukeyBiweights(G.v)) * (liveVertices(G.v) - canonicalVertices(G.v) - totalTransformation))
--- Energy(liveVertices(G.v) - Rotate3D(totalRotation, canonicalVertices(G.v)))
+Energy(sqrt(transformationWeights(G.v)) * (liveVertices(G.v) - canonicalVertices(G.v) - totalTransformation))

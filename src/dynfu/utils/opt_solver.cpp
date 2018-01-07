@@ -179,6 +179,8 @@ void CombinedSolver::copyResultToCPUFromFloat3() {
         //
         // m_warpfield.getNodes()[i]->setTransformation(dq);
 
+        m_warpfield.getNodes()[i]->updateRotation(cv::Vec3f(h_rotation[i].z, h_rotation[i].y, h_rotation[i].x));
+
         m_warpfield.getNodes()[i]->updateTranslation(
             cv::Vec3f(h_transformation[i].x, h_transformation[i].y, h_transformation[i].z));
     }

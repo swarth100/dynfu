@@ -46,3 +46,9 @@ void Node::updateTranslation(cv::Vec3f translation) {
     translation += dg_se3->getTranslation();
     this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
 }
+
+void Node::updateRotation(cv::Vec3f eulerAngles) {
+    DualQuaternion<float> q1(eulerAngles[0], eulerAngles[1], eulerAngles[2], 0.f, 0.f, 0.f);
+    DualQuaternion<float> q2 = *(dg_se3);
+    this->dg_se3             = std::make_shared<DualQuaternion<float>>(q1 * q2);
+}
