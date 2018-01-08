@@ -25,8 +25,8 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     m_liveVertices      = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
     m_liveNormals       = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
 
-    m_transformation        = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_rotation              = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_translations          = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_rotations             = createEmptyOptImage({D}, OptImage::Type::FLOAT, 4, OptImage::GPU, true);
     m_transformationWeights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 8, OptImage::GPU, true);
 
     m_tukeyBiweights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 1, OptImage::GPU, true);
@@ -79,8 +79,8 @@ void CombinedSolver::combinedSolveInit() {
     m_solverParams.set("nIterations", &m_combinedSolverParameters.nonLinearIter);
     m_solverParams.set("lIterations", &m_combinedSolverParameters.linearIter);
 
-    m_problemParams.set("transformation", m_transformation);
-    m_problemParams.set("rotation", m_rotation);
+    m_problemParams.set("translations", m_translations);
+    m_problemParams.set("rotations", m_rotations);
     m_problemParams.set("transformationWeights", m_transformationWeights);
 
     m_problemParams.set("canonicalVertices", m_canonicalVertices);
@@ -144,44 +144,38 @@ void CombinedSolver::resetGPUMemory() {
 
     auto D = m_dims[0];
 
-    std::vector<float3> h_transformation(D);
-    std::vector<float3> h_rotation(D);
+    std::vector<float3> h_translations(D);
+    std::vector<float4> h_rotations(D);
 
     for (int i = 0; i < D; i++) {
         auto nodeTransformation = m_warpfield.getNodes()[i]->getTransformation();
-        auto nodeTranslation    = nodeTransformation->getTranslation();
 
-        auto eulerAngles = nodeTransformation->getEulerAngles();
+        auto nodeTranslation = nodeTransformation->getTranslation();
+        auto nodeRotation    = nodeTransformation->getRotation();
 
-        h_transformation[i] = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
-        h_rotation[i]       = make_float3(eulerAngles[0], eulerAngles[1], eulerAngles[2]);
+        h_translations[i] = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
+        h_rotations[i]    = make_float4(nodeRotation.R_component_1(), nodeRotation.R_component_2(),
+                                     nodeRotation.R_component_3(), nodeRotation.R_component_4());
     }
 
-    m_transformation->update(h_transformation);
-    m_rotation->update(h_rotation);
+    m_translations->update(h_translations);
+    m_rotations->update(h_rotations);
 }
 
 void CombinedSolver::copyResultToCPUFromFloat3() {
     auto D = m_dims[0];
 
-    std::vector<float3> h_transformation(D);
-    std::vector<float3> h_rotation(D);
+    std::vector<float3> h_translations(D);
+    std::vector<float4> h_rotations(D);
 
-    m_transformation->copyTo(h_transformation);
-    m_rotation->copyTo(h_rotation);
+    m_translations->copyTo(h_translations);
+    m_rotations->copyTo(h_rotations);
 
     for (unsigned int i = 0; i < D; i++) {
-        /* FIXME (dig15): to be used when rotations work */
+        auto realWithUpdate = boost::math::quaternion<float>(1.f, 0.f, 0.f, 0.f);
+        auto dualWithUpdate =
+            boost::math::quaternion<float>(0, h_translations[i].x, h_translations[i].y, h_translations[i].z) * 0.5f;
 
-        // auto dq = std::make_shared<DualQuaternion<float>>(h_rotation[i].z, h_rotation[i].y, h_rotation[i].x,
-        //                                                   h_transformation[i].x, h_transformation[i].y,
-        //                                                   h_transformation[i].z);
-        //
-        // m_warpfield.getNodes()[i]->setTransformation(dq);
-
-        m_warpfield.getNodes()[i]->updateRotation(cv::Vec3f(h_rotation[i].z, h_rotation[i].y, h_rotation[i].x));
-
-        m_warpfield.getNodes()[i]->updateTranslation(
-            cv::Vec3f(h_transformation[i].x, h_transformation[i].y, h_transformation[i].z));
+        m_warpfield.getNodes()[i]->updateTransformation(realWithUpdate, dualWithUpdate);
     }
 }

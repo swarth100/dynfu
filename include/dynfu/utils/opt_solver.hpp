@@ -60,8 +60,8 @@ private:
 
     std::shared_ptr<OptGraph> m_dataGraph;
 
-    std::shared_ptr<OptImage> m_transformation;
-    std::shared_ptr<OptImage> m_rotation;
+    std::shared_ptr<OptImage> m_translations;
+    std::shared_ptr<OptImage> m_rotations;
     std::shared_ptr<OptImage> m_transformationWeights;
 
     std::shared_ptr<OptImage> m_tukeyBiweights;

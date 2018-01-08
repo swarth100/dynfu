@@ -16,6 +16,20 @@ cv::Vec3f Node::getPosition() { return dg_v; }
 
 std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
 
+void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3) { this->dg_se3 = new_dg_se3; }
+
+void Node::updateTransformation(boost::math::quaternion<float> real, boost::math::quaternion<float> dual) {
+    auto prevTransformation = getTransformation();
+    auto prevReal           = prevTransformation->getReal();
+    auto prevDual           = prevTransformation->getDual();
+
+    auto currReal = boost::math::quaternion<float>(1.f, 0.f, 0.f, 0.f);
+    auto currDual = prevDual + dual;
+    auto dq       = std::make_shared<DualQuaternion<float>>(currReal, currDual);
+
+    this->dg_se3 = dq;
+}
+
 float Node::getRadialBasisWeight() { return dg_w; }
 
 float Node::getTransformationWeight(pcl::PointXYZ vertexPosition) {
@@ -25,30 +39,4 @@ float Node::getTransformationWeight(pcl::PointXYZ vertexPosition) {
                 pow(position[2] - vertexPosition.z, 2);
 
     return exp(-dist / (2 * pow(weight, 2)));
-}
-
-void Node::setTranslation(cv::Vec3f translation) {
-    auto real    = dg_se3->getReal();
-    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
-}
-
-void Node::setRotation(boost::math::quaternion<float> real) {
-    auto dual    = dg_se3->getDual();
-    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, dual);
-}
-
-void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
-
-void Node::setRadialBasisWeight(float newWeight) { dg_w = newWeight; }
-
-void Node::updateTranslation(cv::Vec3f translation) {
-    auto real = dg_se3->getReal();
-    translation += dg_se3->getTranslation();
-    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
-}
-
-void Node::updateRotation(cv::Vec3f eulerAngles) {
-    DualQuaternion<float> q1(eulerAngles[0], eulerAngles[1], eulerAngles[2], 0.f, 0.f, 0.f);
-    DualQuaternion<float> q2 = *(dg_se3);
-    this->dg_se3             = std::make_shared<DualQuaternion<float>>(q1 * q2);
 }
