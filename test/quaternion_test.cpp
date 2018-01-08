@@ -144,11 +144,11 @@ TEST_F(DualQuaternionTest, TestSum) {
 TEST_F(DualQuaternionTest, TestComposeRotations) {
     pcl::PointXYZ vertex(0, 0, 1);
 
-    pcl::PointXYZ vertexTransformed1Rot  = dq90.transformPosition(vertex);
-    pcl::PointXYZ vertexTransformed2Rots = dq90.transformPosition(vertexTransformed1Rot);
+    pcl::PointXYZ vertexTransformed1Rot  = dq90.transformVertex(vertex);
+    pcl::PointXYZ vertexTransformed2Rots = dq90.transformVertex(vertexTransformed1Rot);
 
     DualQuaternion<float> dqComposition        = dq90 * dq90;
-    pcl::PointXYZ vertexTransformedComposition = dqComposition.transformPosition(vertex);
+    pcl::PointXYZ vertexTransformedComposition = dqComposition.transformVertex(vertex);
 
     ASSERT_NEAR(vertexTransformed2Rots.x, vertexTransformedComposition.x, MAXERROR);
     ASSERT_NEAR(vertexTransformed2Rots.y, vertexTransformedComposition.y, MAXERROR);
@@ -332,7 +332,7 @@ TEST_F(DualQuaternionTest, TestNormalize) {
 /* tests that a 0 dual quaternion doesn't translate or rotate a vector */
 TEST_F(DualQuaternionTest, TestDoNotTransform) {
     pcl::PointXYZ vertex(0, 0, 1);
-    pcl::PointXYZ vertexTransformed = dq0.transformPosition(vertex);
+    pcl::PointXYZ vertexTransformed = dq0.transformVertex(vertex);
 
     ASSERT_NEAR(vertexTransformed.x, 0, MAXERROR);
     ASSERT_NEAR(vertexTransformed.y, 0, MAXERROR);
@@ -342,7 +342,7 @@ TEST_F(DualQuaternionTest, TestDoNotTransform) {
 /* tests that dual quaternion rotates a vector correctly */
 TEST_F(DualQuaternionTest, TestRotate) {
     pcl::PointXYZ vertex(0, 0, 1);
-    pcl::PointXYZ vertexTransformed = dq90.transformPosition(vertex);
+    pcl::PointXYZ vertexTransformed = dq90.transformVertex(vertex);
 
     ASSERT_NEAR(vertexTransformed.x, 1, MAXERROR);
     ASSERT_NEAR(vertexTransformed.y, 0, MAXERROR);
@@ -354,7 +354,7 @@ TEST_F(DualQuaternionTest, TestTranslate) {
     DualQuaternion<float> dq = DualQuaternion<float>(0.f, 0.f, 0.f, 1.f, 0.f, 0.f);
 
     pcl::PointXYZ vertex(0, 0, 1);
-    pcl::PointXYZ vertexTransformed = dq.transformPosition(vertex);
+    pcl::PointXYZ vertexTransformed = dq.transformVertex(vertex);
 
     ASSERT_NEAR(vertexTransformed.x, 1, MAXERROR);
     ASSERT_NEAR(vertexTransformed.y, 0, MAXERROR);
@@ -366,7 +366,7 @@ TEST_F(DualQuaternionTest, TestTranslateAndRotate) {
     DualQuaternion<float> dq = DualQuaternion<float>(RAD90, RAD90, RAD90, 1.f, 0.f, 0.f);
 
     pcl::PointXYZ vertex(0, 0, 1);
-    pcl::PointXYZ vertexTransformed = dq.transformPosition(vertex);
+    pcl::PointXYZ vertexTransformed = dq.transformVertex(vertex);
 
     ASSERT_NEAR(vertexTransformed.x, 2, MAXERROR);
     ASSERT_NEAR(vertexTransformed.y, 0, MAXERROR);

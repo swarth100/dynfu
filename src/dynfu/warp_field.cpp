@@ -70,15 +70,9 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(cv::Affine3f /* affineL
         pcl::PointXYZ vertex = vertices[i];  // affineLiveToCanonical * vertices[i];
         pcl::Normal normal   = normals[i];   // affineLiveToCanonical * normals[i];
 
-        auto transformation = calcDQB(vertex);
-
-        vertex = pcl::PointXYZ(vertex.x - transformation->getTranslation()[0],
-                               vertex.y - transformation->getTranslation()[1],
-                               vertex.z - transformation->getTranslation()[2]);
-
-        normal = pcl::Normal(normal.data_c[0] - transformation->getTranslation()[0],
-                             normal.data_c[1] - transformation->getTranslation()[1],
-                             normal.data_c[2] - transformation->getTranslation()[2]);
+        auto transformation = DualQuaternion<float>(0, 0, 0, 0, 0, 0) - *(calcDQB(vertex));
+        vertex              = transformation.transformVertex(vertex);
+        normal              = transformation.transformNormal(normal);
 
         warpedVertices.push_back(vertex);
         warpedNormals.push_back(normal);
@@ -100,14 +94,8 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(cv::Affine3f /* affineCanoni
         pcl::Normal normal   = normals[i];   // affineLiveToCanonical * normals[i];
 
         auto transformation = calcDQB(vertex);
-
-        vertex = pcl::PointXYZ(vertex.x + transformation->getTranslation()[0],
-                               vertex.y + transformation->getTranslation()[1],
-                               vertex.z + transformation->getTranslation()[2]);
-
-        normal = pcl::Normal(normal.data_c[0] + transformation->getTranslation()[0],
-                             normal.data_c[1] + transformation->getTranslation()[1],
-                             normal.data_c[2] + transformation->getTranslation()[2]);
+        vertex              = transformation->transformVertex(vertex);
+        normal              = transformation->transformNormal(normal);
 
         warpedVertices.push_back(vertex);
         warpedNormals.push_back(normal);

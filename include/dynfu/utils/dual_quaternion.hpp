@@ -201,7 +201,7 @@ public:
         return tan(0.5 * theta) * q / norm;
     }
 
-    pcl::PointXYZ transformPosition(pcl::PointXYZ v) {
+    pcl::PointXYZ transformVertex(pcl::PointXYZ v) {
         cv::Vec3f vect(v.x, v.y, v.z);
 
         cv::Vec3f realVect = cv::Vec3f(real.R_component_2(), real.R_component_3(), real.R_component_4());
@@ -212,6 +212,19 @@ public:
             2.f * (real.R_component_1() * dualVect - dual.R_component_1() * realVect + realVect.cross(dualVect));
 
         return pcl::PointXYZ(result[0], result[1], result[2]);
+    }
+
+    pcl::Normal transformNormal(pcl::Normal n) {
+        cv::Vec3f vect(n.data_c[0], n.data_c[1], n.data_c[2]);
+
+        cv::Vec3f realVect = cv::Vec3f(real.R_component_2(), real.R_component_3(), real.R_component_4());
+        cv::Vec3f dualVect = cv::Vec3f(dual.R_component_2(), dual.R_component_3(), dual.R_component_4());
+
+        cv::Vec3f result =
+            vect + 2.f * realVect.cross(realVect.cross(vect) + real.R_component_1() * vect) +
+            2.f * (real.R_component_1() * dualVect - dual.R_component_1() * realVect + realVect.cross(dualVect));
+
+        return pcl::Normal(result[0], result[1], result[2]);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const DualQuaternion<T>& dq) {

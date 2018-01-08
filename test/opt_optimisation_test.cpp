@@ -144,7 +144,7 @@ TEST_F(OptTest, SimpleRotationTest) {
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
@@ -185,7 +185,7 @@ TEST_F(OptTest, 2DTriangleRotationTest) {
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
@@ -216,7 +216,7 @@ TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
@@ -265,7 +265,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesTest) {
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
@@ -314,7 +314,7 @@ TEST_F(OptTest, OneGroupOfVerticesTwoGroupsOfDeformationNodes) {
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
@@ -393,7 +393,7 @@ TEST_F(OptTest, TwoGroupsOfVerticesTwoGroupsOfDeformationNodes) {
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
@@ -441,7 +441,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
@@ -462,7 +462,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
     j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformPosition(vertex);
+        auto result              = totalTransformation->transformVertex(vertex);
 
         ASSERT_NEAR(result.x, vertex.x, maxError);
         ASSERT_NEAR(result.y, vertex.y, maxError);
