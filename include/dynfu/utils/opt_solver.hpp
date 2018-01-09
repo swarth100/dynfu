@@ -24,22 +24,21 @@ public:
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
                                    const std::shared_ptr<dynfu::Frame> liveFrame);
 
-    void initializeConnectivity();
+    /* initialise data graph */
+    void initializeDataGraph();
+    /* initialise regularisation graph */
+    void initializeRegGraph();
 
     void combinedSolveInit() override;
+    void combinedSolveFinalize() override;
 
     void preSingleSolve() override;
-
     void postSingleSolve() override;
 
     virtual void preNonlinearSolve(int iteration) override;
-
     virtual void postNonlinearSolve(int iteration) override;
 
-    void combinedSolveFinalize() override;
-
     void resetGPUMemory();
-
     void copyResultToCPUFromFloat3();
 
 private:
@@ -59,6 +58,7 @@ private:
     std::shared_ptr<OptImage> m_liveNormals;
 
     std::shared_ptr<OptGraph> m_dataGraph;
+    std::shared_ptr<OptGraph> m_regGraph;
 
     std::shared_ptr<OptImage> m_translations;
     std::shared_ptr<OptImage> m_rotations;

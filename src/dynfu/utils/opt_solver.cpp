@@ -33,12 +33,13 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
 
     resetGPUMemory();
 
-    initializeConnectivity();
+    initializeDataGraph();
+    initializeRegGraph();
 
     addOptSolvers(m_dims, std::string(TOSTRING(TERRA_SOLVER_FILE)));
 }
 
-void CombinedSolver::initializeConnectivity() {
+void CombinedSolver::initializeDataGraph() {
     unsigned int N = m_dims[1];
 
     std::vector<float8> h_transformationWeights(N);
@@ -75,6 +76,41 @@ void CombinedSolver::initializeConnectivity() {
     std::cout << "initialized connectivity" << std::endl;
 }
 
+void CombinedSolver::initializeRegGraph() {
+    int knn = 4;
+
+    auto kdTree = m_warpfield.getKdTree();
+
+    /* not used, ignores the distance to the nodes for now */
+    std::vector<float> outDistSqr(4);
+    std::vector<size_t> retIndex(4);
+
+    unsigned int D = m_dims[0];
+    std::vector<std::vector<int>> indices(5, std::vector<int>(D));
+
+    int i = 0;
+    for (auto node : m_warpfield.getNodes()) {
+        pcl::PointXYZ dg_v       = node->getPosition();
+        std::vector<float> query = {dg_v.x, dg_v.y, dg_v.z};
+        int n                    = kdTree->knnSearch(&query[0], knn, &retIndex[0], &outDistSqr[0]);
+        retIndex.resize(n);
+
+        indices[0].push_back(i);
+
+        int j = 1;
+        for (auto idx : retIndex) {
+            indices[j].push_back(retIndex[j - 1]);
+            j++;
+        }
+
+        i++;
+    }
+
+    m_regGraph = std::make_shared<OptGraph>(indices);
+
+    std::cout << "initialised regularisation graph" << std::endl;
+}
+
 void CombinedSolver::combinedSolveInit() {
     m_solverParams.set("nIterations", &m_combinedSolverParameters.nonLinearIter);
     m_solverParams.set("lIterations", &m_combinedSolverParameters.linearIter);
@@ -92,6 +128,7 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("tukeyBiweights", m_tukeyBiweights);
 
     m_problemParams.set("dataGraph", m_dataGraph);
+    m_problemParams.set("regGraph", m_regGraph);
 }
 
 void CombinedSolver::preSingleSolve() {}

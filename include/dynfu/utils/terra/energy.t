@@ -1,7 +1,7 @@
-package.cpath = package.cpath .. ";/homes/dig15/df/dynfu/include/dynfu/utils/terra/?.so"
-require 'luadq'
+-- package.cpath = package.cpath .. ";/homes/dig15/df/dynfu/include/dynfu/utils/terra/?.so"
+-- require 'luadq'
 
--- energy specifciation
+-- data term
 
 local D,N = Dim("D",0), Dim("N",1)
 
@@ -17,7 +17,7 @@ local liveNormals = Array("liveNormals",opt_float3,{N},6)
 
 local tukeyBiweights = Array("tukeyBiweights",opt_float,{N},7)
 
-local G = Graph("dataGraph", 8,
+local dataG = Graph("dataGraph", 8,
                     "v", {N}, 9,
                     "w", {N}, 10, -- transformation weights
                     "n0", {D}, 11,
@@ -31,13 +31,29 @@ local G = Graph("dataGraph", 8,
 
 local nodes = { 0, 1, 2, 3, 4, 5, 6, 7 }
 local totalTranslation = 0
-local totalRotation = luadq.rotation_plucker(0, {0, 0, 0}, {0, 0, 0})
+-- local totalRotation = luadq.rotation_plucker(0, {0, 0, 0}, {0, 0, 0})
 
 for _,i in ipairs(nodes) do
-  totalTranslation = totalTranslation + transformationWeights(G.w)(i) * translations(G["n"..i])
+    totalTranslation = totalTranslation + transformationWeights(dataG.w)(i) * translations(dataG["n"..i])
 
-  local nodeRotation = rotations(G["n"..i])
-  -- totalRotation = luadq.rotation_plucker(nodeRotation(0), {nodeRotation(1), nodeRotation(2), nodeRotation(3)}, {0, 0, 0})
+    local nodeRotation = rotations(dataG["n"..i])
+    -- totalRotation = luadq.rotation_plucker(nodeRotation(0), {nodeRotation(1), nodeRotation(2), nodeRotation(3)}, {0, 0, 0})
 end
 
-Energy(sqrt(tukeyBiweights(G.v)) * (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation))
+Energy(liveVertices(dataG.v) - canonicalVertices(dataG.v) - totalTranslation)
+
+-- regularisation term
+
+local regG = Graph("regGraph", 19,
+                   "n", {D}, 20,
+                   "v0", {D}, 21,
+                   "v1", {D}, 22,
+                   "v2", {D}, 23,
+                   "v3", {D}, 24)
+
+local neighbours = { 0, 1, 2, 3 }
+local lambda = 0.001
+
+for _,i in ipairs(neighbours) do
+    Energy(sqrt(lambda) * (translations(regG.n) - translations(regG["v"..i])))
+end
