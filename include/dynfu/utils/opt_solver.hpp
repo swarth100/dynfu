@@ -60,20 +60,8 @@ private:
     std::shared_ptr<OptGraph> m_dataGraph;
     std::shared_ptr<OptGraph> m_regGraph;
 
+    std::shared_ptr<OptImage> m_dg_v;
     std::shared_ptr<OptImage> m_translations;
     std::shared_ptr<OptImage> m_rotations;
-    std::shared_ptr<OptImage> m_transformationWeights;
-
-    std::shared_ptr<OptImage> m_tukeyBiweights;
+    std::shared_ptr<OptImage> m_dg_w;
 };
-
-static float calcTukeyBiweight(pcl::PointXYZ canonicalVertex, pcl::PointXYZ liveVertex, float c) {
-    float d = sqrt(pow(canonicalVertex.x - liveVertex.x, 2) + pow(canonicalVertex.y - liveVertex.y, 2) +
-                   pow(canonicalVertex.z - liveVertex.z, 2));
-
-    if (d < c) {
-        return d * pow(1.0 - pow(d, 2) / pow(c, 2), 2);
-    } else {
-        return 0.f;
-    }
-}

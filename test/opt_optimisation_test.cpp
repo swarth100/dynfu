@@ -107,73 +107,88 @@ protected:
     std::shared_ptr<dynfu::Frame> liveFrame;
 };
 
-TEST_F(OptTest, TukeyBiweightsTest) {
-    auto sourceVertex = pcl::PointXYZ(0, 0.05, 1);
-    auto targetVertex = pcl::PointXYZ(0.01, 0.05, 1);
+// /* FIXME (dig15); rotation of a 2-d vertex */
+// TEST_F(OptTest, SimpleRotationTest) {
+//     warpfield.init(nodesGroup1);
+//
+//     sourceVertices.push_back(pcl::PointXYZ(0, 0, 1));
+//     sourceNormals.push_back(pcl::Normal(1, 1, 1));
+//
+//     canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceNormals);
+//
+//     targetVertices.push_back(pcl::PointXYZ(1, 0, 0));
+//     targetNormals.push_back(pcl::Normal(1, 1, 1));
+//
+//     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
+//
+//     CombinedSolver combinedSolver(warpfield, params);
+//     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+//     combinedSolver.solveAll();
+//
+//     int j = 0;
+//     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+//         auto totalTransformation = warpfield.calcDQB(vertex);
+//         auto result              = totalTransformation->transformVertex(vertex);
+//
+//         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
+//         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
+//         ASSERT_NEAR(result.z, liveFrame->getVertices()[j].z, maxError);
+//
+//         j++;
+//     }
+// }
+//
+// /* FIXME (dig15); rotation of a 2-d triangle */
+// TEST_F(OptTest, 2DTriangleRotationTest) {
+//     warpfield.init(nodesGroup1);
+//
+//     sourceVertices.push_back(pcl::PointXYZ(0, 0, 1));
+//     sourceVertices.push_back(pcl::PointXYZ(1, 0, 1));
+//     sourceVertices.push_back(pcl::PointXYZ(1, 1, 1));
+//
+//     sourceNormals.push_back(pcl::Normal(1, 1, 1));
+//     sourceNormals.push_back(pcl::Normal(1, 1, 1));
+//     sourceNormals.push_back(pcl::Normal(1, 1, 1));
+//
+//     canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceNormals);
+//
+//     targetVertices.push_back(pcl::PointXYZ(1, 1, 1));
+//     targetVertices.push_back(pcl::PointXYZ(1, 0, 1));
+//     targetVertices.push_back(pcl::PointXYZ(2, 0, 1));
+//
+//     targetNormals.push_back(pcl::Normal(1, 1, 1));
+//     targetNormals.push_back(pcl::Normal(1, 1, 1));
+//     targetNormals.push_back(pcl::Normal(1, 1, 1));
+//
+//     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
+//
+//     CombinedSolver combinedSolver(warpfield, params);
+//     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+//     combinedSolver.solveAll();
+//
+//     int j = 0;
+//     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+//         auto totalTransformation = warpfield.calcDQB(vertex);
+//         auto result              = totalTransformation->transformVertex(vertex);
+//
+//         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
+//         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
+//         ASSERT_NEAR(result.z, liveFrame->getVertices()[j].z, maxError);
+//
+//         j++;
+//     }
+// }
 
-    float c = 0.02f;
-
-    auto tukeyBiweight = calcTukeyBiweight(sourceVertex, targetVertex, c);
-    ASSERT_NEAR(tukeyBiweight, 0.005625, epsilon);
-
-    sourceVertex = pcl::PointXYZ(10, 10, 10);
-    targetVertex = pcl::PointXYZ(15, 15, 15);
-
-    tukeyBiweight = calcTukeyBiweight(sourceVertex, targetVertex, c);
-    ASSERT_NEAR(tukeyBiweight, 0, epsilon);
-}
-
-/* FIXME (dig15); rotation of a 2-d vertex */
-TEST_F(OptTest, SimpleRotationTest) {
+/* */
+TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
     warpfield.init(nodesGroup1);
 
-    sourceVertices.push_back(pcl::PointXYZ(0, 0, 1));
+    sourceVertices.push_back(pcl::PointXYZ(0, 0.05, 1));
     sourceNormals.push_back(pcl::Normal(1, 1, 1));
 
     canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceNormals);
 
-    targetVertices.push_back(pcl::PointXYZ(1, 0, 0));
-    targetNormals.push_back(pcl::Normal(1, 1, 1));
-
-    liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
-
-    CombinedSolver combinedSolver(warpfield, params);
-    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
-    combinedSolver.solveAll();
-
-    int j = 0;
-    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
-        auto totalTransformation = warpfield.calcDQB(vertex);
-        auto result              = totalTransformation->transformVertex(vertex);
-
-        ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
-        ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
-        ASSERT_NEAR(result.z, liveFrame->getVertices()[j].z, maxError);
-
-        j++;
-    }
-}
-
-/* FIXME (dig15); rotation of a 2-d triangle */
-TEST_F(OptTest, 2DTriangleRotationTest) {
-    warpfield.init(nodesGroup1);
-
-    sourceVertices.push_back(pcl::PointXYZ(0, 0, 1));
-    sourceVertices.push_back(pcl::PointXYZ(1, 0, 1));
-    sourceVertices.push_back(pcl::PointXYZ(1, 1, 1));
-
-    sourceNormals.push_back(pcl::Normal(1, 1, 1));
-    sourceNormals.push_back(pcl::Normal(1, 1, 1));
-    sourceNormals.push_back(pcl::Normal(1, 1, 1));
-
-    canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceNormals);
-
-    targetVertices.push_back(pcl::PointXYZ(1, 1, 1));
-    targetVertices.push_back(pcl::PointXYZ(1, 0, 1));
-    targetVertices.push_back(pcl::PointXYZ(2, 0, 1));
-
-    targetNormals.push_back(pcl::Normal(1, 1, 1));
-    targetNormals.push_back(pcl::Normal(1, 1, 1));
+    targetVertices.push_back(pcl::PointXYZ(0.01, 0.04, 1));
     targetNormals.push_back(pcl::Normal(1, 1, 1));
 
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
@@ -196,15 +211,21 @@ TEST_F(OptTest, 2DTriangleRotationTest) {
 }
 
 /* */
-TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
+TEST_F(OptTest, TwoVerticesOneNotMovingOneGroupOfDeformationNodesTest) {
     warpfield.init(nodesGroup1);
 
     sourceVertices.push_back(pcl::PointXYZ(0, 0.05, 1));
+    sourceVertices.push_back(pcl::PointXYZ(0.01, 0.02, 0.03));
+
+    sourceNormals.push_back(pcl::Normal(1, 1, 1));
     sourceNormals.push_back(pcl::Normal(1, 1, 1));
 
     canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceNormals);
 
-    targetVertices.push_back(pcl::PointXYZ(0.01, 0.04, 1));
+    targetVertices.push_back(pcl::PointXYZ(0.01, 0.04, 1.01));
+    targetVertices.push_back(pcl::PointXYZ(0.01, 0.02, 0.03));
+
+    targetNormals.push_back(pcl::Normal(1, 1, 1));
     targetNormals.push_back(pcl::Normal(1, 1, 1));
 
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
