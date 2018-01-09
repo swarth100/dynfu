@@ -4,7 +4,7 @@
 /* sys headers */
 #include <cmath>
 
-Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight) {
+Node::Node(pcl::PointXYZ position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight) {
     this->dg_v   = position;
     this->dg_se3 = transformation;
     this->dg_w   = radialBasisWeight;
@@ -12,7 +12,7 @@ Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transforma
 
 Node::~Node() = default;
 
-cv::Vec3f Node::getPosition() { return dg_v; }
+pcl::PointXYZ Node::getPosition() { return dg_v; }
 
 std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
 
@@ -35,8 +35,8 @@ float Node::getRadialBasisWeight() { return dg_w; }
 float Node::getTransformationWeight(pcl::PointXYZ vertexPosition) {
     auto position = this->getPosition();
     auto weight   = this->getRadialBasisWeight();
-    auto dist     = pow(position[0] - vertexPosition.x, 2) + pow(position[1] - vertexPosition.y, 2) +
-                pow(position[2] - vertexPosition.z, 2);
+    auto distSq   = pow(position.x - vertexPosition.x, 2) + pow(position.y - vertexPosition.y, 2) +
+                  pow(position.z - vertexPosition.z, 2);
 
-    return exp(-dist / (2 * pow(weight, 2)));
+    return exp(-distSq / (2 * pow(weight, 2)));
 }

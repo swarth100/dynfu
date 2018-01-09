@@ -32,23 +32,28 @@
  */
 class Node {
 public:
-    Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight);
+    /* constructor */
+    Node(pcl::PointXYZ position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight);
+    /* destructor */
     ~Node();
 
-    cv::Vec3f getPosition();
+    /* get dg_v of a deformation node */
+    pcl::PointXYZ getPosition();
 
+    /* get the dg_se3 of a deformation node */
     std::shared_ptr<DualQuaternion<float>>& getTransformation();
+    /* set transformation stored in a deformation node */
     void setTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3);
-
+    /* update transformation stored in a deformation nodes */
     void updateTransformation(boost::math::quaternion<float> real, boost::math::quaternion<float> dual);
 
+    /* get radial basis weight of a vertex */
     float getRadialBasisWeight();
-
     /* get transformation weight for a vertex */
     float getTransformationWeight(pcl::PointXYZ vertexPosition);
 
 private:
-    cv::Vec3f dg_v;
+    pcl::PointXYZ dg_v;
     std::shared_ptr<DualQuaternion<float>> dg_se3;
     float dg_w;
 };

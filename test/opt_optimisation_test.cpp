@@ -49,26 +49,26 @@ protected:
         float dg_w  = 2;                                                          // radial basis weight
 
         /* init node group 1 */
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(3, 1, -1), dg_se3, dg_w));
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(1, 1, 1), dg_se3, dg_w));
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(-1, 2, 3), dg_se3, dg_w));
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(-1, -1, 1), dg_se3, dg_w));
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(-2, -1, -1), dg_se3, dg_w));
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(2, -1, -3), dg_se3, dg_w));
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(-1, 1, -1), dg_se3, dg_w));
-        nodesGroup1.push_back(std::make_shared<Node>(cv::Vec3f(2, 1, 1), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(3, 1, -1), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(1, 1, 1), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(-1, 2, 3), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(-1, -1, 1), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(-2, -1, -1), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(2, -1, -3), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(-1, 1, -1), dg_se3, dg_w));
+        nodesGroup1.push_back(std::make_shared<Node>(pcl::PointXYZ(2, 1, 1), dg_se3, dg_w));
 
         /* init node group 2 */
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(10, 10, 10), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(9, 11.1, 10), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(10, 9, 10), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(10, 12, 9), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(9, 11, 10), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(12, 10, 9), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(9, 9, 12), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(10.5, 9, 9), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(10.5, 12, 12), dg_se3, dg_w));
-        nodesGroup2.push_back(std::make_shared<Node>(cv::Vec3f(11, 11, 10.9), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(10, 10, 10), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(9, 11.1, 10), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(10, 9, 10), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(10, 12, 9), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(9, 11, 10), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(12, 10, 9), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(9, 9, 12), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(10.5, 9, 9), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(10.5, 12, 12), dg_se3, dg_w));
+        nodesGroup2.push_back(std::make_shared<Node>(pcl::PointXYZ(11, 11, 10.9), dg_se3, dg_w));
 
         /* init all nodes */
         allNodes = nodesGroup1;

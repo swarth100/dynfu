@@ -27,9 +27,9 @@ typedef nanoflann::L2_Simple_Adaptor<float, nanoflann::PointCloud> nanoflannAdap
 typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflannAdaptor, nanoflann::PointCloud, 3> kd_tree_t;
 
 class Warpfield {
-    /* Type for the index tree */
 public:
     Warpfield();
+
     Warpfield(const Warpfield& w);
 
     ~Warpfield();
@@ -39,9 +39,15 @@ public:
 
     /* return a vector of all nodes in the warp field */
     std::vector<std::shared_ptr<Node>> getNodes();
-
     /* add new deformation node to the warp field */
     void addNode(std::shared_ptr<Node> newNode);
+
+    /* get kd-tree */
+    std::shared_ptr<kd_tree_t> getKdTree();
+    /* find a given no. of closest neighbours of a vertex */
+    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, pcl::PointXYZ vertex);
+    /* find a given no. of closest neighbours of a vertex */
+    std::vector<size_t> findNeighborsIndex(int numNeighbor, pcl::PointXYZ vertex);
 
     /* return a dual quaternion which represents the dual quaternion blending for a given point */
     std::shared_ptr<DualQuaternion<float>> calcDQB(pcl::PointXYZ point);
@@ -53,25 +59,15 @@ public:
     std::shared_ptr<dynfu::Frame> warpToLive(cv::Affine3f affineCanonicalToLive,
                                              std::shared_ptr<dynfu::Frame> canonicalFrame);
 
-    /* find a given no. of closest neighbours of a vertex */
-    std::vector<std::shared_ptr<Node>> findNeighbors(int numNeighbor, pcl::PointXYZ vertex);
-
-    /* find a given no. of closest neighbours of a vertex */
-    std::vector<size_t> findNeighborsIndex(int numNeighbor, pcl::PointXYZ vertex);
-
 private:
     /* frame counter */
     int frameNum = 0;
-
     /* list of currently held deformation nodes */
     std::vector<std::shared_ptr<Node>> nodes;
-
     /* cloud data */
     std::shared_ptr<nanoflann::PointCloud> cloud;
-
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;
-
     /* getter for the pcl cloud counter */
     int getFrameNum();
 };

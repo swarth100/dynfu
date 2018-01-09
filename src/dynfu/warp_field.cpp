@@ -3,13 +3,10 @@
 /* -------------------------------------------------------------------------- */
 /* PUBLIC METHODS */
 
-/* TODO: Add comment */
 Warpfield::Warpfield() = default;
 
-/* TODO: add comment */
 Warpfield::Warpfield(const Warpfield& w) { init(w.nodes); }
 
-/* TODO: Add comment */
 Warpfield::~Warpfield() = default;
 
 void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
@@ -19,7 +16,8 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
     /* hold deformation nodes position */
     std::vector<cv::Vec3f> deformationNodesPosition;
     for (auto node : this->nodes) {
-        deformationNodesPosition.push_back(node->getPosition());
+        deformationNodesPosition.push_back(
+            cv::Vec3f(node->getPosition().x, node->getPosition().y, node->getPosition().z));
     }
 
     cloud      = std::make_shared<nanoflann::PointCloud>();
@@ -31,6 +29,33 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
 std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
 void Warpfield::addNode(std::shared_ptr<Node> newNode) { nodes.emplace_back(newNode); }
+
+std::shared_ptr<kd_tree_t> Warpfield::getKdTree() { return this->kdTree; }
+
+std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, pcl::PointXYZ vertex) {
+    auto retIndex = findNeighborsIndex(numNeighbor, vertex);
+
+    std::vector<std::shared_ptr<Node>> neighborNodes;
+
+    for (auto index : retIndex) {
+        neighborNodes.push_back(nodes[index]);
+    }
+
+    return neighborNodes;
+}
+
+std::vector<size_t> Warpfield::findNeighborsIndex(int numNeighbor, pcl::PointXYZ vertex) {
+    /* not used, ignores the distance to the nodes for now */
+    std::vector<float> outDistSqr(numNeighbor);
+    std::vector<size_t> retIndex(numNeighbor);
+
+    /* unpack Vec3f into vector */
+    std::vector<float> query = {vertex.x, vertex.y, vertex.z};
+    int n                    = kdTree->knnSearch(&query[0], numNeighbor, &retIndex[0], &outDistSqr[0]);
+    retIndex.resize(n);
+
+    return retIndex;
+}
 
 /* calculate DQB */
 /* get dg_se3 from each of the nodes, multiply it by the transformation weight, and sum */
@@ -102,31 +127,6 @@ std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(cv::Affine3f /* affineCanoni
     }
 
     return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);
-}
-
-std::vector<std::shared_ptr<Node>> Warpfield::findNeighbors(int numNeighbor, pcl::PointXYZ vertex) {
-    auto retIndex = findNeighborsIndex(numNeighbor, vertex);
-
-    std::vector<std::shared_ptr<Node>> neighborNodes;
-
-    for (auto index : retIndex) {
-        neighborNodes.push_back(nodes[index]);
-    }
-
-    return neighborNodes;
-}
-
-std::vector<size_t> Warpfield::findNeighborsIndex(int numNeighbor, pcl::PointXYZ vertex) {
-    /* not used, ignores the distance to the nodes for now */
-    std::vector<float> outDistSqr(numNeighbor);
-    std::vector<size_t> retIndex(numNeighbor);
-
-    /* unpack Vec3f into vector */
-    std::vector<float> query = {vertex.x, vertex.y, vertex.z};
-    int n                    = kdTree->knnSearch(&query[0], numNeighbor, &retIndex[0], &outDistSqr[0]);
-    retIndex.resize(n);
-
-    return retIndex;
 }
 
 /* -------------------------------------------------------------------------- */

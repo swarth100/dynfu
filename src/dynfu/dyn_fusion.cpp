@@ -124,12 +124,11 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     std::vector<std::shared_ptr<Node>> deformationNodes;
 
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
-        cv::Vec3f coordinates =
-            cv::Vec3f(canonicalFrameVertices.at(i).x, canonicalFrameVertices.at(i).y, canonicalFrameVertices.at(i).z);
+        auto dg_v  = canonicalFrameVertices[i];
         auto dq    = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
         float dg_w = 2.f;
 
-        deformationNodes.push_back(std::make_shared<Node>(coordinates, dq, dg_w));
+        deformationNodes.push_back(std::make_shared<Node>(dg_v, dq, dg_w));
     }
 
     /* initialise the warp field with the sampled deformation nodes */
@@ -152,7 +151,7 @@ void DynFusion::updateAffine(cv::Affine3f newAffine) { affineLiveToCanonical = a
 cv::Affine3f DynFusion::getLiveToCanonicalAffine() { return affineLiveToCanonical; }
 
 void DynFusion::updateWarpfield() {
-    std::vector<cv::Vec3f> unsupportedVertices;
+    std::vector<pcl::PointXYZ> unsupportedVertices;
 
     for (auto vertex : canonicalFrame->getVertices()) {
         cv::Vec3f vertexCoordinates = cv::Vec3f(vertex.x, vertex.y, vertex.z);
@@ -161,7 +160,9 @@ void DynFusion::updateWarpfield() {
         float vertexMin   = currentDist;
 
         for (auto neighbour : warpfield->findNeighbors(KNN, vertex)) {
-            currentDist = cv::norm(vertexCoordinates - neighbour->getPosition()) / neighbour->getRadialBasisWeight();
+            pcl::PointXYZ dg_v = neighbour->getPosition();
+            currentDist =
+                cv::norm(vertexCoordinates - cv::Vec3f(dg_v.x, dg_v.y, dg_v.z)) / neighbour->getRadialBasisWeight();
 
             if (currentDist < vertexMin) {
                 vertexMin = currentDist;
@@ -169,7 +170,7 @@ void DynFusion::updateWarpfield() {
         }
 
         if (vertexMin > 1) {
-            unsupportedVertices.emplace_back(vertexCoordinates);
+            unsupportedVertices.emplace_back(vertex);
         }
     }
 
@@ -177,9 +178,7 @@ void DynFusion::updateWarpfield() {
 
     /* TODO (dig15): sample the new deformation nodes in a more intelligent way */
     for (int i = 0; i < unsupportedVertices.size(); i += 5) {
-        auto dg_se3 = warpfield->calcDQB(
-            pcl::PointXYZ(unsupportedVertices[i][0], unsupportedVertices[i][1], unsupportedVertices[i][2]));
-
+        auto dg_se3 = warpfield->calcDQB(unsupportedVertices[i]);
         warpfield->addNode(std::make_shared<Node>(unsupportedVertices[i], dg_se3, 2.f));
     }
 
