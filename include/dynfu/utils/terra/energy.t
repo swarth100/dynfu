@@ -15,23 +15,13 @@ function calcTransformationWeight(v, dg_v, dg_w)
   return exp(-pow(norm(v - dg_v), 2) / (2 * pow(dg_w, 2)))
 end
 
--- calculates the tukey bigweight given error e and parameter c
-function tukeyBiweight(e, c)
-    return pow((1.0 - (pow(e, 2) / pow(c, 2))), 2)
-end
-
--- calculates the huber weight given error e and parameter k
-function huberWeight(e, k)
-    return k / abs(e)
-end
-
 ----- DATA TERM -----
 
 local D,N = Dim("D",0), Dim("N",1)
 
 local dg_v = Array("dg_v",opt_float3,{D},0)
 local translations = Unknown("translations",opt_float3,{D},1)
-local rotations = Unknown("rotations",opt_float4,{D},2)
+local rotations = Unknown("rotations",opt_float3,{D},2)
 local dg_w = Array("dg_w",opt_float,{D},3)
 
 local canonicalVertices = Array("canonicalVertices",opt_float3,{N},4)
@@ -51,6 +41,8 @@ local dataG = Graph("dataGraph", 8,
                     "n6", {D}, 16,
                     "n7", {D}, 17)
 
+local tukeyBiweights = Array("tukeyBiweights",opt_float,{N},18)
+
 local nodes = { 0, 1, 2, 3, 4, 5, 6, 7 }
 local totalTranslation = 0
 
@@ -59,37 +51,30 @@ for _,i in ipairs(nodes) do
     totalTranslation = totalTranslation + transformationWeight * translations(dataG["n"..i])
 end
 
-local tukeyOffset = 0.01
-local c = 4.65
-
-local pointError = liveVertices(dataG.v) - canonicalVertices(dataG.v) - totalTranslation
-local pointErrorDistScaled = norm(pointError) / tukeyOffset
-local weight = Select(lesseq(pointErrorDistScaled, c), tukeyBiweight(pointErrorDistScaled, c), 0)
-
-Energy(sqrt(weight) * (liveVertices(dataG.v) - canonicalVertices(dataG.v) - totalTranslation))
+Energy(sqrt(tukeyBiweights(dataG.v)) * (liveVertices(dataG.v) - canonicalVertices(dataG.v) - totalTranslation))
 
 ----- REGULARISATION TERM -----
-
-local regG = Graph("regGraph", 18,
-                   "n", {D}, 19,
-                   "v0", {D}, 20,
-                   "v1", {D}, 21,
-                   "v2", {D}, 22,
-                   "v3", {D}, 23,
-                   "v4", {D}, 24,
-                   "v5", {D}, 25,
-                   "v6", {D}, 26,
-                   "v7", {D}, 27)
-
-local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
-
-local k = 0.0001
-local lambda = 200
-
-for _,i in ipairs(neighbours) do
-    local transformationError = translations(regG.n):dot(dg_v(regG["v"..i])) - translations(regG["v"..i]):dot(dg_v(regG["v"..i]))
-    local huberWeight = Select(lesseq(transformationError, k), 1, huberWeight(transformationError, k))
-    local alpha = Select(greatereq(dg_w(regG.n), dg_w(regG["v"..i])), dg_w(regG.n), dg_w(regG["v"..i]))
-
-    Energy(sqrt(lambda) * sqrt(huberWeight) * alpha * (translations(regG.n) - translations(regG["v"..i])))
-end
+--
+-- local regG = Graph("regGraph", 19,
+--                    "n", {D}, 20,
+--                    "v0", {D}, 21,
+--                    "v1", {D}, 22,
+--                    "v2", {D}, 23,
+--                    "v3", {D}, 24,
+--                    "v4", {D}, 25,
+--                    "v5", {D}, 26,
+--                    "v6", {D}, 27,
+--                    "v7", {D}, 28)
+--
+-- local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
+--
+-- local k = 0.0001
+-- local lambda = 200
+--
+-- for _,i in ipairs(neighbours) do
+--     local transformationError = translations(regG.n):dot(dg_v(regG["v"..i])) - translations(regG["v"..i]):dot(dg_v(regG["v"..i]))
+--     local huberWeight = Select(lesseq(transformationError, k), 1, huberWeight(transformationError, k))
+--     local alpha = Select(greatereq(dg_w(regG.n), dg_w(regG["v"..i])), dg_w(regG.n), dg_w(regG["v"..i]))
+--
+--     Energy(sqrt(lambda) * sqrt(huberWeight) * alpha * (translations(regG.n) - translations(regG["v"..i])))
+-- end

@@ -38,7 +38,11 @@ public:
     virtual void preNonlinearSolve(int iteration) override;
     virtual void postNonlinearSolve(int iteration) override;
 
+    /* set coordinates of vertices */
     void resetGPUMemory();
+    /* update tukey biweights; for use pre non-linear solve */
+    void updateTukeyBiweights();
+
     void copyResultToCPUFromFloat3();
 
 private:
@@ -64,4 +68,9 @@ private:
     std::shared_ptr<OptImage> m_translations;
     std::shared_ptr<OptImage> m_rotations;
     std::shared_ptr<OptImage> m_dg_w;
+
+    std::shared_ptr<OptImage> m_tukeyBiweights;
+
+    /* calculate tukey biweight given the tukey offset, parameter c, and the point error */
+    float calcTukeyBiweight(float tukeyOffset, float c, pcl::PointXYZ ptError);
 };

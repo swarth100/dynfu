@@ -44,6 +44,7 @@ protected:
         params.optDoublePrecision = true;
 
         float RAD90 = M_PI / 2;
+        float RAD30 = M_PI / 6;
 
         auto dg_se3 = std::make_shared<DualQuaternion<float>>(0, 0, 0, 0, 0, 0);  // transformation
         float dg_w  = 2;                                                          // radial basis weight
@@ -130,6 +131,8 @@ protected:
 //         auto totalTransformation = warpfield.calcDQB(vertex);
 //         auto result              = totalTransformation->transformVertex(vertex);
 //
+//         std::cout << *totalTransformation << std::endl;
+//         std::cout << result.x << " " << result.y << " " << result.z << std::endl;
 //         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
 //         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
 //         ASSERT_NEAR(result.z, liveFrame->getVertices()[j].z, maxError);
@@ -171,6 +174,8 @@ protected:
 //         auto totalTransformation = warpfield.calcDQB(vertex);
 //         auto result              = totalTransformation->transformVertex(vertex);
 //
+//         std::cout << *totalTransformation << std::endl;
+//         std::cout << result.x << " " << result.y << " " << result.z << std::endl;
 //         ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
 //         ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
 //         ASSERT_NEAR(result.z, liveFrame->getVertices()[j].z, maxError);
@@ -183,12 +188,12 @@ protected:
 TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
     warpfield.init(nodesGroup1);
 
-    sourceVertices.push_back(pcl::PointXYZ(0, 0.05, 1));
+    sourceVertices.push_back(pcl::PointXYZ(0, 0.04, 0));
     sourceNormals.push_back(pcl::Normal(1, 1, 1));
 
     canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceNormals);
 
-    targetVertices.push_back(pcl::PointXYZ(0.01, 0.04, 1));
+    targetVertices.push_back(pcl::PointXYZ(0.01, 0.03, 0));
     targetNormals.push_back(pcl::Normal(1, 1, 1));
 
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
@@ -212,10 +217,10 @@ TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
 
 /* */
 TEST_F(OptTest, TwoVerticesOneNotMovingOneGroupOfDeformationNodesTest) {
-    warpfield.init(nodesGroup1);
+    warpfield.init(allNodes);
 
     sourceVertices.push_back(pcl::PointXYZ(0, 0.05, 1));
-    sourceVertices.push_back(pcl::PointXYZ(0.01, 0.02, 0.03));
+    sourceVertices.push_back(pcl::PointXYZ(2, 2, 2));
 
     sourceNormals.push_back(pcl::Normal(1, 1, 1));
     sourceNormals.push_back(pcl::Normal(1, 1, 1));
@@ -223,7 +228,7 @@ TEST_F(OptTest, TwoVerticesOneNotMovingOneGroupOfDeformationNodesTest) {
     canonicalFrameWarpedToLive = std::make_shared<dynfu::Frame>(0, sourceVertices, sourceNormals);
 
     targetVertices.push_back(pcl::PointXYZ(0.01, 0.04, 1.01));
-    targetVertices.push_back(pcl::PointXYZ(0.01, 0.02, 0.03));
+    targetVertices.push_back(pcl::PointXYZ(2, 2, 2));
 
     targetNormals.push_back(pcl::Normal(1, 1, 1));
     targetNormals.push_back(pcl::Normal(1, 1, 1));
@@ -409,8 +414,6 @@ TEST_F(OptTest, TwoGroupsOfVerticesTwoGroupsOfDeformationNodes) {
     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
     combinedSolver.solveAll();
 
-    /* TODO (dig15): figure out why the test fails */
-
     int j = 0;
     for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
@@ -471,10 +474,9 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
         j++;
     }
 
-    /* reverse */
-    auto temp                  = liveFrame;
-    liveFrame                  = canonicalFrameWarpedToLive;
-    canonicalFrameWarpedToLive = temp;
+    auto temp                  = canonicalFrameWarpedToLive;
+    canonicalFrameWarpedToLive = liveFrame;
+    liveFrame                  = temp;
 
     CombinedSolver combinedSolverReverse(warpfield, params);
     combinedSolverReverse.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
@@ -485,9 +487,9 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
         auto totalTransformation = warpfield.calcDQB(vertex);
         auto result              = totalTransformation->transformVertex(vertex);
 
-        ASSERT_NEAR(result.x, vertex.x, maxError);
-        ASSERT_NEAR(result.y, vertex.y, maxError);
-        ASSERT_NEAR(result.z, vertex.z, maxError);
+        ASSERT_NEAR(result.x, liveFrame->getVertices()[j].x, maxError);
+        ASSERT_NEAR(result.y, liveFrame->getVertices()[j].y, maxError);
+        ASSERT_NEAR(result.z, liveFrame->getVertices()[j].z, maxError);
 
         j++;
     }

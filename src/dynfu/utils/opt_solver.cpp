@@ -27,10 +27,13 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
 
     m_dg_v         = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
     m_translations = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_rotations    = createEmptyOptImage({D}, OptImage::Type::FLOAT, 4, OptImage::GPU, true);
+    m_rotations    = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
     m_dg_w         = createEmptyOptImage({D}, OptImage::Type::FLOAT, 1, OptImage::GPU, false);
 
+    m_tukeyBiweights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 1, OptImage::GPU, false);
+
     resetGPUMemory();
+    updateTukeyBiweights();
 
     initializeDataGraph();
     initializeRegGraph();
@@ -105,6 +108,9 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("liveNormals", m_liveNormals);
 
     m_problemParams.set("dataGraph", m_dataGraph);
+
+    m_problemParams.set("tukeyBiweights", m_tukeyBiweights);
+
     m_problemParams.set("regGraph", m_regGraph);
 }
 
@@ -112,7 +118,7 @@ void CombinedSolver::preSingleSolve() {}
 
 void CombinedSolver::postSingleSolve() { copyResultToCPUFromFloat3(); }
 
-void CombinedSolver::preNonlinearSolve(int /* iteration */) {}
+void CombinedSolver::preNonlinearSolve(int /* iteration */) { updateTukeyBiweights(); }
 
 void CombinedSolver::postNonlinearSolve(int /* iteration */) {}
 
@@ -151,7 +157,7 @@ void CombinedSolver::resetGPUMemory() {
 
     std::vector<float3> h_dg_v(D);
     std::vector<float3> h_translations(D);
-    std::vector<float4> h_rotations(D);
+    std::vector<float3> h_rotations(D);
     std::vector<float> h_dg_w(D);
 
     for (int i = 0; i < D; i++) {
@@ -165,8 +171,10 @@ void CombinedSolver::resetGPUMemory() {
         auto nodeRotation    = dg_se3->getRotation();
 
         h_translations[i] = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
-        h_rotations[i]    = make_float4(nodeRotation.R_component_1(), nodeRotation.R_component_2(),
-                                     nodeRotation.R_component_3(), nodeRotation.R_component_4());
+
+        auto eulerAngles = dg_se3->getEulerAngles();
+
+        h_rotations[i] = make_float3(eulerAngles[1], eulerAngles[0], eulerAngles[2]);
 
         auto dg_w = node->getRadialBasisWeight();
         h_dg_w[i] = dg_w;
@@ -178,11 +186,22 @@ void CombinedSolver::resetGPUMemory() {
     m_dg_w->update(h_dg_w);
 }
 
-void CombinedSolver::copyResultToCPUFromFloat3() {
+float CombinedSolver::calcTukeyBiweight(float tukeyOffset, float c, pcl::PointXYZ ptError) {
+    auto ptErrorDistScaled = sqrt(ptError.x * ptError.x + ptError.y * ptError.y + ptError.z * ptError.z) / tukeyOffset;
+
+    if (ptErrorDistScaled < c) {
+        return pow(1.f - pow(ptErrorDistScaled, 2) / pow(c, 2), 2);
+    }
+
+    return 0.f;
+}
+
+void CombinedSolver::updateTukeyBiweights() {
     auto D = m_dims[0];
+    auto N = m_dims[1];
 
     std::vector<float3> h_translations(D);
-    std::vector<float4> h_rotations(D);
+    std::vector<float3> h_rotations(D);
 
     m_translations->copyTo(h_translations);
     m_rotations->copyTo(h_rotations);
@@ -192,6 +211,55 @@ void CombinedSolver::copyResultToCPUFromFloat3() {
         auto dualWithUpdate =
             boost::math::quaternion<float>(0, h_translations[i].x, h_translations[i].y, h_translations[i].z) * 0.5f;
 
-        m_warpfield.getNodes()[i]->updateTransformation(realWithUpdate, dualWithUpdate);
+        auto dg_se3 =
+            std::make_shared<DualQuaternion<float>>(h_rotations[i].x, h_rotations[i].y, h_rotations[i].z,
+                                                    h_translations[i].x, h_translations[i].y, h_translations[i].z);
+        m_warpfield.getNodes()[i]->setTransformation(dg_se3);
+    }
+
+    std::vector<float> h_tukeyBiweights(N);
+
+    for (unsigned int i = 0; i < N; i++) {
+        auto canonicalVertex = m_canonicalVerticesPCL[i];
+        auto liveVertex      = m_liveVerticesPCL[i];
+
+        auto dqBlend                    = m_warpfield.calcDQB(canonicalVertex);
+        auto canonicalVertexTransformed = dqBlend->transformVertex(canonicalVertex);
+        pcl::PointXYZ ptError(liveVertex.x - canonicalVertexTransformed.x, liveVertex.y - canonicalVertexTransformed.y,
+                              liveVertex.z - canonicalVertexTransformed.z);
+
+        /* TODO (dig15): move to dynfu params */
+        float tukeyOffset = 0.01;
+        float c           = 4.65;
+
+        h_tukeyBiweights[i] = calcTukeyBiweight(tukeyOffset, c, ptError);
+    }
+
+    m_tukeyBiweights->update(h_tukeyBiweights);
+}
+
+void CombinedSolver::copyResultToCPUFromFloat3() {
+    auto D = m_dims[0];
+
+    std::vector<float3> h_translations(D);
+    std::vector<float3> h_rotations(D);
+
+    m_translations->copyTo(h_translations);
+    m_rotations->copyTo(h_rotations);
+
+    for (unsigned int i = 0; i < D; i++) {
+        std::cout << "rotation: " << h_rotations[i].x << " " << h_rotations[i].y << " " << h_rotations[i].z
+                  << std::endl;
+        std::cout << "translation: " << h_translations[i].x << " " << h_translations[i].y << " " << h_translations[i].z
+                  << std::endl;
+
+        auto realWithUpdate = boost::math::quaternion<float>(1.f, 0.f, 0.f, 0.f);
+        auto dualWithUpdate =
+            boost::math::quaternion<float>(0, h_translations[i].x, h_translations[i].y, h_translations[i].z) * 0.5f;
+
+        auto dg_se3 =
+            std::make_shared<DualQuaternion<float>>(h_rotations[i].x, h_rotations[i].y, h_rotations[i].z,
+                                                    h_translations[i].x, h_translations[i].y, h_translations[i].z);
+        m_warpfield.getNodes()[i]->setTransformation(dg_se3);
     }
 }
