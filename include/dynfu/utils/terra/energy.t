@@ -68,24 +68,28 @@ local weight = Select(lesseq(pointErrorDistScaled, c), tukeyBiweight(pointErrorD
 
 Energy(sqrt(weight) * (liveVertices(dataG.v) - canonicalVertices(dataG.v) - totalTranslation))
 
--- ----- REGULARISATION TERM -----
---
--- local regG = Graph("regGraph", 18,
---                    "n", {D}, 19,
---                    "v0", {D}, 20,
---                    "v1", {D}, 21,
---                    "v2", {D}, 22,
---                    "v3", {D}, 23)
---
--- local neighbours = { 0, 1, 2, 3 }
---
--- local k = 0.0001
--- local lambda = 200
---
--- for _,i in ipairs(neighbours) do
---     local transformationError = translations(regG.n):dot(dg_v(regG["v"..i])) - translations(regG["v"..i]):dot(dg_v(regG["v"..i]))
---     local huberWeight = Select(lesseq(transformationError, k), 1, huberWeight(transformationError, k))
---     local alpha = Select(greatereq(dg_w(regG.n), dg_w(regG["v"..i])), dg_w(regG.n), dg_w(regG["v"..i]))
---
---     Energy(sqrt(lambda) * sqrt(huberWeight) * alpha * (translations(regG.n) - translations(regG["v"..i])))
--- end
+----- REGULARISATION TERM -----
+
+local regG = Graph("regGraph", 18,
+                   "n", {D}, 19,
+                   "v0", {D}, 20,
+                   "v1", {D}, 21,
+                   "v2", {D}, 22,
+                   "v3", {D}, 23,
+                   "v4", {D}, 24,
+                   "v5", {D}, 25,
+                   "v6", {D}, 26,
+                   "v7", {D}, 27)
+
+local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
+
+local k = 0.0001
+local lambda = 200
+
+for _,i in ipairs(neighbours) do
+    local transformationError = translations(regG.n):dot(dg_v(regG["v"..i])) - translations(regG["v"..i]):dot(dg_v(regG["v"..i]))
+    local huberWeight = Select(lesseq(transformationError, k), 1, huberWeight(transformationError, k))
+    local alpha = Select(greatereq(dg_w(regG.n), dg_w(regG["v"..i])), dg_w(regG.n), dg_w(regG["v"..i]))
+
+    Energy(sqrt(lambda) * sqrt(huberWeight) * alpha * (translations(regG.n) - translations(regG["v"..i])))
+end

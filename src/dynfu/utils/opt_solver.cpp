@@ -40,13 +40,13 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
 
 void CombinedSolver::initializeDataGraph() {
     unsigned int N = m_dims[1];
-    std::vector<std::vector<int>> indices(9, std::vector<int>(N));
+    std::vector<std::vector<int>> indices(KNN + 1, std::vector<int>(N));
 
     for (int count = 0; count < N; count++) {
         indices[0][count] = count;
 
-        auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(8, m_canonicalVerticesPCL[count]);
-        for (int i = 1; i < 9; i++) {
+        auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, m_canonicalVerticesPCL[count]);
+        for (int i = 1; i < KNN + 1; i++) {
             indices[i][count] = vertexNeighboursIdx[i - 1];
         }
     }
@@ -57,36 +57,34 @@ void CombinedSolver::initializeDataGraph() {
 }
 
 void CombinedSolver::initializeRegGraph() {
-    // int knn = 4;
-    //
-    // auto kdTree = m_warpfield.getKdTree();
-    //
-    // /* not used, ignores the distance to the nodes for now */
-    // std::vector<float> outDistSqr(4);
-    // std::vector<size_t> retIndex(4);
-    //
-    // unsigned int D = m_dims[0];
-    // std::vector<std::vector<int>> indices(5, std::vector<int>(D));
-    //
-    // int i = 0;
-    // for (auto node : m_warpfield.getNodes()) {
-    //     pcl::PointXYZ dg_v       = node->getPosition();
-    //     std::vector<float> query = {dg_v.x, dg_v.y, dg_v.z};
-    //     int n                    = kdTree->knnSearch(&query[0], knn, &retIndex[0], &outDistSqr[0]);
-    //     retIndex.resize(n);
-    //
-    //     indices[0][i] = i;
-    //
-    //     int j = 1;
-    //     for (auto idx : retIndex) {
-    //         indices[i][j] = retIndex[j - 1];
-    //         j++;
-    //     }
-    //
-    //     i++;
-    // }
-    //
-    // m_regGraph = std::make_shared<OptGraph>(indices);
+    auto kdTree = m_warpfield.getKdTree();
+
+    /* not used, ignores the distance to the nodes for now */
+    std::vector<float> outDistSqr(8);
+    std::vector<size_t> retIndex(8);
+
+    unsigned int D = m_dims[0];
+    std::vector<std::vector<int>> indices(KNN + 1, std::vector<int>(D));
+
+    int i = 0;
+    for (auto node : m_warpfield.getNodes()) {
+        pcl::PointXYZ dg_v       = node->getPosition();
+        std::vector<float> query = {dg_v.x, dg_v.y, dg_v.z};
+        int n                    = kdTree->knnSearch(&query[0], KNN, &retIndex[0], &outDistSqr[0]);
+        retIndex.resize(n);
+
+        indices[0][i] = i;
+
+        int j = 1;
+        for (auto idx : retIndex) {
+            indices[j][i] = retIndex[j - 1];
+            j++;
+        }
+
+        i++;
+    }
+
+    m_regGraph = std::make_shared<OptGraph>(indices);
 
     std::cout << "initialised regularisation graph" << std::endl;
 }
@@ -107,7 +105,7 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("liveNormals", m_liveNormals);
 
     m_problemParams.set("dataGraph", m_dataGraph);
-    // m_problemParams.set("regGraph", m_regGraph);
+    m_problemParams.set("regGraph", m_regGraph);
 }
 
 void CombinedSolver::preSingleSolve() {}
