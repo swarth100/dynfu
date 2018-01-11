@@ -5,8 +5,6 @@
 # Implementation heavily based upon:
 # https://github.com/kaizouman/gtest-cmake-example
 
-find_package(Threads REQUIRED)
-
 # Enable ExternalProject CMake module
 include(ExternalProject)
 
@@ -42,17 +40,54 @@ set_target_properties(libgmock PROPERTIES
     "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
 )
 
-# I couldn't make it work with INTERFACE_INCLUDE_DIRECTORIES
+
+# ---------------------------------------------------------------------------- #
+# CODE COVERAGE (GCOV) SETTINGS
+# ---------------------------------------------------------------------------- #
+# Lcov Documentation:
+# http://ltp.sourceforge.net/coverage/lcov/lcov.1.php
+# http://swarminglogic.com/jotting/2014_05_lcov
+
+# Exclude certain directories
+SET(COVERAGE_EXCLUDES
+  'src/kfusion/*'
+  'src/apps/*'
+  'include/kfusion/*'
+  'include/nanoflann/*'
+  'cmake/*'
+  'test/*'
+  'scripts/*'
+  '/usr/*'
+  'core/*'
+  '/tmp/*'
+  '/vol/project/*'
+  '/vol/cuda/*'
+  'build/*'
+)
+
+# ---------------------------------------------------------------------------- #
+# TEST INCLUDE DIRECTORIES
+# ---------------------------------------------------------------------------- #
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
-
-# Force test build
-set(gtest_build_samples ON)
 
 # ---------------------------------------------------------------------------- #
 # CREATE TESTS
 # ---------------------------------------------------------------------------- #
+# Force test build
+set(gtest_build_samples ON)
 
 # Add quaternion Test
-CREATE_TEST(quaternionTest quaternion.cpp)
-#CREATE_TEST(solverTest solver_test.cpp)
+CREATE_TEST(dynfu_test)
+
+# Link all libraries for testing
+target_link_libraries(dynfu_test
+  dynfu
+  ${CUDA_CUDART_LIBRARY}
+  ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
+  ${PCL_LIBRARIES}
+  ${TERRA_LIBRARIES}
+)
+
+# Generate coverage commands
+SETUP_TARGET_FOR_COVERAGE(NAME coverage EXECUTABLE dynfu_test)

@@ -1,25 +1,73 @@
+/* dynfu includes */
 #include <dynfu/utils/node.hpp>
 
 /* sys headers */
 #include <cmath>
 
-Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float weight) {
+Node::Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight) {
     this->dg_v   = position;
     this->dg_se3 = transformation;
-    this->dg_w   = weight;
+    this->dg_w   = radialBasisWeight;
 
-    // TODO: init nearest neighbours
+    double temp1 = transformation->getTranslation()[0];
+    double temp2 = transformation->getTranslation()[1];
+    double temp3 = transformation->getTranslation()[2];
+
+    this->params = new double[4]{radialBasisWeight, temp1, temp2, temp3};
 }
 
-Node::~Node() {}
+Node::~Node() = default;
 
-const std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
+cv::Vec3f Node::getPosition() { return dg_v; }
 
-const std::vector<std::shared_ptr<Node>>& Node::getNearestNeighbours() { return nearestNeighbours; };
+std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
 
-// TODO: finish once nearest neighbours have been initialised
-void setWeight() {
-    float weight = 0;
-    float sum    = 0;
-    weight       = exp(-0.f / (2 * pow(sum, 2)));
+float Node::getRadialBasisWeight() { return dg_w; }
+
+float Node::getTransformationWeight(cv::Vec3f vertexPosition) {
+    auto position = this->getPosition();
+    auto weight   = this->getRadialBasisWeight();
+    auto dist     = pow(position[0] - vertexPosition[0], 2) + pow(position[1] - vertexPosition[1], 2) +
+                pow(position[2] - vertexPosition[2], 2);
+    return exp(-dist / (2 * pow(weight, 2)));
+}
+
+template <typename T>
+T Node::getTransformationWeightT(cv::Vec3f vertexPosition) {
+    auto position = this->getPosition();
+    auto weight   = this->getRadialBasisWeight();
+
+    cv::Vec<T, 3> distance_vec =
+        cv::Vec<T, 3>(abs(T(position[0]) - T(vertexPosition[0])), abs(T(position[1]) - T(vertexPosition[1])),
+                      abs(T(position[2]) - T(vertexPosition[2])));
+    T distance_norm = sqrt(abs(pow(distance_vec[0], 2.0) + pow(distance_vec[1], 2.0) + pow(distance_vec[2], 2.0)));
+
+    // if the node and the vertex are in the same place, return 1
+    if (distance_norm == T(0.0)) {
+        return T(1.0);
+    }
+
+    return exp((-1.0 * pow(distance_norm, 2)) / (2.0 * pow(weight, 2)));
+}
+
+double* Node::getParams() { return params; }
+
+void Node::setTranslation(cv::Vec3f translation) {
+    auto real    = dg_se3->getReal();
+    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
+}
+
+void Node::setRotation(boost::math::quaternion<float> real) {
+    auto dual    = dg_se3->getDual();
+    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, dual);
+}
+
+void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> transformation) { dg_se3 = transformation; }
+
+void Node::setRadialBasisWeight(float newWeight) { dg_w = newWeight; }
+
+void Node::updateTranslation(cv::Vec3f translation) {
+    auto real = dg_se3->getReal();
+    translation += dg_se3->getTranslation();
+    this->dg_se3 = std::make_shared<DualQuaternion<float>>(real, translation);
 }

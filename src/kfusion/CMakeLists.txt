@@ -1,13 +1,7 @@
-#
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ftz=true;--prec-div=false;--prec-sqrt=false")
-
-#
+# Build all kfusion source files into library kfusion
 add_module_library(kfusion)
 
-#
+# Link to kfusion library
 target_link_libraries(kfusion
-  dynfu
-  ${CUDA_LIBRARIES}
-  ${CUDA_CUDA_LIBRARY}
-  ${OpenCV_LIBS}
+  ${CUDA_CUDART_LIBRARY}
 )

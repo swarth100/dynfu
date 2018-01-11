@@ -1,17 +1,17 @@
-file(GLOB app_SRCS *.cpp)
-
 # Link source files to executables
-add_executable(app ${app_SRCS})
+add_application(app)
 
 # Link to all libraries
 target_link_libraries(app
+    ceres
     dynfu
     kfusion
-    ${CUDA_LIBRARIES}
+    ${Boost_LIBRARIES}
     ${CUDA_CUDA_LIBRARY}
+    ${CUDA_CUDART_LIBRARY}
     ${OpenCV_LIBS}
+    ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
+    ${PCL_LIBRARIES}
+    ${TERRA_LIBRARIES}
+    ${OPENMESH_LIBRARIES}
 )
-
-# Set the output paths correctly
-default_properties(app)
-

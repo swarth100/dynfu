@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cuda.h>
+#include <cudaUtil.h>  // header file from Opt to avoid importing the same operators twice
 #include <kfusion/cuda/kernel_containers.hpp>
 
 namespace kfusion {
@@ -28,31 +29,31 @@ struct numeric_limits<unsigned short> {
     __kf_device__ static unsigned short max() { return USHRT_MAX; };
 };
 
-__kf_device__ float dot(const float3 &v1, const float3 &v2) {
-    return __fmaf_rn(v1.x, v2.x, __fmaf_rn(v1.y, v2.y, v1.z * v2.z));
-}
+// __kf_device__ float dot(const float3 &v1, const float3 &v2) {
+//     return __fmaf_rn(v1.x, v2.x, __fmaf_rn(v1.y, v2.y, v1.z * v2.z));
+// }
 
-__kf_device__ float3 &operator+=(float3 &vec, const float &v) {
-    vec.x += v;
-    vec.y += v;
-    vec.z += v;
-    return vec;
-}
-
-__kf_device__ float3 &operator+=(float3 &v1, const float3 &v2) {
-    v1.x += v2.x;
-    v1.y += v2.y;
-    v1.z += v2.z;
-    return v1;
-}
-
-__kf_device__ float3 operator+(const float3 &v1, const float3 &v2) {
-    return make_float3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
-}
-
-__kf_device__ float3 operator*(const float3 &v1, const float3 &v2) {
-    return make_float3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
-}
+// __kf_device__ float3 &operator+=(float3 &vec, const float &v) {
+//     vec.x += v;
+//     vec.y += v;
+//     vec.z += v;
+//     return vec;
+// }
+//
+// __kf_device__ float3 &operator+=(float3 &v1, const float3 &v2) {
+//     v1.x += v2.x;
+//     v1.y += v2.y;
+//     v1.z += v2.z;
+//     return v1;
+// }
+//
+// __kf_device__ float3 operator+(const float3 &v1, const float3 &v2) {
+//     return make_float3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+// }
+//
+// __kf_device__ float3 operator*(const float3 &v1, const float3 &v2) {
+//     return make_float3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
+// }
 
 __kf_hdevice__ float3 operator*(const float3 &v1, const int3 &v2) {
     return make_float3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
@@ -62,9 +63,9 @@ __kf_device__ float3 operator/(const float3 &v1, const float3 &v2) {
     return make_float3(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
 }
 
-__kf_hdevice__ float3 operator/(const float &v, const float3 &vec) {
-    return make_float3(v / vec.x, v / vec.y, v / vec.z);
-}
+// __kf_hdevice__ float3 operator/(const float &v, const float3 &vec) {
+//     return make_float3(v / vec.x, v / vec.y, v / vec.z);
+// }
 
 __kf_device__ float3 &operator*=(float3 &vec, const float &v) {
     vec.x *= v;
@@ -73,13 +74,15 @@ __kf_device__ float3 &operator*=(float3 &vec, const float &v) {
     return vec;
 }
 
-__kf_device__ float3 operator-(const float3 &v1, const float3 &v2) {
-    return make_float3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
-}
+// __kf_device__ float3 operator-(const float3 &v1, const float3 &v2) {
+//     return make_float3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+// }
 
-__kf_hdevice__ float3 operator*(const float3 &v1, const float &v) { return make_float3(v1.x * v, v1.y * v, v1.z * v); }
+// __kf_hdevice__ float3 operator*(const float3 &v1, const float &v) { return make_float3(v1.x * v, v1.y * v, v1.z * v);
+// }
 
-__kf_hdevice__ float3 operator*(const float &v, const float3 &v1) { return make_float3(v1.x * v, v1.y * v, v1.z * v); }
+// __kf_hdevice__ float3 operator*(const float &v, const float3 &v1) { return make_float3(v1.x * v, v1.y * v, v1.z * v);
+// }
 
 __kf_device__ float norm(const float3 &v) { return sqrt(dot(v, v)); }
 

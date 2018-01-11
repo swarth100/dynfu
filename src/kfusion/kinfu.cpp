@@ -43,7 +43,7 @@ kfusion::KinFuParams kfusion::KinFuParams::default_params() {
     return p;
 }
 
-kfusion::KinFu::KinFu(const KinFuParams &params) : frame_counter_(0), params_(params) {
+kfusion::KinFu::KinFu(const kfusion::KinFuParams &params) : frame_counter_(0), params_(params) {
     CV_Assert(params.volume_dims[0] % 32 == 0);
 
     volume_ = cv::Ptr<cuda::TsdfVolume>(new cuda::TsdfVolume(params_.volume_dims));
@@ -86,6 +86,7 @@ void kfusion::KinFu::allocate_buffers() {
 
     curr_.depth_pyr.resize(LEVELS);
     curr_.normals_pyr.resize(LEVELS);
+
     prev_.depth_pyr.resize(LEVELS);
     prev_.normals_pyr.resize(LEVELS);
 
@@ -123,8 +124,10 @@ void kfusion::KinFu::reset() {
 }
 
 kfusion::Affine3f kfusion::KinFu::getCameraPose(int time) const {
-    if (time > (int) poses_.size() || time < 0)
-        time = (int) poses_.size() - 1;
+    if ((time > static_cast<int>(poses_.size())) || (time < 0)) {
+        time = static_cast<int>(poses_.size()) - 1;
+    }
+
     return poses_[time];
 }
 
@@ -151,11 +154,10 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     cuda::waitAllDefaultStream();
 
-    // can't perform more on first frame
+    // can't do more with the first frame
     if (frame_counter_ == 0) {
-        /* TODO (rm3115) Initialise the warp fields */
-        Warpfield wf;
         volume_->integrate(dists_, poses_.back(), p.intr);
+
 #if defined USE_DEPTH
         curr_.depth_pyr.swap(prev_.depth_pyr);
 #else
@@ -165,9 +167,10 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
         return ++frame_counter_, false;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // ICP
-    Affine3f affine;  // cuur -> prev
+    /*
+     * ITERATIVE CLOSET POINT
+     */
+    Affine3f affine;  // current -> previous
     {
 // ScopeTime time("icp");
 #if defined USE_DEPTH
@@ -177,32 +180,30 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.points_pyr, curr_.normals_pyr, prev_.points_pyr,
                                           prev_.normals_pyr);
 #endif
-        if (!ok)
+        if (!ok) {
             return reset(), false;
+        }
     }
 
     poses_.push_back(poses_.back() * affine);  // curr -> global
 
-    /* TODO (rm3115) Warp the live frame */
-    /* I think that the (since size of pyramid decreses in size
-     * curr_,depth_pyr[0] = depth data
-     * curr_.points_pyr[0] = live frame
-     * curr_.normals_pyr[0] = normals
+    /*
+     * VOLUME INTEGRATION
+     * we don't integrate volume if the camera doesn't move
      */
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Volume integration
-
-    // We do not integrate volume if camera does not move.
-    float rnorm    = (float) cv::norm(affine.rvec());
-    float tnorm    = (float) cv::norm(affine.translation());
+    float rnorm    = static_cast<float>(cv::norm(affine.rvec()));
+    float tnorm    = static_cast<float>(cv::norm(affine.translation()));
     bool integrate = (rnorm + tnorm) / 2 >= p.tsdf_min_camera_movement;
-    if (integrate) {
-        // ScopeTime time("tsdf");
-        volume_->integrate(dists_, poses_.back(), p.intr);
-    }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // Ray casting
+    // if (integrate) {
+    // ScopeTime time("tsdf");
+    volume_->clear();
+    volume_->integrate(dists_, poses_.back(), p.intr);
+    //}
+
+    /*
+     * RAYCASTING
+     */
     {
 // ScopeTime time("ray-cast-all");
 #if defined USE_DEPTH
@@ -217,6 +218,10 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
                                 prev_.normals_pyr[i]);
 #endif
         cuda::waitAllDefaultStream();
+    }
+
+    if (frame_counter_ == 1) {
+        return ++frame_counter_, false;
     }
 
     return ++frame_counter_, true;
@@ -274,59 +279,4 @@ void kfusion::KinFu::renderImage(cuda::Image &image, const Affine3f &pose, int f
         cuda::renderImage(PASS1, normals_, params_.intr, params_.light_pose, i1);
         cuda::renderTangentColors(normals_, i2);
     }
-#undef PASS1
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// namespace pcl
-//{
-//    Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix)
-//    {
-//        Eigen::JacobiSVD<Eigen::Matrix3f> svd(matrix, Eigen::ComputeFullV |
-//        Eigen::ComputeFullU); Eigen::Matrix3f R = svd.matrixU() *
-//        svd.matrixV().transpose();
-
-//        double rx = R(2, 1) - R(1, 2);
-//        double ry = R(0, 2) - R(2, 0);
-//        double rz = R(1, 0) - R(0, 1);
-
-//        double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
-//        double c = (R.trace() - 1) * 0.5;
-//        c = c > 1. ? 1. : c < -1. ? -1. : c;
-
-//        double theta = acos(c);
-
-//        if( s < 1e-5 )
-//        {
-//            double t;
-
-//            if( c > 0 )
-//                rx = ry = rz = 0;
-//            else
-//            {
-//                t = (R(0, 0) + 1)*0.5;
-//                rx = sqrt( std::max(t, 0.0) );
-//                t = (R(1, 1) + 1)*0.5;
-//                ry = sqrt( std::max(t, 0.0) ) * (R(0, 1) < 0 ? -1.0 : 1.0);
-//                t = (R(2, 2) + 1)*0.5;
-//                rz = sqrt( std::max(t, 0.0) ) * (R(0, 2) < 0 ? -1.0 : 1.0);
-
-//                if( fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (R(1, 2) >
-//                0) != (ry*rz > 0) )
-//                    rz = -rz;
-//                theta /= sqrt(rx*rx + ry*ry + rz*rz);
-//                rx *= theta;
-//                ry *= theta;
-//                rz *= theta;
-//            }
-//        }
-//        else
-//        {
-//            double vth = 1/(2*s);
-//            vth *= theta;
-//            rx *= vth; ry *= vth; rz *= vth;
-//        }
-//        return Eigen::Vector3d(rx, ry, rz).cast<float>();
-//    }
-//}

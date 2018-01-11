@@ -31,6 +31,11 @@ stages:
 .env_setup: &env_setup |
   source setup.sh --set-paths
 
+# Variables for use in script
+variables:
+  CONTAINER_IMAGE: g1736211/dynfu
+  DEV_IMAGE: g1736211/dynfu:dev
+  TAG_IMAGE: g1736211/dynfu:${CI_COMMIT_REF_SLUG}
 # ---------------------------------------------------------------------------- #
 #                                     SETUP                                    #
 # ---------------------------------------------------------------------------- #
@@ -62,7 +67,7 @@ cmake:
   #    set the c++ standard correctly (i.e. will throw a number of errors)
   # 3) [Others]
   script:
-    - source setup.sh --cmake
+    - source setup.sh --cmake -i
 
 # ---------------------------------------------------------------------------- #
 #                                     LINT                                     #
@@ -162,6 +167,29 @@ make:
   script:
     - source setup.sh --make
 
+# > docker_image_build <
+# The docker_image_build stage creates the Docker image for an EC2 instance 
+# on a docker-compatible runner
+docker_image_build:
+  stage: Build
+  tags:
+    - docker
+  script:
+    - docker build --build-arg CUDA_GENERATION=Maxwell -t $TAG_IMAGE .
+  except:
+    - master
+
+# > docker_image_build_master <
+# The docker_image_build_master stage creates the Docker image for all architectures
+# on a docker-compatible runner
+docker_image_build_master:
+  stage: Build
+  tags:
+    - docker
+  script:
+    - docker build --build-arg CUDA_GENERATION=Auto -t $TAG_IMAGE .
+  only:
+    - master
 
 # ---------------------------------------------------------------------------- #
 #                                    TEST                                      #
@@ -188,7 +216,29 @@ gtest:
 
   # Run the gtests
   script:
-    - ./build/bin/quaternionTest
+    - ./build/bin/dynfu_test
+
+# > coverage <
+# The coverage stage runs gcov (and on top of that lcov) to generate a coverage
+# report of the test for the source files.
+coverage:
+  stage: Test
+
+  # Set env variables before testing should we need to access CUDA of OpenGL
+  # headers.
+  before_script:
+    - *env_setup
+
+  # Coverage report is constructed for the newly build binaries
+  cache:
+    key: "$CI_COMMIT_SHA"
+    paths:
+      - build/
+    policy: pull
+
+  # Generate the coverage report
+  script:
+    - source setup.sh --coverage
 
 # ---------------------------------------------------------------------------- #
 #                                   DEPLOY                                     #
@@ -199,7 +249,7 @@ gtest:
 # > deploy <
 # The deploy stage will deploy the newly built project binaries
 # to /data/dynfu.
-depoy:
+deploy:
   stage: Deploy
 
   # The latest build build/ must be retrieved from cache
@@ -218,6 +268,45 @@ depoy:
   script:
     - cp -R build/bin/* /data/dynfu
 
+# > docker_image__deploy_dev <
+# Deploys to Docker Hub
+docker_image_deploy_dev:
+  stage: Deploy
+  tags:
+    - docker
+  script:
+    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
+    - docker tag $TAG_IMAGE $DEV_IMAGE
+    - docker push $DEV_IMAGE
+  only:
+    - dev
+
+# > docker_image_deploy <
+# Deploys to Docker Hub
+docker_image_deploy:
+  stage: Deploy
+  tags:
+    - docker
+  script:
+    - docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
+    - docker tag $TAG_IMAGE $CONTAINER_IMAGE
+    - docker push $CONTAINER_IMAGE
+  only:
+    - master
+
+# > test_dynfu_on_ec2 <
+# Trigger testing on ec2 instance
+test_dynfu_on_ec2:
+  stage: Deploy
+  tags:
+    - docker
+  before_script:
+    - pip install awscli
+    - export PATH="${PATH}:~/.local/bin"
+  script:
+    - AWS_ACCESS_KEY_ID=${UPDATE_LAMBDA_KEY} AWS_SECRET_ACCESS_KEY=${UPDATE_LAMBDA_PASS} AWS_DEFAULT_REGION=eu-west-1 aws lambda invoke --function-name dynamic-fusion-trigger-testing /tmp/lambda-out
+  only:
+    - dev
 # ---------------------------------------------------------------------------- #
 #                                   CLEANUP                                    #
 # ---------------------------------------------------------------------------- #
@@ -231,5 +320,6 @@ depoy:
 cache_cleanup:
   stage: Cleanup
   script:
-    - rm -rf "/home/gitlab-runner/cache/g1736211/DynamicFusionCore/$CI_COMMIT_SHA"
+    - echo "Present Cache:" && ls /home/gitlab-runner/cache/g1736211/dynfu/
+    - rm -rf "/home/gitlab-runner/cache/g1736211/dynfu/$CI_COMMIT_SHA"
   when: always

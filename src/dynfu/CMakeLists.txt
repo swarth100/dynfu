@@ -1,21 +1,19 @@
-file(GLOB dynfu_SRCS *.cpp)
+# Build all dynfu source files into library dynfy
+add_module_library(dynfu)
 
-# Declare the library
-add_library(dynfu STATIC
-    ${dynfu_SRCS}
-)
+# set path to the terra solver file
+target_compile_definitions(dynfu PUBLIC TERRA_SOLVER_FILE=${CMAKE_SOURCE_DIR}/include/dynfu/utils/terra/energy.t)
 
-#add_module_library(dynfu)
-
+# Link to dynfu library
 target_link_libraries(dynfu
+    ceres
     kfusion
-    ${CUDA_LIBRARIES}
-    ${CUDA_CUDA_LIBRARY}
-    ${OpenCV_LIBS}
-)
-
-# Specify here the include directories exported
-# by this library
-target_include_directories(dynfu PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    gcov
+    Threads::Threads
+    ${Boost_LIBRARIES}
+    ${CUDA_CUDART_LIBRARY}
+    ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
+    ${PCL_LIBRARIES}
+    ${TERRA_LIBRARIES}
+    ${OPENMESH_LIBRARIES}
 )

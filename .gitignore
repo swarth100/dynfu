@@ -79,6 +79,16 @@ tags
 
 # Ignore build directory
 build
+files
 
 # ignore remote sync config file
 .remote-sync.json
+
+# Ignore frames
+frames
+
+# ignore helper MATLAB script to display point clouds
+show_pcl.m
+
+# ignore output folder
+out

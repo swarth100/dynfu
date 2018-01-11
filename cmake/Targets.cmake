@@ -88,19 +88,43 @@ endmacro()
 
 ################################################################################################
 # short command for adding application module
-macro(add_application target sources)
+macro(add_application target)
+  FILE(GLOB_RECURSE sources *.cpp)
   add_executable(${target} ${sources})
   default_properties(${target})
-  app_props(${target})
 endmacro()
 
 
 ################################################################################################
 # short command for adding test target
 macro(CREATE_TEST target)
-  ADD_EXECUTABLE(${target} ${ARGN})
+  FILE(GLOB SRCS *.cpp)
+  ADD_EXECUTABLE(${target} ${SRCS})
   TARGET_LINK_LIBRARIES(${target} libgtest libgmock)
   add_test(NAME ${target} COMMAND ${target})
   default_properties(${target})
 endmacro()
 
+################################################################################################
+# PCL Macro
+macro(ADD_PCL)
+  find_package(PCL 1.8 REQUIRED)
+  include_directories(${PCL_INCLUDE_DIRS})
+  link_directories(${PCL_LIBRARY_DIRS})
+  add_definitions(${PCL_DEFINITIONS})
+endmacro()
+
+################################################################################################
+# Remove vtk definitions
+# This is used for CUDA targets, because nvcc does not like VTK 6+ definitions
+# style.
+macro(REMOVE_VTK_DEFINITIONS)
+    get_directory_property(_dir_defs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+    set(_vtk_definitions)
+    foreach(_item ${_dir_defs})
+        if(_item MATCHES "vtk*")
+            list(APPEND _vtk_definitions -D${_item})
+        endif()
+    endforeach()
+    remove_definitions(${_vtk_definitions})
+endmacro(REMOVE_VTK_DEFINITIONS)

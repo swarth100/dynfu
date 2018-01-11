@@ -51,3 +51,6 @@ bugprone-*
 # Deprecated checks
 -hicpp-special-member-functions
 -hicpp-use-equals-delete
+-hicpp-no-array-decay
+-readability-delete-null-pointer
+-hicpp-member-init

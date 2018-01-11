@@ -1,9 +1,14 @@
 #pragma once
 
-#include <dynfu/warp_field.hpp>
+/* boost includes */
+#include <boost/filesystem.hpp>
+
+/* kinfu includes */
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
+
+/* sys headers */
 #include <string>
 #include <vector>
 
@@ -72,14 +77,13 @@ public:
 
     Affine3f getCameraPose(int time = -1) const;
 
-private:
+protected:
     void allocate_buffers();
 
     int frame_counter_;
     KinFuParams params_;
 
     std::vector<Affine3f> poses_;
-
     cuda::Dists dists_;
     cuda::Frame curr_, prev_;
 
