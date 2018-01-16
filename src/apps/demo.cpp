@@ -14,8 +14,8 @@
 
 struct DynFuApp {
     DynFuApp(std::string filePath, bool visualizer) : exit_(false), filePath_(filePath), visualizer_(visualizer) {
-        kfusion::KinFuParams params = kfusion::KinFuParams::default_params();
-        dynfu                       = std::make_shared<DynFusion>(params);
+        DynFuParams params = DynFuParams::defaultParams();
+        dynfu              = std::make_shared<DynFusion>(params);
     }
 
     void show_raycasted(std::shared_ptr<DynFusion> dynfu, int i) {

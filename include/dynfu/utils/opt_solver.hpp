@@ -19,8 +19,11 @@
 
 class CombinedSolver : public CombinedSolverBase {
 public:
-    CombinedSolver(Warpfield warpfield, CombinedSolverParameters params);
+    /* default constructor */
+    CombinedSolver(Warpfield warpfield, CombinedSolverParameters params, float tukeyOffset, float psi_data,
+                   float psi_reg);
 
+    /* init the problem */
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
                                    const std::shared_ptr<dynfu::Frame> liveFrame);
 
@@ -29,33 +32,56 @@ public:
     /* initialise regularisation graph */
     void initializeRegGraph();
 
+    /* set solver params and problem params */
     void combinedSolveInit() override;
+    /* do nothing */
     void combinedSolveFinalize() override;
 
+    /* do nothing */
     void preSingleSolve() override;
+    /* copy results to cpu */
     void postSingleSolve() override;
 
+    /* set tukey biweights and huber weights */
     virtual void preNonlinearSolve(int iteration) override;
+    /* do nothing */
     virtual void postNonlinearSolve(int iteration) override;
 
     /* set coordinates of vertices */
     void resetGPUMemory();
     /* update tukey biweights; for use pre non-linear solve */
     void updateTukeyBiweights();
+    /* update huber weights; for use pre non-linear solve */
+    void updateHuberWeights();
 
+    /* copy results from gpu to cpu */
     void copyResultToCPUFromFloat3();
 
 private:
+    /* warpfield to use in the solver */
     Warpfield m_warpfield;
+    /* solver parameters */
     CombinedSolverParameters m_solverParameters;
 
-    std::vector<unsigned int> m_dims;  // curent index in the solver
+    float tukeyOffset;
+    /* parameter to calculate tukey biweights */
+    float psi_data;
+    /* parametre to calculate huber weights */
+    float psi_reg;
 
+    /* current index in the solver */
+    std::vector<unsigned int> m_dims;
+
+    /* canonical vertices stored in a pcl pointcloud */
     pcl::PointCloud<pcl::PointXYZ> m_canonicalVerticesPCL;
+    /* live vertices stored in a pcl pointcloud */
     pcl::PointCloud<pcl::PointXYZ> m_liveVerticesPCL;
+    /* canonical normals stored in a pcl pointcloud */
     pcl::PointCloud<pcl::Normal> m_canonicalNormalsPCL;
+    /* live normals stored in a pcl pointcloud */
     pcl::PointCloud<pcl::Normal> m_liveNormalsPCL;
 
+    /* OPT IMAGES */
     std::shared_ptr<OptImage> m_canonicalVertices;
     std::shared_ptr<OptImage> m_canonicalNormals;
     std::shared_ptr<OptImage> m_liveVertices;
@@ -70,7 +96,10 @@ private:
     std::shared_ptr<OptImage> m_dg_w;
 
     std::shared_ptr<OptImage> m_tukeyBiweights;
+    std::shared_ptr<OptImage> m_huberWeights;
 
-    /* calculate tukey biweight given the tukey offset, parameter c, and the point error */
+    /* calculate tukey biweight */
     float calcTukeyBiweight(float tukeyOffset, float c, pcl::PointXYZ ptError);
+    /* calculate huber weight */
+    float calcHuberWeight(float k, float e);
 };

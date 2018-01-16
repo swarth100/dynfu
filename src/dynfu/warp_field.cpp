@@ -13,13 +13,14 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
     /* initialise deformation nodes */
     this->nodes = nodes;
 
-    /* hold deformation nodes position */
+    /* hold deformation nodes' positions */
     std::vector<cv::Vec3f> deformationNodesPosition;
     for (auto node : this->nodes) {
         deformationNodesPosition.push_back(
             cv::Vec3f(node->getPosition().x, node->getPosition().y, node->getPosition().z));
     }
 
+    /* initialise kd-tree */
     cloud      = std::make_shared<nanoflann::PointCloud>();
     cloud->pts = deformationNodesPosition;
     kdTree     = std::make_shared<kd_tree_t>(3, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
@@ -83,47 +84,24 @@ std::shared_ptr<DualQuaternion<float>> Warpfield::calcDQB(pcl::PointXYZ point) {
     return std::make_shared<DualQuaternion<float>>(dual_quaternion_blending);
 }
 
-std::shared_ptr<dynfu::Frame> Warpfield::warpToCanonical(cv::Affine3f /* affineLiveToCanonical */,
-                                                         std::shared_ptr<dynfu::Frame> liveFrame) {
-    auto vertices = liveFrame->getVertices();
-    auto normals  = liveFrame->getNormals();
+std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(std::shared_ptr<dynfu::Frame> canonicalFrame) {
+    pcl::PointCloud<pcl::PointXYZ> vertices = canonicalFrame->getVertices();
+    pcl::PointCloud<pcl::Normal> normals    = canonicalFrame->getNormals();
 
     pcl::PointCloud<pcl::PointXYZ> warpedVertices;
     pcl::PointCloud<pcl::Normal> warpedNormals;
 
     for (int i = 0; i < vertices.size(); i++) {
-        pcl::PointXYZ vertex = vertices[i];  // affineLiveToCanonical * vertices[i];
-        pcl::Normal normal   = normals[i];   // affineLiveToCanonical * normals[i];
+        pcl::PointXYZ vertex = vertices[i];
+        pcl::Normal normal   = normals[i];
 
-        auto transformation = DualQuaternion<float>(0, 0, 0, 0, 0, 0) - *(calcDQB(vertex));
-        vertex              = transformation.transformVertex(vertex);
-        normal              = transformation.transformNormal(normal);
+        std::shared_ptr<DualQuaternion<float>> transformation = calcDQB(vertex);
 
-        warpedVertices.push_back(vertex);
-        warpedNormals.push_back(normal);
-    }
+        pcl::PointXYZ vertexNew = transformation->transformVertex(vertex);
+        pcl::Normal normalNew   = transformation->transformNormal(normal);
 
-    return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);
-}
-
-std::shared_ptr<dynfu::Frame> Warpfield::warpToLive(cv::Affine3f /* affineCanonicalToLive */,
-                                                    std::shared_ptr<dynfu::Frame> canonicalFrame) {
-    auto vertices = canonicalFrame->getVertices();
-    auto normals  = canonicalFrame->getNormals();
-
-    pcl::PointCloud<pcl::PointXYZ> warpedVertices;
-    pcl::PointCloud<pcl::Normal> warpedNormals;
-
-    for (int i = 0; i < vertices.size(); i++) {
-        pcl::PointXYZ vertex = vertices[i];  // affineLiveToCanonical * vertices[i];
-        pcl::Normal normal   = normals[i];   // affineLiveToCanonical * normals[i];
-
-        auto transformation = calcDQB(vertex);
-        vertex              = transformation->transformVertex(vertex);
-        normal              = transformation->transformNormal(normal);
-
-        warpedVertices.push_back(vertex);
-        warpedNormals.push_back(normal);
+        warpedVertices.push_back(vertexNew);
+        warpedNormals.push_back(normalNew);
     }
 
     return std::make_shared<dynfu::Frame>(0, warpedVertices, warpedNormals);

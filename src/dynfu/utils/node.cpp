@@ -16,19 +16,13 @@ pcl::PointXYZ Node::getPosition() { return dg_v; }
 
 std::shared_ptr<DualQuaternion<float>>& Node::getTransformation() { return dg_se3; };
 
-void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3) { this->dg_se3 = new_dg_se3; }
-
-void Node::updateTransformation(boost::math::quaternion<float> real, boost::math::quaternion<float> dual) {
-    auto prevTransformation = getTransformation();
-    auto prevReal           = prevTransformation->getReal();
-    auto prevDual           = prevTransformation->getDual();
-
-    auto currReal = boost::math::quaternion<float>(1.f, 0.f, 0.f, 0.f);
-    auto currDual = prevDual + dual;
-    auto dq       = std::make_shared<DualQuaternion<float>>(currReal, currDual);
-
+void Node::updateTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3) {
+    std::shared_ptr<DualQuaternion<float>> dq =
+        std::make_shared<DualQuaternion<float>>(*(new_dg_se3) * *(this->dg_se3));
     this->dg_se3 = dq;
 }
+
+void Node::setTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3) { this->dg_se3 = new_dg_se3; }
 
 float Node::getRadialBasisWeight() { return dg_w; }
 

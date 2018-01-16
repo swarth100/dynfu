@@ -66,15 +66,12 @@ Energy(sqrt(tukeyBiweights(dataG.v)) * (liveVertices(dataG.v) - canonicalVertice
 --                    "v6", {D}, 27,
 --                    "v7", {D}, 28)
 --
--- local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
+-- local huberWeights = Array("huberWeights", opt_float, {D}, 29)
 --
--- local k = 0.0001
+-- local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
 -- local lambda = 200
 --
 -- for _,i in ipairs(neighbours) do
---     local transformationError = translations(regG.n):dot(dg_v(regG["v"..i])) - translations(regG["v"..i]):dot(dg_v(regG["v"..i]))
---     local huberWeight = Select(lesseq(transformationError, k), 1, huberWeight(transformationError, k))
 --     local alpha = Select(greatereq(dg_w(regG.n), dg_w(regG["v"..i])), dg_w(regG.n), dg_w(regG["v"..i]))
---
---     Energy(sqrt(lambda) * sqrt(huberWeight) * alpha * (translations(regG.n) - translations(regG["v"..i])))
+--     Energy(sqrt(lambda) * sqrt(huberWeights(regG.n)) * alpha * (translations(regG.n) - translations(regG["v"..i])))
 -- end

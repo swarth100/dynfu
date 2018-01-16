@@ -21,31 +21,44 @@
 #include <math.h>
 #include <thread>
 
+/* dynfu parameters */
+struct DynFuParams {
+    /* set default dynfu params */
+    static DynFuParams defaultParams();
+
+    /* kinfu params to use in dynfu */
+    kfusion::KinFuParams kinfuParams;
+
+    float tukeyOffset;
+
+    float lambda;    // regularisation parameter
+    float psi_data;  // parameter to calculate tukey biweights
+    float psi_reg;   // parameter to calculate huber weights
+
+    int L;     // no. of levels in the regularisation hierarchy
+    int beta;  // ???
+
+    float epsilon;  // decimation density, mm
+};
+
 /* */
 class DynFusion : public kfusion::KinFu {
 public:
-    DynFusion(const kfusion::KinFuParams &params);
-
+    /* default constructor */
+    DynFusion(const DynFuParams &params);
+    /* default destructor */
     ~DynFusion();
 
+    /* get dynfu params */
+    DynFuParams &params();
+
+    /* perform dynfu on all frames */
     bool operator()(const kfusion::cuda::Depth &depth, const kfusion::cuda::Image &image = kfusion::cuda::Image());
 
+    /* initailise dynfu */
     void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
-
+    /* initialise canonical frame with vertices and normals */
     void initCanonicalFrame(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals);
-
-    // void updateCanonicalFrame();
-
-    /* update the warp field if the no. of deformation nodes is insufficient to capture the geometry of canonical
-     * model
-     */
-    void updateWarpfield();
-
-    /* update the affine transformation from icp */
-    void updateAffine(cv::Affine3f newAffine);
-
-    /* get the affine transformation */
-    cv::Affine3f getLiveToCanonicalAffine();
 
     /* warp canonical frame to live frame using Opt */
     void warpCanonicalToLiveOpt();
@@ -73,22 +86,27 @@ public:
     /* convert OpenCV matrix to cloud */
     kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
 
+    /* raycast canonical model warped to live for display */
     void renderCanonicalWarpedToLive(kfusion::cuda::Image /* &image */, int /* flag */);
 
 private:
+    /* algo parameters */
+    DynFuParams dynfuParams;
+
+    /* canonical frame */
     std::shared_ptr<dynfu::Frame> canonicalFrame;
-
-    std::shared_ptr<dynfu::Frame> canonicalFrameAffine;
-
-    std::shared_ptr<dynfu::Frame> canonicalWarpedToLive;
+    /* canonical frame warped to live */
+    std::shared_ptr<dynfu::Frame> canonicalFrameWarpedToLive;
+    /* polygon mesh with the surface of the canonical model warped to live */
     pcl::PolygonMesh canonicalWarpedToLiveMesh;
 
+    /* live frame */
     std::shared_ptr<dynfu::Frame> liveFrame;
 
-    cv::Affine3f affineLiveToCanonical;
+    /* warp field */
     std::shared_ptr<Warpfield> warpfield;
 
-    /* find the corresponding vertices/normals of canonical frame in the live vertices */
+    /* find the corresponding vertices and normals of canonical frame in the live frame */
     std::shared_ptr<dynfu::Frame> findCorrespondingFrame(pcl::PointCloud<pcl::PointXYZ> canonicalVertices,
                                                          pcl::PointCloud<pcl::Normal> canonicalNormals,
                                                          pcl::PointCloud<pcl::PointXYZ> liveVertices);
@@ -98,8 +116,8 @@ private:
     /* check if kfusion::point is 0 */
     static bool isZero(kfusion::Point pt);
 
-    /* convert cloud to OpenCV matrix */
+    /* convert cloud to opencv matrix */
     cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
-    /* convert normals to OpenCV matrix */
+    /* convert normals to opencv matrix */
     cv::Mat normalsToMat(kfusion::cuda::Normals normals);
 };

@@ -52,12 +52,8 @@ public:
     /* return a dual quaternion which represents the dual quaternion blending for a given point */
     std::shared_ptr<DualQuaternion<float>> calcDQB(pcl::PointXYZ point);
 
-    /* warp live frame to canonical frame */
-    std::shared_ptr<dynfu::Frame> warpToCanonical(cv::Affine3f affineLiveToCanonical,
-                                                  std::shared_ptr<dynfu::Frame> liveFrame);
     /* warp canonical frame to live frame */
-    std::shared_ptr<dynfu::Frame> warpToLive(cv::Affine3f affineCanonicalToLive,
-                                             std::shared_ptr<dynfu::Frame> canonicalFrame);
+    std::shared_ptr<dynfu::Frame> warpToLive(std::shared_ptr<dynfu::Frame> canonicalFrame);
 
 private:
     /* frame counter */

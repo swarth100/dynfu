@@ -42,10 +42,10 @@ public:
 
     /* get the dg_se3 of a deformation node */
     std::shared_ptr<DualQuaternion<float>>& getTransformation();
+    /* update transformation stored in a deformation node */
+    void updateTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3);
     /* set transformation stored in a deformation node */
     void setTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3);
-    /* update transformation stored in a deformation nodes */
-    void updateTransformation(boost::math::quaternion<float> real, boost::math::quaternion<float> dual);
 
     /* get radial basis weight of a vertex */
     float getRadialBasisWeight();
