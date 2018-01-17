@@ -505,7 +505,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpTwiceTest) {
     combinedSolverTwo.solveAll();
 
     j = 0;
-    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+    for (auto vertex : canonicalFrame->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
         auto result              = totalTransformation->transformVertex(vertex);
 
@@ -567,7 +567,6 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
     std::shared_ptr<dynfu::Frame> canonicalFrameWarpedToLive = warpfield.warpToLive(canonicalFrame);
 
     targetVertices.clear();
-
     targetVertices.push_back(pcl::PointXYZ(-2.98, -2.98, -2.98));
     targetVertices.push_back(pcl::PointXYZ(-1.98, -1.98, -1.98));
     targetVertices.push_back(pcl::PointXYZ(0.06, 0.06, 0.06));
@@ -581,7 +580,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
     combinedSolverTwo.solveAll();
 
     j = 0;
-    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+    for (auto vertex : canonicalFrame->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
         auto result              = totalTransformation->transformVertex(vertex);
 
@@ -592,10 +591,9 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
         j++;
     }
 
-    canonicalFrameWarpedToLive = warpfield.warpToLive(canonicalFrameWarpedToLive);
+    std::shared_ptr<dynfu::Frame> canonicalFrameWarpedToLive2 = warpfield.warpToLive(canonicalFrameWarpedToLive);
 
     targetVertices.clear();
-
     targetVertices.push_back(pcl::PointXYZ(-2.96, -2.96, -2.96));
     targetVertices.push_back(pcl::PointXYZ(-1.96, -1.96, -1.96));
     targetVertices.push_back(pcl::PointXYZ(0.09, 0.09, 0.09));
@@ -605,7 +603,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
     std::shared_ptr<dynfu::Frame> nextNextLiveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolverThree(warpfield, params, tukeyOffset, psi_data, psi_reg);
-    combinedSolverThree.initializeProblemInstance(canonicalFrameWarpedToLive, nextNextLiveFrame);
+    combinedSolverThree.initializeProblemInstance(canonicalFrameWarpedToLive2, nextNextLiveFrame);
     combinedSolverThree.solveAll();
 
     j = 0;
@@ -677,7 +675,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
     combinedSolverReverse.solveAll();
 
     j = 0;
-    for (auto vertex : canonicalFrameWarpedToLive->getVertices()) {
+    for (auto vertex : liveFrame->getVertices()) {
         auto totalTransformation = warpfield.calcDQB(vertex);
         auto result              = totalTransformation->transformVertex(vertex);
 
