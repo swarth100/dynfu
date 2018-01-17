@@ -150,7 +150,7 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
 
     auto &canonicalFrameVertices = canonicalFrame->getVertices();
 
-    int step = 280;
+    int step = 192;
     std::vector<std::shared_ptr<Node>> deformationNodes;
 
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
