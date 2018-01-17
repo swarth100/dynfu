@@ -1,4 +1,5 @@
 -- TODO (dig15): rotate canonical vertex node by node
+-- TODO (dig15): add regularisation
 
 -- package.cpath = package.cpath .. ";/homes/dig15/df/dynfu/include/dynfu/utils/terra/?.so"
 -- require 'luadq'

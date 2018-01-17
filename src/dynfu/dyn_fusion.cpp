@@ -180,8 +180,8 @@ void DynFusion::warpCanonicalToLiveOpt() {
     params.numIter       = 24;
     params.nonLinearIter = 16;
     params.linearIter    = 256;
-    params.useOpt        = false;
-    params.useOptLM      = true;
+    params.useOpt        = true;
+    params.useOptLM      = false;
     params.earlyOut      = true;
 
     std::cout << "solving" << std::endl;
