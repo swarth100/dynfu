@@ -1,5 +1,5 @@
 -- TODO (dig15): rotate canonical vertex node by node
--- TODO (dig15): add alpha, lambda, and huber weights to regularisation graph
+-- TODO (dig15): add alpha and huber weights to regularisation graph
 
 -- package.cpath = package.cpath .. ";/homes/dig15/df/dynfu/include/dynfu/utils/terra/?.so"
 -- require 'luadq'
@@ -68,9 +68,11 @@ local regG = Graph("regGraph", 19,
                    "v7", {D}, 28)
 
 local huberWeights = Array("huberWeights", opt_float, {D}, 29)
+local w_reg = Param("w_reg", float, 30)
 
 local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
 
 for _,i in ipairs(neighbours) do
-    Energy(((dg_v(regG["v"..i]) - translations(regG.n)) - (dg_v(regG["v"..i]) - translations(regG["v"..i]))))
+    local alpha = Select(greatereq(dg_w(regG["v"..i]), dg_w(regG.n)), dg_w(regG["v"..i]), dg_w(regG.n))
+    Energy(w_reg * ((dg_v(regG["v"..i]) - translations(regG.n)) - (dg_v(regG["v"..i]) - translations(regG["v"..i]))))
 end

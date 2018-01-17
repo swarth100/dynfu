@@ -1,13 +1,15 @@
 #include <dynfu/utils/opt_solver.hpp>
 
 CombinedSolver::CombinedSolver(Warpfield warpfield, CombinedSolverParameters params, float tukeyOffset, float psi_data,
-                               float psi_reg) {
+                               float lambda, float psi_reg) {
     m_warpfield                = warpfield;
     m_combinedSolverParameters = params;
 
     this->tukeyOffset = tukeyOffset;
     this->psi_data    = psi_data;
-    this->psi_reg     = psi_reg;
+
+    this->lambda  = lambda;
+    this->psi_reg = psi_reg;
 }
 
 void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
@@ -23,6 +25,9 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     std::cout << "no. of non-zero canonical vertices: " << N << std::endl;
 
     m_dims = {D, N};
+
+    /* set per-term regularisation weight */
+    w_reg = sqrt(lambda / (D * KNN));
 
     m_canonicalVertices = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
     m_canonicalNormals  = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
@@ -119,6 +124,8 @@ void CombinedSolver::combinedSolveInit() {
 
     m_problemParams.set("regGraph", m_regGraph);
     m_problemParams.set("huberWeights", m_huberWeights);
+
+    m_problemParams.set("w_reg", &w_reg);
 }
 
 void CombinedSolver::preSingleSolve() {}

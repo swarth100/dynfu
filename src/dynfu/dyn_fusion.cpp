@@ -187,7 +187,7 @@ void DynFusion::warpCanonicalToLiveOpt() {
 
     std::cout << "solving" << std::endl;
 
-    CombinedSolver combinedSolver(*warpfield, params, dynfuParams.tukeyOffset, dynfuParams.psi_data,
+    CombinedSolver combinedSolver(*warpfield, params, dynfuParams.tukeyOffset, dynfuParams.psi_data, dynfuParams.lambda,
                                   dynfuParams.psi_reg);
 
     this->canonicalFrameWarpedToLive = warpfield->warpToLive(this->canonicalFrame);

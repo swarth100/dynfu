@@ -20,7 +20,7 @@ class CombinedSolver : public CombinedSolverBase {
 public:
     /* default constructor */
     CombinedSolver(Warpfield warpfield, CombinedSolverParameters params, float tukeyOffset, float psi_data,
-                   float psi_reg);
+                   float lambda, float psi_reg);
 
     /* init the problem */
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
@@ -65,7 +65,10 @@ private:
     float tukeyOffset;
     /* parameter to calculate tukey biweights */
     float psi_data;
-    /* parametre to calculate huber weights */
+
+    /* regularisation parameter */
+    float lambda;
+    /* parameter to calculate huber weights */
     float psi_reg;
 
     /* current index in the solver */
@@ -96,6 +99,9 @@ private:
 
     std::shared_ptr<OptImage> m_tukeyBiweights;
     std::shared_ptr<OptImage> m_huberWeights;
+
+    /* per-term regularisation weight */
+    float w_reg;
 
     /* calculate tukey biweight */
     float calcTukeyBiweight(float tukeyOffset, float c, pcl::PointXYZ ptError);
