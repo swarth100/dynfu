@@ -116,7 +116,7 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
         kfusion::cuda::waitAllDefaultStream();
     }
 
-    /* TODO (dig15): pass in the depths, not points; add new live frame to dynfu */
+    /* TODO (dig15): pass in depths, not points; add new live frame to dynfu */
     addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
     /* warp canonical frame to live frame */
     warpCanonicalToLiveOpt();
