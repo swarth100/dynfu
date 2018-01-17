@@ -154,8 +154,9 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     std::vector<std::shared_ptr<Node>> deformationNodes;
 
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
-        auto dg_v  = canonicalFrameVertices[i];
-        auto dq    = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+        auto dg_v = canonicalFrameVertices[i];
+        auto dq   = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+        /* FIXME (dig15): set dg_w based on the sampling sparsity of the nodes */
         float dg_w = 2.f;
 
         deformationNodes.push_back(std::make_shared<Node>(dg_v, dq, dg_w));

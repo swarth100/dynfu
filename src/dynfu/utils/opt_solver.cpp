@@ -115,10 +115,10 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("liveNormals", m_liveNormals);
 
     m_problemParams.set("dataGraph", m_dataGraph);
-
     m_problemParams.set("tukeyBiweights", m_tukeyBiweights);
 
-    // m_problemParams.set("regGraph", m_regGraph);
+    m_problemParams.set("regGraph", m_regGraph);
+    m_problemParams.set("huberWeights", m_huberWeights);
 }
 
 void CombinedSolver::preSingleSolve() {}

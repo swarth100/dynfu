@@ -1,5 +1,5 @@
 -- TODO (dig15): rotate canonical vertex node by node
--- TODO (dig15): add regularisation
+-- TODO (dig15): add alpha, lambda, and huber weights to regularisation graph
 
 -- package.cpath = package.cpath .. ";/homes/dig15/df/dynfu/include/dynfu/utils/terra/?.so"
 -- require 'luadq'
@@ -54,25 +54,23 @@ end
 
 Energy(sqrt(tukeyBiweights(dataG.v)) * (liveVertices(dataG.v) - canonicalVertices(dataG.v) - totalTranslation))
 
------ REGULARISATION TERM -----
---
--- local regG = Graph("regGraph", 19,
---                    "n", {D}, 20,
---                    "v0", {D}, 21,
---                    "v1", {D}, 22,
---                    "v2", {D}, 23,
---                    "v3", {D}, 24,
---                    "v4", {D}, 25,
---                    "v5", {D}, 26,
---                    "v6", {D}, 27,
---                    "v7", {D}, 28)
---
--- local huberWeights = Array("huberWeights", opt_float, {D}, 29)
---
--- local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
--- local lambda = 200
---
--- for _,i in ipairs(neighbours) do
---     local alpha = Select(greatereq(dg_w(regG.n), dg_w(regG["v"..i])), dg_w(regG.n), dg_w(regG["v"..i]))
---     Energy(sqrt(lambda) * sqrt(huberWeights(regG.n)) * alpha * (translations(regG.n) - translations(regG["v"..i])))
--- end
+--- REGULARISATION TERM -----
+
+local regG = Graph("regGraph", 19,
+                   "n", {D}, 20,
+                   "v0", {D}, 21,
+                   "v1", {D}, 22,
+                   "v2", {D}, 23,
+                   "v3", {D}, 24,
+                   "v4", {D}, 25,
+                   "v5", {D}, 26,
+                   "v6", {D}, 27,
+                   "v7", {D}, 28)
+
+local huberWeights = Array("huberWeights", opt_float, {D}, 29)
+
+local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
+
+for _,i in ipairs(neighbours) do
+    Energy(((dg_v(regG["v"..i]) - translations(regG.n)) - (dg_v(regG["v"..i]) - translations(regG["v"..i]))))
+end
