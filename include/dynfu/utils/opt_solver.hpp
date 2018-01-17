@@ -4,7 +4,6 @@
 #define TOSTRING(x) STRINGIFY(x)
 
 /* dynfu includes */
-#include <dynfu/utils/cuda_utils.h>
 #include <dynfu/utils/frame.hpp>
 #include <dynfu/warp_field.hpp>
 

@@ -182,7 +182,7 @@ void CombinedSolver::resetGPUMemory() {
         h_translations[i] = make_float3(0.f, 0.f, 0.f);
         h_rotations[i]    = make_float3(0.f, 0.f, 0.f);
 
-        h_dg_w[i] = dg_w;
+        h_dg_w[i] = node->getRadialBasisWeight();
     }
 
     m_dg_v->update(h_dg_v);
