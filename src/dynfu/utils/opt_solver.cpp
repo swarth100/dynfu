@@ -13,7 +13,7 @@ CombinedSolver::CombinedSolver(Warpfield warpfield, CombinedSolverParameters par
 }
 
 void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
-                                               const std::shared_ptr<dynfu::Frame> liveFrame) {
+                                               const std::shared_ptr<dynfu::Frame> liveFrame, cv::Affine3f affine) {
     m_canonicalVerticesPCL = canonicalFrame->getVertices();
     m_canonicalNormalsPCL  = canonicalFrame->getNormals();
     m_liveVerticesPCL      = liveFrame->getVertices();
@@ -42,7 +42,7 @@ void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Fram
     m_tukeyBiweights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 1, OptImage::GPU, false);
     m_huberWeights   = createEmptyOptImage({D}, OptImage::Type::FLOAT, 1, OptImage::GPU, false);
 
-    resetGPUMemory();
+    resetGPUMemory(affine);
 
     updateTukeyBiweights();
     updateHuberWeights();
@@ -146,7 +146,7 @@ void CombinedSolver::combinedSolveFinalize() {
                      nan(""));
 }
 
-void CombinedSolver::resetGPUMemory() {
+void CombinedSolver::resetGPUMemory(cv::Affine3f affine) {
     unsigned int N = m_dims[1];
 
     std::vector<float3> h_canonicalVertices(N);
@@ -172,6 +172,10 @@ void CombinedSolver::resetGPUMemory() {
     m_liveVertices->update(h_liveVertices);
     m_liveNormals->update(h_liveNormals);
 
+    /* FIXME (dig15): make the affine transformations work with the solver */
+    cv::Vec3f affineTranslation = affine.translation();
+    cv::Vec3f affineRot         = affine.rvec();
+
     auto D = m_dims[0];
 
     std::vector<float3> h_dg_v(D);
@@ -185,7 +189,6 @@ void CombinedSolver::resetGPUMemory() {
         pcl::PointXYZ nodeCoordinates = node->getPosition();
         h_dg_v[i]                     = make_float3(nodeCoordinates.x, nodeCoordinates.y, nodeCoordinates.z);
 
-        /* TODO (dig15): pass in data from icp */
         h_translations[i] = make_float3(0.f, 0.f, 0.f);
         h_rotations[i]    = make_float3(0.f, 0.f, 0.f);
 

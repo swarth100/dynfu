@@ -61,7 +61,7 @@ public:
     void initCanonicalFrame(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals);
 
     /* warp canonical frame to live frame using Opt */
-    void warpCanonicalToLiveOpt();
+    void warpCanonicalToLiveOpt(cv::Affine3f affine);
 
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);

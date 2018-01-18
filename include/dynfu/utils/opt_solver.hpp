@@ -24,7 +24,7 @@ public:
 
     /* init the problem */
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
-                                   const std::shared_ptr<dynfu::Frame> liveFrame);
+                                   const std::shared_ptr<dynfu::Frame> liveFrame, cv::Affine3f affine);
 
     /* initialise data graph */
     void initializeDataGraph();
@@ -47,7 +47,7 @@ public:
     virtual void postNonlinearSolve(int iteration) override;
 
     /* set coordinates of vertices */
-    void resetGPUMemory();
+    void resetGPUMemory(cv::Affine3f affine);
     /* update tukey biweights; for use pre non-linear solve */
     void updateTukeyBiweights();
     /* update huber weights; for use pre non-linear solve */

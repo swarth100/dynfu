@@ -125,7 +125,7 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
     /* TODO (dig15): pass in depths, not points; add new live frame to dynfu */
     addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
     /* warp canonical frame to live frame */
-    warpCanonicalToLiveOpt();
+    warpCanonicalToLiveOpt(affine);
     /* update warpfield */
     warpfield->update(this->getCanonicalWarpedToLive());
     /* construct a polygon mesh of the warped model via marching cubes */
@@ -183,7 +183,7 @@ void DynFusion::initCanonicalFrame(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl
     std::cout << "no. of canonical vertices: " << vertices.size() << std::endl;
 }
 
-void DynFusion::warpCanonicalToLiveOpt() {
+void DynFusion::warpCanonicalToLiveOpt(cv::Affine3f affine) {
     CombinedSolverParameters params;
     params.numIter       = 24;
     params.nonLinearIter = 16;
@@ -207,7 +207,7 @@ void DynFusion::warpCanonicalToLiveOpt() {
     std::shared_ptr<dynfu::Frame> correspondingCanonicalFrame = findCorrespondingFrame(
         canonicalFrameWarpedToLiveVertices, canonicalFrameWarpedToLiveNormals, liveFrameVertices);
 
-    combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame);
+    combinedSolver.initializeProblemInstance(correspondingCanonicalFrame, this->liveFrame, affine);
     combinedSolver.solveAll();
 
     std::cout << "solved" << std::endl;

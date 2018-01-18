@@ -106,6 +106,11 @@ protected:
     /* warp field */
     Warpfield warpfield;
 
+    /* affine transformation canonical -> live, not used here */
+    cv::Vec3f r         = cv::Vec3f(0, 0, 0);
+    cv::Vec3f t         = cv::Vec3f(0, 0, 0);
+    cv::Affine3f affine = cv::Affine3f(r, t);
+
     /* decimation density */
     float epsilon_dynfu = 0.0015;
 
@@ -142,7 +147,7 @@ protected:
 //     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 //
 //     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, psi_reg);
-//     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+//     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
 //     combinedSolver.solveAll();
 //
 //     int j = 0;
@@ -185,7 +190,7 @@ protected:
 //     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 //
 //     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, psi_reg);
-//     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+//     combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
 //     combinedSolver.solveAll();
 //
 //     int j = 0;
@@ -218,7 +223,7 @@ TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -255,7 +260,7 @@ TEST_F(OptTest, TwoVerticesOneNotMovingOneGroupOfDeformationNodesTest) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -304,7 +309,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesTest) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -353,7 +358,7 @@ TEST_F(OptTest, OneGroupOfVerticesTwoGroupsOfDeformationNodes) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -430,7 +435,7 @@ TEST_F(OptTest, TwoGroupsOfVerticesTwoGroupsOfDeformationNodes) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -478,7 +483,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpTwiceTest) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrame, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrame, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -506,7 +511,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpTwiceTest) {
     std::shared_ptr<dynfu::Frame> nextLiveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolverTwo(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolverTwo.initializeProblemInstance(canonicalFrameWarpedToLive, nextLiveFrame);
+    combinedSolverTwo.initializeProblemInstance(canonicalFrameWarpedToLive, nextLiveFrame, affine);
     combinedSolverTwo.solveAll();
 
     j = 0;
@@ -554,7 +559,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrame, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrame, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -581,7 +586,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
     std::shared_ptr<dynfu::Frame> nextLiveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolverTwo(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolverTwo.initializeProblemInstance(canonicalFrameWarpedToLive, nextLiveFrame);
+    combinedSolverTwo.initializeProblemInstance(canonicalFrameWarpedToLive, nextLiveFrame, affine);
     combinedSolverTwo.solveAll();
 
     j = 0;
@@ -608,7 +613,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
     std::shared_ptr<dynfu::Frame> nextNextLiveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolverThree(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolverThree.initializeProblemInstance(canonicalFrameWarpedToLive2, nextNextLiveFrame);
+    combinedSolverThree.initializeProblemInstance(canonicalFrameWarpedToLive2, nextNextLiveFrame, affine);
     combinedSolverThree.solveAll();
 
     j = 0;
@@ -656,7 +661,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
     liveFrame = std::make_shared<dynfu::Frame>(1, targetVertices, targetNormals);
 
     CombinedSolver combinedSolver(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolver.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
     combinedSolver.solveAll();
 
     int j = 0;
@@ -676,7 +681,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
     liveFrame                  = temp;
 
     CombinedSolver combinedSolverReverse(warpfield, params, tukeyOffset, psi_data, lambda, psi_reg);
-    combinedSolverReverse.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame);
+    combinedSolverReverse.initializeProblemInstance(canonicalFrameWarpedToLive, liveFrame, affine);
     combinedSolverReverse.solveAll();
 
     j = 0;
