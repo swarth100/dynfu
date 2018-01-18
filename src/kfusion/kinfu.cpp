@@ -60,6 +60,8 @@ kfusion::KinFu::KinFu(const kfusion::KinFuParams &params) : frame_counter_(0), p
     icp_->setAngleThreshold(params_.icp_angle_thres);
     icp_->setIterationsNum(params_.icp_iter_num);
 
+    mc_ = cv::Ptr<cuda::MarchingCubes>(new cuda::MarchingCubes());
+
     allocate_buffers();
     reset();
 }
@@ -75,6 +77,10 @@ kfusion::cuda::TsdfVolume &kfusion::KinFu::tsdf() { return *volume_; }
 const kfusion::cuda::ProjectiveICP &kfusion::KinFu::icp() const { return *icp_; }
 
 kfusion::cuda::ProjectiveICP &kfusion::KinFu::icp() { return *icp_; }
+
+const kfusion::cuda::MarchingCubes &kfusion::KinFu::mc() const { return *mc_; }
+
+kfusion::cuda::MarchingCubes &kfusion::KinFu::mc() { return *mc_; }
 
 void kfusion::KinFu::allocate_buffers() {
     const int LEVELS = cuda::ProjectiveICP::MAX_PYRAMID_LEVELS;

@@ -3,6 +3,8 @@
 #include <kfusion/cuda/device_array.hpp>
 #include <kfusion/safe_call.hpp>
 
+#include <pcl/point_types.h>
+
 //#define USE_DEPTH
 
 namespace kfusion {
@@ -18,6 +20,8 @@ typedef DeviceArray2D<ushort> Depth;
 typedef DeviceArray2D<Normal> Normals;
 typedef DeviceArray2D<Point> Points;
 typedef DeviceArray2D<uchar4> Image;
+
+typedef pcl::PointXYZ PointType;
 
 typedef int3 Vec3i;
 typedef float3 Vec3f;
@@ -42,13 +46,12 @@ public:
     TsdfVolume(elem_type *data, int3 dims, float3 voxel_size, float trunc_dist, int max_weight);
     // TsdfVolume(const TsdfVolume&);
 
+    TsdfVolume &operator=(const TsdfVolume &);
+
     __kf_device__ elem_type *operator()(int x, int y, int z);
     __kf_device__ const elem_type *operator()(int x, int y, int z) const;
     __kf_device__ elem_type *beg(int x, int y) const;
     __kf_device__ elem_type *zstep(elem_type *const ptr) const;
-
-private:
-    TsdfVolume &operator=(const TsdfVolume &);
 };
 
 struct Projector {
@@ -115,6 +118,17 @@ void raycast(const TsdfVolume &volume, const Aff3f &aff, const Mat3f &Rinv, cons
 __kf_device__ ushort2 pack_tsdf(float tsdf, int weight);
 __kf_device__ float unpack_tsdf(ushort2 value, int &weight);
 __kf_device__ float unpack_tsdf(ushort2 value);
+
+// marching cubes functions
+void bindTextures(const int *edgeBuf, const int *triBuf, const int *numVertsBuf);
+void unbindTextures();
+
+int getOccupiedVoxels(ushort2 *const volume, DeviceArray2D<int> &occupied_voxels);
+
+int computeOffsetsAndTotalVertices(DeviceArray2D<int> &occupied_voxels);
+
+void generateTriangles(ushort2 *const volume, const DeviceArray2D<int> &occupied_voxels, const float3 &volume_size,
+                       DeviceArray<PointType> &output);
 
 // image proc functions
 void compute_dists(const Depth &depth, Dists dists, float2 f, float2 c);

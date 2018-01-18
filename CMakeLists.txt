@@ -60,8 +60,9 @@ find_package(Boost 1.36.0 REQUIRED COMPONENTS filesystem)
 find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core viz highgui calib3d)
 find_package(OpenMesh REQUIRED)
-find_package(Threads REQUIRED)
 find_package(PCL 1.8.1 REQUIRED)
+find_package(Threads REQUIRED)
+find_package(Thrust REQUIRED)
 
 # ---------------------------------------------------------------------------- #
 # CUDA SETTINGS

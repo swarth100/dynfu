@@ -1,6 +1,7 @@
 #pragma once
 
 #include <kfusion/cuda/imgproc.hpp>
+#include <kfusion/cuda/marching_cubes.hpp>
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/kinfu.hpp>

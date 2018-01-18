@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 
 /* kinfu includes */
+#include <kfusion/cuda/marching_cubes.hpp>
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
@@ -68,6 +69,9 @@ public:
     const cuda::ProjectiveICP &icp() const;
     cuda::ProjectiveICP &icp();
 
+    const cuda::MarchingCubes &mc() const;
+    cuda::MarchingCubes &mc();
+
     void reset();
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
@@ -93,5 +97,6 @@ protected:
 
     cv::Ptr<cuda::TsdfVolume> volume_;
     cv::Ptr<cuda::ProjectiveICP> icp_;
+    cv::Ptr<cuda::MarchingCubes> mc_;
 };
 }  // namespace kfusion
