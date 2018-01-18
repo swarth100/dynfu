@@ -12,14 +12,20 @@ DynFuParams DynFuParams::defaultParams() {
 
     p.tukeyOffset = 4.652;
 
-    p.lambda   = 200;   // regularisation parameter
-    p.psi_data = 0.01;  // parameter to calculate tukey biweights
-    p.psi_reg  = 1e-4;  // parameter to calculate huber weights
+    /* regularisation parameter */
+    p.lambda = 200;
+    /* parameter to calculate tukey biweights */
+    p.psi_data = 0.01;
+    /* parameter to calculate huber weights */
+    p.psi_reg = 1e-4;
 
-    p.L    = 4;  // no. of levels int the regularisation hierarchy
-    p.beta = 4;  // ???
+    /* no. of levels in the regularisation hierarchy */
+    p.L = 4;
+    /* parameter for updating the regularisation graph */
+    p.beta = 4;
 
-    p.epsilon = 0.015;  // decimation density, mm
+    /* decimation density */
+    p.epsilon = 0.1;
 
     return p;
 };
@@ -120,6 +126,8 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
     addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
     /* warp canonical frame to live frame */
     warpCanonicalToLiveOpt();
+    /* update warpfield */
+    warpfield->update(this->getCanonicalWarpedToLive());
     /* construct a polygon mesh of the warped model via marching cubes */
     // reconstructSurface();
 
@@ -154,17 +162,16 @@ void DynFusion::init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &nor
     std::vector<std::shared_ptr<Node>> deformationNodes;
 
     for (int i = 0; i < canonicalFrameVertices.size(); i += step) {
-        auto dg_v = canonicalFrameVertices[i];
-        auto dq   = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-        /* FIXME (dig15): set dg_w based on the sampling sparsity of the nodes */
-        float dg_w = 2.f;
+        auto dg_v  = canonicalFrameVertices[i];
+        auto dq    = std::make_shared<DualQuaternion<float>>(0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+        float dg_w = 3 * dynfuParams.epsilon;
 
         deformationNodes.push_back(std::make_shared<Node>(dg_v, dq, dg_w));
     }
 
     /* initialise the warp field with the sampled deformation nodes */
     warpfield = std::make_shared<Warpfield>();
-    warpfield->init(deformationNodes);
+    warpfield->init(dynfuParams.epsilon, deformationNodes);
 
     std::cout << "initialised warpfield" << std::endl;
 }

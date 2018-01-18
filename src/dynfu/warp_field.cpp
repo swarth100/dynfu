@@ -5,11 +5,11 @@
 
 Warpfield::Warpfield() = default;
 
-Warpfield::Warpfield(const Warpfield& w) { init(w.nodes); }
-
 Warpfield::~Warpfield() = default;
 
-void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
+void Warpfield::init(float epsilon, std::vector<std::shared_ptr<Node>> nodes) {
+    /* init decimation density */
+    this->epsilon = epsilon;
     /* initialise deformation nodes */
     this->nodes = nodes;
 
@@ -30,6 +30,69 @@ void Warpfield::init(std::vector<std::shared_ptr<Node>> nodes) {
 std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
 void Warpfield::addNode(std::shared_ptr<Node> newNode) { nodes.emplace_back(newNode); }
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr Warpfield::getUnsupportedVertices(std::shared_ptr<dynfu::Frame> frame) {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr unsupportedVertices(new pcl::PointCloud<pcl::PointXYZ>);
+
+    for (auto vertex : frame->getVertices()) {
+        std::vector<std::shared_ptr<Node>> neighbours = this->findNeighbors(KNN, vertex);
+
+        float min = HUGE_VALF;
+
+        for (auto neighbour : neighbours) {
+            pcl::PointXYZ neighbourCoordinates = neighbour->getPosition();
+
+            float dist = sqrt(pow(vertex.x - neighbourCoordinates.x, 2) + pow(vertex.y - neighbourCoordinates.y, 2) +
+                              pow(vertex.z - neighbourCoordinates.z, 2));
+
+            if (dist / neighbour->getRadialBasisWeight() <= min) {
+                min = dist / neighbour->getRadialBasisWeight();
+            }
+        }
+
+        if (min >= 1) {
+            unsupportedVertices->push_back(vertex);
+        }
+    }
+
+    std::cout << "no. of unsupported vertices: " << unsupportedVertices->size() << std::endl;
+
+    return unsupportedVertices;
+}
+
+void Warpfield::update(std::shared_ptr<dynfu::Frame> frame) {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr unsupportedVertices = getUnsupportedVertices(frame);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr unsupportedVerticesDownsampled(new pcl::PointCloud<pcl::PointXYZ>);
+
+    /* voxel grid sampler */
+    pcl::VoxelGrid<pcl::PointXYZ> sampler;
+    sampler.setInputCloud(unsupportedVertices);
+    sampler.setLeafSize(0.05, 0.05f, 0.05f);
+    sampler.filter(*unsupportedVerticesDownsampled);
+
+    std::cout << "no. of unsupported vertices after subsampling: " << unsupportedVerticesDownsampled->size()
+              << std::endl;
+
+    for (int i = 0; i < unsupportedVerticesDownsampled->size(); i++) {
+        pcl::PointXYZ dg_v                            = (*unsupportedVerticesDownsampled)[i];
+        std::shared_ptr<DualQuaternion<float>> dg_se3 = calcDQB(dg_v);
+        float dg_w                                    = 2 * epsilon;
+
+        std::shared_ptr<Node> newNode = std::make_shared<Node>(dg_v, dg_se3, dg_w);
+        addNode(newNode);
+    }
+
+    /* re-initailise kd-tree */
+    std::vector<cv::Vec3f> deformationNodesPosition;
+    for (auto node : this->nodes) {
+        deformationNodesPosition.push_back(
+            cv::Vec3f(node->getPosition().x, node->getPosition().y, node->getPosition().z));
+    }
+
+    cloud->pts = deformationNodesPosition;
+    kdTree     = std::make_shared<kd_tree_t>(3, *cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    kdTree->buildIndex();
+}
 
 std::shared_ptr<kd_tree_t> Warpfield::getKdTree() { return this->kdTree; }
 

@@ -12,6 +12,9 @@
 #include <nanoflann/nanoflann.hpp>
 #include <nanoflann/pointcloud.hpp>
 
+/* pcl includes */
+#include <pcl/filters/voxel_grid.h>
+
 /* sys headers */
 #include <cmath>
 #include <ctgmath>
@@ -29,18 +32,20 @@ typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflannAdaptor, nanoflann::PointCl
 class Warpfield {
 public:
     Warpfield();
-
-    Warpfield(const Warpfield& w);
-
     ~Warpfield();
 
     /* initialise the warp field */
-    void init(std::vector<std::shared_ptr<Node>> nodes);
+    void init(float epsilon, std::vector<std::shared_ptr<Node>> nodes);
 
     /* return a vector of all nodes in the warp field */
     std::vector<std::shared_ptr<Node>> getNodes();
     /* add new deformation node to the warp field */
     void addNode(std::shared_ptr<Node> newNode);
+
+    /* get the set of vertices in the frame not supported by the warpfield */
+    pcl::PointCloud<pcl::PointXYZ>::Ptr getUnsupportedVertices(std::shared_ptr<dynfu::Frame> frame);
+    /* updates warpfield with new deformation nodes if unsupported vertices are detected */
+    void update(std::shared_ptr<dynfu::Frame> frame);
 
     /* get kd-tree */
     std::shared_ptr<kd_tree_t> getKdTree();
@@ -60,6 +65,8 @@ private:
     int frameNum = 0;
     /* list of currently held deformation nodes */
     std::vector<std::shared_ptr<Node>> nodes;
+    /* decimation density */
+    float epsilon;
     /* cloud data */
     std::shared_ptr<nanoflann::PointCloud> cloud;
     /* KD-tree for deformation nodes */

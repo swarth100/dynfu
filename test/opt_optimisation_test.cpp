@@ -106,6 +106,9 @@ protected:
     /* warp field */
     Warpfield warpfield;
 
+    /* decimation density */
+    float epsilon_dynfu = 0.0015;
+
     /* regularisation params */
     float tukeyOffset = 4.652;
     float psi_data    = 1e-2;
@@ -126,7 +129,7 @@ protected:
 
 // /* FIXME (dig15); rotation of a 2-d vertex */
 // TEST_F(OptTest, SimpleRotationTest) {
-//     warpfield.init(nodesGroup1);
+//     warpfield.init(epsilon_dynfu, nodesGroup1);
 //
 //     sourceVertices.push_back(pcl::PointXYZ(0, 0, 1));
 //     sourceNormals.push_back(pcl::Normal(1, 1, 1));
@@ -159,7 +162,7 @@ protected:
 //
 // /* FIXME (dig15); rotation of a 2-d triangle */
 // TEST_F(OptTest, 2DTriangleRotationTest) {
-//     warpfield.init(nodesGroup1);
+//     warpfield.init(epsilon_dynfu, nodesGroup1);
 //
 //     sourceVertices.push_back(pcl::PointXYZ(0, 0, 1));
 //     sourceVertices.push_back(pcl::PointXYZ(1, 0, 1));
@@ -202,7 +205,7 @@ protected:
 
 /* */
 TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
-    warpfield.init(nodesGroup1);
+    warpfield.init(epsilon_dynfu, nodesGroup1);
 
     sourceVertices.push_back(pcl::PointXYZ(0, 0.04, 0));
     sourceNormals.push_back(pcl::Normal(1, 1, 1));
@@ -233,7 +236,7 @@ TEST_F(OptTest, SingleVertexOneGroupOfDeformationNodesTest) {
 
 /* */
 TEST_F(OptTest, TwoVerticesOneNotMovingOneGroupOfDeformationNodesTest) {
-    warpfield.init(allNodes);
+    warpfield.init(epsilon_dynfu, allNodes);
 
     sourceVertices.push_back(pcl::PointXYZ(0, 0.05, 1));
     sourceVertices.push_back(pcl::PointXYZ(2, 2, 2));
@@ -270,7 +273,7 @@ TEST_F(OptTest, TwoVerticesOneNotMovingOneGroupOfDeformationNodesTest) {
 
 /* */
 TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesTest) {
-    warpfield.init(nodesGroup1);
+    warpfield.init(epsilon_dynfu, nodesGroup1);
 
     sourceVertices.push_back(pcl::PointXYZ(-3, -3, -3));
     sourceVertices.push_back(pcl::PointXYZ(-2, -2, -2));
@@ -319,7 +322,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesTest) {
 
 /* */
 TEST_F(OptTest, OneGroupOfVerticesTwoGroupsOfDeformationNodes) {
-    warpfield.init(allNodes);
+    warpfield.init(epsilon_dynfu, allNodes);
 
     sourceVertices.push_back(pcl::PointXYZ(-3, -3, -3));
     sourceVertices.push_back(pcl::PointXYZ(-2, -2, -2));
@@ -368,7 +371,7 @@ TEST_F(OptTest, OneGroupOfVerticesTwoGroupsOfDeformationNodes) {
 
 /* */
 TEST_F(OptTest, TwoGroupsOfVerticesTwoGroupsOfDeformationNodes) {
-    warpfield.init(allNodes);
+    warpfield.init(epsilon_dynfu, allNodes);
 
     /* group 1 of source vertices */
     sourceVertices.push_back(pcl::PointXYZ(-3, -3, -3));
@@ -444,7 +447,7 @@ TEST_F(OptTest, TwoGroupsOfVerticesTwoGroupsOfDeformationNodes) {
 }
 
 TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpTwiceTest) {
-    warpfield.init(nodesGroup1);
+    warpfield.init(epsilon_dynfu, nodesGroup1);
 
     sourceVertices.push_back(pcl::PointXYZ(-3, -3, -3));
     sourceVertices.push_back(pcl::PointXYZ(-2, -2, -2));
@@ -520,7 +523,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpTwiceTest) {
 }
 
 TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
-    warpfield.init(nodesGroup1);
+    warpfield.init(epsilon_dynfu, nodesGroup1);
 
     sourceVertices.push_back(pcl::PointXYZ(-3, -3, -3));
     sourceVertices.push_back(pcl::PointXYZ(-2, -2, -2));
@@ -622,7 +625,7 @@ TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpThriceTest) {
 }
 
 TEST_F(OptTest, MultipleVerticesOneGroupOfDeformationNodesWarpAndReverseTest) {
-    warpfield.init(nodesGroup1);
+    warpfield.init(epsilon_dynfu, nodesGroup1);
 
     sourceVertices.push_back(pcl::PointXYZ(-3, -3, -3));
     sourceVertices.push_back(pcl::PointXYZ(-2, -2, -2));

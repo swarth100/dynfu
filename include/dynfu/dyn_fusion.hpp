@@ -38,7 +38,7 @@ struct DynFuParams {
     int L;     // no. of levels in the regularisation hierarchy
     int beta;  // ???
 
-    float epsilon;  // decimation density, mm
+    float epsilon;  // decimation density
 };
 
 /* */
