@@ -110,7 +110,7 @@ protected:
     float tukeyOffset = 4.652;
     float psi_data    = 1e-2;
 
-    float lambda  = 200;
+    float lambda  = 0.f;
     float psi_reg = 1e-4;
 
     pcl::PointCloud<pcl::PointXYZ> sourceVertices;
