@@ -16,7 +16,7 @@ void Warpfield::init(float epsilon, std::vector<std::shared_ptr<Node>> nodes) {
     /* hold deformation nodes' positions */
     std::vector<cv::Vec3f> deformationNodesPosition;
     for (auto node : this->nodes) {
-        deformationNodesPosition.push_back(
+        deformationNodesPosition.emplace_back(
             cv::Vec3f(node->getPosition().x, node->getPosition().y, node->getPosition().z));
     }
 
@@ -85,7 +85,7 @@ void Warpfield::update(std::shared_ptr<dynfu::Frame> frame) {
     /* re-initailise kd-tree */
     std::vector<cv::Vec3f> deformationNodesPosition;
     for (auto node : this->nodes) {
-        deformationNodesPosition.push_back(
+        deformationNodesPosition.emplace_back(
             cv::Vec3f(node->getPosition().x, node->getPosition().y, node->getPosition().z));
     }
 
