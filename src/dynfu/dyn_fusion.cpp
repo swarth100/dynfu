@@ -122,6 +122,9 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
         kfusion::cuda::waitAllDefaultStream();
     }
 
+    kfusion::device::DeviceArray<pcl::PointXYZ> triangles_buffer_device_;
+    kfusion::device::DeviceArray<pcl::PointXYZ> triangles_device = mc_->run(*volume_, triangles_buffer_device_);
+
     /* TODO (dig15): pass in depths, not points; add new live frame to dynfu */
     addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
     /* warp canonical frame to live frame */
