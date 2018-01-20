@@ -233,6 +233,34 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     return ++frame_counter_, true;
 }
 
+boost::shared_ptr<pcl::PolygonMesh> kfusion::KinFu::convertToMesh(const cuda::DeviceArray<pcl::PointXYZ> &triangles) {
+    if (triangles.empty()) {
+        return boost::shared_ptr<pcl::PolygonMesh>();
+    }
+
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+
+    cloud.width  = (int) triangles.size();
+    cloud.height = 1;
+    triangles.download(cloud.points);
+
+    boost::shared_ptr<pcl::PolygonMesh> mesh_ptr(new pcl::PolygonMesh());
+    pcl::toPCLPointCloud2(cloud, mesh_ptr->cloud);
+
+    mesh_ptr->polygons.resize(triangles.size() / 3);
+    for (size_t i = 0; i < mesh_ptr->polygons.size(); ++i) {
+        pcl::Vertices v;
+        v.vertices.push_back(i * 3 + 0);
+        v.vertices.push_back(i * 3 + 2);
+        v.vertices.push_back(i * 3 + 1);
+        mesh_ptr->polygons[i] = v;
+    }
+
+    return mesh_ptr;
+}
+
+boost::shared_ptr<pcl::PolygonMesh> kfusion::KinFu::getMesh() { return mesh_ptr_; }
+
 void kfusion::KinFu::renderImage(cuda::Image &image, int flag) {
     const KinFuParams &p = params_;
     image.create(p.rows, flag != 3 ? p.cols : p.cols * 2);

@@ -72,7 +72,13 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
 
         /* initialise the warpfield */
         init(prev_.points_pyr[0], prev_.normals_pyr[0]);
-        /* construct polygon mesh for the canonical frame */
+        /* construct polygon mesh */
+        kfusion::device::DeviceArray<pcl::PointXYZ> triangles_buffer_device_;
+        kfusion::device::DeviceArray<pcl::PointXYZ> triangles_device = mc_->run(*volume_, triangles_buffer_device_);
+        kfusion::cuda::waitAllDefaultStream();
+
+        this->mesh_ptr_ = convertToMesh(triangles_device);
+
         // reconstructSurface();
 
         return ++frame_counter_, false;
@@ -122,16 +128,19 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
         kfusion::cuda::waitAllDefaultStream();
     }
 
-    kfusion::device::DeviceArray<pcl::PointXYZ> triangles_buffer_device_;
-    kfusion::device::DeviceArray<pcl::PointXYZ> triangles_device = mc_->run(*volume_, triangles_buffer_device_);
-
     /* TODO (dig15): pass in depths, not points; add new live frame to dynfu */
     addLiveFrame(frame_counter_, prev_.points_pyr[0], prev_.normals_pyr[0]);
     /* warp canonical frame to live frame */
     warpCanonicalToLiveOpt(affine);
     /* update warpfield */
     warpfield->update(this->getCanonicalWarpedToLive());
-    /* construct a polygon mesh of the warped model via marching cubes */
+    /* construct a polygon mesh via marching cubes */
+    kfusion::device::DeviceArray<pcl::PointXYZ> triangles_buffer_device_;
+    kfusion::device::DeviceArray<pcl::PointXYZ> triangles_device = mc_->run(*volume_, triangles_buffer_device_);
+    kfusion::cuda::waitAllDefaultStream();
+
+    this->mesh_ptr_ = convertToMesh(triangles_device);
+
     // reconstructSurface();
 
     return ++frame_counter_, true;
