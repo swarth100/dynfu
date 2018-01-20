@@ -63,9 +63,9 @@ struct DynFuApp {
 
         std::cout << "saved model mesh to .vtk" << std::endl;
 
-        // mesh = *(dynfu->getMesh());
-        // pcl::io::saveVTKFile(outPath_ + "/" + std::to_string(i) + "_tsdf_mesh.vtk", mesh);
-        // std::cout << "saved tsdf mesh to .vtk" << std::endl;
+        mesh = *(dynfu->getMesh());
+        pcl::io::saveVTKFile(outPath_ + "/" + std::to_string(i) + "_tsdf_mesh.vtk", mesh);
+        std::cout << "saved tsdf mesh to .vtk" << std::endl;
     }
 
     void save_canonical_warped_to_live_point_cloud(std::shared_ptr<DynFusion> dynfu, int i) {

@@ -7,7 +7,7 @@ DynFuParams DynFuParams::defaultParams() {
     DynFuParams p;
 
     kfusion::KinFuParams kinfuParams = kfusion::KinFuParams::default_params();
-    kinfuParams.volume_dims          = cv::Vec3i::all(256);  // number of voxels
+    kinfuParams.volume_dims          = cv::Vec3i::all(128);  // number of voxels
     p.kinfuParams                    = kinfuParams;
 
     p.tukeyOffset = 4.652;
@@ -77,6 +77,8 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
         kfusion::device::DeviceArray<pcl::PointXYZ> triangles_device = mc_->run(*volume_, triangles_buffer_device_);
         kfusion::cuda::waitAllDefaultStream();
 
+        std::cout << "no. of triangles in the mesh: " << triangles_device.size() << std::endl;
+
         this->mesh_ptr_ = convertToMesh(triangles_device);
 
         // reconstructSurface();
@@ -138,6 +140,8 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
     kfusion::device::DeviceArray<pcl::PointXYZ> triangles_buffer_device_;
     kfusion::device::DeviceArray<pcl::PointXYZ> triangles_device = mc_->run(*volume_, triangles_buffer_device_);
     kfusion::cuda::waitAllDefaultStream();
+
+    std::cout << "no. of triangles in the mesh: " << triangles_device.size() << std::endl;
 
     this->mesh_ptr_ = convertToMesh(triangles_device);
 

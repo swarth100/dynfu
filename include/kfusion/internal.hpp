@@ -21,7 +21,7 @@ typedef DeviceArray2D<Normal> Normals;
 typedef DeviceArray2D<Point> Points;
 typedef DeviceArray2D<uchar4> Image;
 
-typedef pcl::PointXYZ PointType;
+typedef float4 PointType;
 
 typedef int3 Vec3i;
 typedef float3 Vec3f;
@@ -44,7 +44,7 @@ public:
     const int max_weight;
 
     TsdfVolume(elem_type *data, int3 dims, float3 voxel_size, float trunc_dist, int max_weight);
-    // TsdfVolume(const TsdfVolume&);
+    // TsdfVolume(const TsdfVolume &);
 
     TsdfVolume &operator=(const TsdfVolume &);
 
@@ -67,6 +67,56 @@ struct Reprojector {
     float2 finv, c;
     __kf_device__ float3 operator()(int x, int y, float z) const;
 };
+
+struct CubeIndexEstimator {
+    CubeIndexEstimator(const TsdfVolume &vol) : volume(vol) { isoValue = 0.f; }
+
+    enum { VOL_X = 128, VOL_Y = 128, VOL_Z = 128 }; /* FIXME (dig15): do not hardcode */
+
+    const TsdfVolume volume;
+    float isoValue;
+
+    __kf_device__ void readTsdf(int x, int y, int z, float &f, int &weight) const;
+    __kf_device__ int computeCubeIndex(int x, int y, int z, float f[8]) const;
+};
+
+struct OccupiedVoxels : public CubeIndexEstimator {
+    OccupiedVoxels(const TsdfVolume &vol) : CubeIndexEstimator({vol}) {}
+
+    /* FIXME (dig15) : vertify that these values iterate through all indices */
+    enum {
+        CTA_SIZE_X = 16,
+        CTA_SIZE_Y = 4,
+        CTA_SIZE   = CTA_SIZE_X * CTA_SIZE_Y,
+
+        WARPS_COUNT = CTA_SIZE / 4
+    };
+
+    mutable int *voxels_indices;
+    mutable int *vertices_number;
+    int max_size;
+
+    __kf_device__ void operator()() const;
+};
+
+struct TrianglesGenerator : public CubeIndexEstimator {
+    TrianglesGenerator(const TsdfVolume &vol) : CubeIndexEstimator({vol}) {}
+
+    /* FIXME (dig15) : vertify that these values iterate through all indices */
+    enum { CTA_SIZE = 128, MAX_GRID_SIZE_X = 65536 };
+
+    const int *occupied_voxels;
+    const int *vertex_ofssets;
+    int voxels_count;
+    float3 cell_size;
+
+    mutable device::PointType *output;
+
+    __kf_device__ float3 getNodeCoo(int x, int y, int z) const;
+    __kf_device__ float3 vertex_interp(float3 p0, float3 p1, float f0, float f1) const;
+    __kf_device__ void store_point(float4 *ptr, int index, const float3 &point) const;
+    __kf_device__ void operator()() const;
+};  // namespace device
 
 struct ComputeIcpHelper {
     struct Policy;
@@ -119,15 +169,35 @@ __kf_device__ ushort2 pack_tsdf(float tsdf, int weight);
 __kf_device__ float unpack_tsdf(ushort2 value, int &weight);
 __kf_device__ float unpack_tsdf(ushort2 value);
 
-// marching cubes functions
+/* marching cubes functions /*
+
+/** \brief binds marching cubes tables to texture references */
 void bindTextures(const int *edgeBuf, const int *triBuf, const int *numVertsBuf);
+
+/** \brief unbinds */
 void unbindTextures();
 
-int getOccupiedVoxels(ushort2 *const volume, DeviceArray2D<int> &occupied_voxels);
+/** \brief scans TSDF volume and retrieves occuped voxes
+ * \param[in] volume TSDF volume
+ * \param[out] occupied_voxels buffer for occupied voxels; the function fills the first row with voxel id's and second
+ * row with the no. of vertices
+ * \return number of voxels in the buffer
+ */
+int getOccupiedVoxels(const TsdfVolume &volume, DeviceArray2D<int> &occupied_voxels);
 
+/** \brief computes total number of vertices for all voxels and offsets of vertices in final triangle array
+ * \param[out] occupied_voxels buffer with occupied voxels; the function fills 3rd only with offsets
+ * \return total number of vertexes
+ */
 int computeOffsetsAndTotalVertices(DeviceArray2D<int> &occupied_voxels);
 
-void generateTriangles(ushort2 *const volume, const DeviceArray2D<int> &occupied_voxels, const float3 &volume_size,
+/** \brief generates final triangle array
+ * \param[in] volume TSDF volume
+ * \param[in] occupied_voxels occupied voxel ids (1st row), number of vertices (2nd row), offsets (3rd row).
+ * \param[in] volume_size volume size in meters
+ * \param[out] output triangle array
+ */
+void generateTriangles(const TsdfVolume &volume, const DeviceArray2D<int> &occupied_voxels, const float3 &volume_size,
                        DeviceArray<PointType> &output);
 
 // image proc functions

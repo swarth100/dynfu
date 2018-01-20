@@ -1,6 +1,9 @@
 #include <kfusion/cuda/marching_cubes.hpp>
 #include <kfusion/internal.hpp>
 #include <kfusion/kinfu.hpp>
+#include <kfusion/precomp.hpp>
+
+#include <iostream>
 
 using namespace kfusion;
 using namespace kfusion::cuda;
@@ -18,30 +21,44 @@ kfusion::cuda::MarchingCubes::MarchingCubes() {
 kfusion::cuda::MarchingCubes::~MarchingCubes() {}
 
 DeviceArray<kfusion::cuda::MarchingCubes::PointType> kfusion::cuda::MarchingCubes::run(
-    const TsdfVolume& tsdf, DeviceArray<PointType>& triangles_buffer) {
-    if (triangles_buffer.empty())
+    const TsdfVolume& volume, DeviceArray<PointType>& triangles_buffer) {
+    if (triangles_buffer.empty()) {
         triangles_buffer.create(DEFAULT_TRIANGLES_BUFFER_SIZE);
+    }
+
     occupied_voxels_buffer_.create(3, static_cast<int>(triangles_buffer.size() / 3));
 
     device::bindTextures(edgeTable_, triTable_, numVertsTable_);
 
-    int active_voxels = device::getOccupiedVoxels(tsdf.data().ptr<ushort2>(), occupied_voxels_buffer_);
+    int3 dims         = device_cast<int3>(volume.getDims());
+    float3 voxel_size = device_cast<float3>(volume.getVoxelSize());
+    float trunc_dist  = volume.getTruncDist();
+    int max_weight    = volume.getMaxWeight();
+
+    device::TsdfVolume vol(volume.data().ptr<ushort2>(), dims, voxel_size, trunc_dist, max_weight);
+
+    int active_voxels = device::getOccupiedVoxels(vol, occupied_voxels_buffer_);  // works up to here
+    std::cout << "no. of active voxels: " << active_voxels << std::endl;
+
     if (!active_voxels) {
         device::unbindTextures();
+
         return DeviceArray<PointType>();
     }
 
     DeviceArray2D<int> occupied_voxels(3, active_voxels, occupied_voxels_buffer_.ptr(), occupied_voxels_buffer_.step());
 
-    int total_vertexes = device::computeOffsetsAndTotalVertices(occupied_voxels);
+    int total_vertices = device::computeOffsetsAndTotalVertices(occupied_voxels);
+    std::cout << "no. of total vertices: " << total_vertices << std::endl;
 
-    /* FIXME (dig15): pass in volume size from tsdf instead of hardcoded values */
-    float3 volume_size;
-    device::generateTriangles(tsdf.data().ptr<ushort2>(), occupied_voxels, volume_size,
-                              (DeviceArray<device::PointType>&) triangles_buffer);
+    float3 volume_size = make_float3(volume.getSize()(0), volume.getSize()(1), volume.getSize()(2));
+    device::generateTriangles(vol, occupied_voxels, volume_size, (DeviceArray<device::PointType>&) triangles_buffer);
+
+    std::cout << "generated triangles" << std::endl;
 
     device::unbindTextures();
-    return DeviceArray<PointType>(triangles_buffer.ptr(), total_vertexes);
+
+    return DeviceArray<PointType>(triangles_buffer.ptr(), total_vertices);
 }
 
 // edge table maps 8-bit flag representing which cube vertices are inside

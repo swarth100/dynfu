@@ -5,13 +5,13 @@
 
 /* kinfu includes */
 #include <kfusion/cuda/device_array.hpp>
+#include <kfusion/cuda/tsdf_volume.hpp>
 
 /* pcl includes */
 #include <pcl/point_types.h>
 
 namespace kfusion {
 namespace cuda {
-class TsdfVolume;
 
 /** \brief MarchingCubes implements MarchingCubes functionality for TSDF volume on GPU
  * \author Anatoly Baskeheev, Itseez Ltd, (myname.mysurname@mycompany.com)
@@ -33,13 +33,7 @@ public:
     /** \brief Destructor */
     ~MarchingCubes();
 
-    /** \brief Runs marching cubes triangulation.
-     * \param[in] tsdf
-     * \param[in] triangles_buffer Buffer for triangles. Its size determines max extracted triangles. If empty, it will
-     * be allocated with default size will be used. \return Array with triangles. Each 3 consequent poits belond to a
-     * single triangle. The returned array points to 'triangles_buffer' data.
-     */
-    DeviceArray<PointType> run(const TsdfVolume& tsdf, DeviceArray<PointType>& triangles_buffer);
+    DeviceArray<PointType> run(const TsdfVolume& volume, DeviceArray<PointType>& triangles_buffer);
 
 private:
     /** \brief Edge table for marching cubes  */

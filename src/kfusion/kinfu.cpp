@@ -233,9 +233,9 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
     return ++frame_counter_, true;
 }
 
-boost::shared_ptr<pcl::PolygonMesh> kfusion::KinFu::convertToMesh(const cuda::DeviceArray<pcl::PointXYZ> &triangles) {
+boost::shared_ptr<pcl::PolygonMesh> kfusion::KinFu::convertToMesh(const DeviceArray<pcl::PointXYZ> &triangles) {
     if (triangles.empty()) {
-        return boost::shared_ptr<pcl::PolygonMesh>();
+        return boost::shared_ptr<pcl::PolygonMesh>(new pcl::PolygonMesh());
     }
 
     pcl::PointCloud<pcl::PointXYZ> cloud;
