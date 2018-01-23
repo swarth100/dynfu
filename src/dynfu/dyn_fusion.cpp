@@ -268,61 +268,7 @@ void DynFusion::addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusio
     liveFrame = std::make_shared<dynfu::Frame>(frameID, liveFrameVertices, liveFrameNormals);
 }
 
-void DynFusion::reconstructSurface() {
-    std::cout << "constructing a polygon mesh" << std::endl;
-
-    pcl::PointCloud<pcl::PointXYZ> vertices;
-    pcl::PointCloud<pcl::Normal> normals;
-
-    if (frame_counter_ == 0) {
-        vertices = canonicalFrame->getVertices();
-        normals  = canonicalFrame->getNormals();
-    } else {
-        vertices = canonicalFrameWarpedToLive->getVertices();
-        normals  = canonicalFrameWarpedToLive->getNormals();
-    }
-
-    // put vertices and normals in one point cloud
-    pcl::PointCloud<pcl::PointNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::concatenateFields(vertices, normals, *cloudWithNormals);
-
-    // downsample point cloud--otherwise std::bad_alloc
-    pcl::PointCloud<pcl::PointNormal>::Ptr cloudWithNormalsDownsampled(new pcl::PointCloud<pcl::PointNormal>);
-
-    pcl::VoxelGrid<pcl::PointNormal> sampler;
-    sampler.setInputCloud(cloudWithNormals);
-    sampler.setLeafSize(0.05, 0.05f, 0.05f);
-    sampler.filter(*cloudWithNormalsDownsampled);
-
-    std::cout << "no. of points used for reconstruction: " << cloudWithNormalsDownsampled->size() << std::endl;
-
-    // perform reconstruction via marching cubes
-    pcl::MarchingCubesRBF<pcl::PointNormal> *mc(new pcl::MarchingCubesRBF<pcl::PointNormal>());
-
-    mc->setInputCloud(cloudWithNormalsDownsampled);
-
-    float iso_level                = 0.f;
-    float extend_percentage        = 0.f;
-    int grid_res                   = 96;
-    float off_surface_displacement = 1e-3f;
-
-    mc->setIsoLevel(iso_level);
-    mc->setGridResolution(grid_res, grid_res, grid_res);
-    mc->setPercentageExtendGrid(extend_percentage);
-    mc->setOffSurfaceDisplacement(off_surface_displacement);
-
-    pcl::PolygonMesh::Ptr triangles(new pcl::PolygonMesh);
-
-    std::cout << "beginning marching cubes reconstruction" << std::endl;
-    mc->reconstruct(*triangles);
-    std::cout << triangles->polygons.size() << " triangles created" << std::endl;
-
-    canonicalWarpedToLiveMesh = *triangles;
-}
-
 std::shared_ptr<dynfu::Frame> DynFusion::getCanonicalWarpedToLive() { return this->canonicalFrameWarpedToLive; }
-
-pcl::PolygonMesh DynFusion::getCanonicalWarpedToLiveSurface() { return this->canonicalWarpedToLiveMesh; }
 
 void DynFusion::renderCanonicalWarpedToLive(kfusion::cuda::Image /* &image */, int /* flag */) {
     // const kfusion::KinFuParams &p = params_;

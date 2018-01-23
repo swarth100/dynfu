@@ -49,7 +49,7 @@ DeviceArray<kfusion::cuda::MarchingCubes::PointType> kfusion::cuda::MarchingCube
     DeviceArray2D<int> occupied_voxels(3, active_voxels, occupied_voxels_buffer_.ptr(), occupied_voxels_buffer_.step());
 
     int total_vertices = device::computeOffsetsAndTotalVertices(occupied_voxels);
-    std::cout << "no. of total vertices: " << total_vertices << std::endl;
+    std::cout << "total no. of vertices: " << total_vertices << std::endl;
 
     float3 volume_size = make_float3(volume.getSize()(0), volume.getSize()(1), volume.getSize()(2));
     device::generateTriangles(vol, occupied_voxels, volume_size, (DeviceArray<device::PointType>&) triangles_buffer);

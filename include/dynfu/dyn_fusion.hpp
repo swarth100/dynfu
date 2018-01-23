@@ -66,13 +66,8 @@ public:
     /* update the current live frame */
     void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
 
-    /* construct a polygon mesh from the vertices and normals via marching cubes */
-    void reconstructSurface();
-
     /* get the canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
-    /* get the surface of the volume warped from canonical to live */
-    pcl::PolygonMesh getCanonicalWarpedToLiveSurface();
 
     /* control the thread deletion */
     static bool nextFrameReady;
