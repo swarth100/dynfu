@@ -83,7 +83,7 @@ struct CubeIndexEstimator {
 struct OccupiedVoxels : public CubeIndexEstimator {
     OccupiedVoxels(const TsdfVolume &vol) : CubeIndexEstimator({vol}) {}
 
-    /* FIXME (dig15) : vertify that these values iterate through all indices */
+    /* FIXME (dig15) : verify that these values iterate through all indices */
     enum {
         CTA_SIZE_X = 16,
         CTA_SIZE_Y = 4,
@@ -102,7 +102,7 @@ struct OccupiedVoxels : public CubeIndexEstimator {
 struct TrianglesGenerator : public CubeIndexEstimator {
     TrianglesGenerator(const TsdfVolume &vol) : CubeIndexEstimator({vol}) {}
 
-    /* FIXME (dig15) : vertify that these values iterate through all indices */
+    /* FIXME (dig15) : verify that these values iterate through all indices */
     enum { CTA_SIZE = 128, MAX_GRID_SIZE_X = 65536 };
 
     const int *occupied_voxels;
