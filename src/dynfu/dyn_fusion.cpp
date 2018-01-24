@@ -148,7 +148,7 @@ void DynFusion::init(pcl::PointCloud<pcl::PointXYZ> &canonicalVertices,
                      pcl::PointCloud<pcl::Normal> &canonicalNormals) {
     initCanonicalFrame(canonicalVertices, canonicalNormals);
 
-    int step = 192;                                      /* step size */
+    int step = 128;                                      /* step size */
     std::vector<std::shared_ptr<Node>> deformationNodes; /* vector storing deformation nodes */
 
     for (int i = 0; i < canonicalVertices.size(); i += step) {
