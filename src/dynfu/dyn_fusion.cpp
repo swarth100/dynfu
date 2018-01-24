@@ -80,7 +80,7 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
         /* FIXME (dig15): temporary workaround until normals are computed via mc */
         pcl::PointCloud<pcl::PointXYZ> pcVertices;
 
-        pcVertices.width  = (int) triangles_buffer_device_.size();
+        pcVertices.width  = static_cast<int>(triangles_buffer_device_.size());
         pcVertices.height = 1;
         triangles_device.download(pcVertices.points);
 
@@ -126,7 +126,7 @@ bool DynFusion::operator()(const kfusion::cuda::Depth &depth, const kfusion::cud
     /* FIXME (dig15): temporary workaround until normals are computed via mc */
     pcl::PointCloud<pcl::PointXYZ> pcVertices;
 
-    pcVertices.width  = (int) triangles_buffer_device_.size();
+    pcVertices.width  = static_cast<int>(triangles_buffer_device_.size());
     pcVertices.height = 1;
     triangles_device.download(pcVertices.points);
 

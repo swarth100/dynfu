@@ -56,7 +56,7 @@ public:
     bool operator()(const kfusion::cuda::Depth &depth, const kfusion::cuda::Image &image = kfusion::cuda::Image());
 
     /* initialise dynfu */
-    void init(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals);
+    void init(pcl::PointCloud<pcl::PointXYZ> &canonicalVertices, pcl::PointCloud<pcl::Normal> &canonicalNormals);
     /* initialise canonical frame with vertices and normals */
     void initCanonicalFrame(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals);
 

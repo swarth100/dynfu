@@ -240,7 +240,7 @@ boost::shared_ptr<pcl::PolygonMesh> kfusion::KinFu::convertToMesh(const DeviceAr
 
     pcl::PointCloud<pcl::PointXYZ> cloud;
 
-    cloud.width  = (int) triangles.size();
+    cloud.width  = static_cast<int>(triangles.size());
     cloud.height = 1;
     triangles.download(cloud.points);
 

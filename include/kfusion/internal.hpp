@@ -43,7 +43,7 @@ public:
     const float trunc_dist;
     const int max_weight;
 
-    TsdfVolume(elem_type *data, int3 dims, float3 voxel_size, float trunc_dist, int max_weight);
+    TsdfVolume(elem_type *const data, int3 dims, float3 voxel_size, float trunc_dist, int max_weight);
     // TsdfVolume(const TsdfVolume &);
 
     TsdfVolume &operator=(const TsdfVolume &);

@@ -5,9 +5,6 @@
 
 #include <iostream>
 
-using namespace kfusion;
-using namespace kfusion::cuda;
-
 extern const int edgeTable[256];
 extern const int triTable[256][16];
 extern const int numVertsTable[256];
@@ -18,47 +15,50 @@ kfusion::cuda::MarchingCubes::MarchingCubes() {
     triTable_.upload(&triTable[0][0], 256 * 16);
 }
 
-kfusion::cuda::MarchingCubes::~MarchingCubes() {}
+kfusion::cuda::MarchingCubes::~MarchingCubes() = default;
 
-DeviceArray<kfusion::cuda::MarchingCubes::PointType> kfusion::cuda::MarchingCubes::run(
-    const TsdfVolume& volume, DeviceArray<PointType>& triangles_buffer) {
+kfusion::cuda::DeviceArray<kfusion::cuda::MarchingCubes::PointType> kfusion::cuda::MarchingCubes::run(
+    const kfusion::cuda::TsdfVolume& volume,
+    kfusion::cuda::DeviceArray<kfusion::cuda::MarchingCubes::PointType>& triangles_buffer) {
     if (triangles_buffer.empty()) {
         triangles_buffer.create(DEFAULT_TRIANGLES_BUFFER_SIZE);
     }
 
     occupied_voxels_buffer_.create(3, static_cast<int>(triangles_buffer.size() / 3));
 
-    device::bindTextures(edgeTable_, triTable_, numVertsTable_);
+    kfusion::device::bindTextures(edgeTable_, triTable_, numVertsTable_);
 
     int3 dims         = device_cast<int3>(volume.getDims());
     float3 voxel_size = device_cast<float3>(volume.getVoxelSize());
     float trunc_dist  = volume.getTruncDist();
     int max_weight    = volume.getMaxWeight();
 
-    device::TsdfVolume vol(volume.data().ptr<ushort2>(), dims, voxel_size, trunc_dist, max_weight);
+    kfusion::device::TsdfVolume vol(volume.data().ptr<ushort2>(), dims, voxel_size, trunc_dist, max_weight);
 
-    int active_voxels = device::getOccupiedVoxels(vol, occupied_voxels_buffer_);
+    int active_voxels = kfusion::device::getOccupiedVoxels(vol, occupied_voxels_buffer_);
     std::cout << "no. of active voxels: " << active_voxels << std::endl;
 
     if (!active_voxels) {
-        device::unbindTextures();
+        kfusion::device::unbindTextures();
 
-        return DeviceArray<PointType>();
+        return kfusion::cuda::DeviceArray<kfusion::cuda::MarchingCubes::PointType>();
     }
 
-    DeviceArray2D<int> occupied_voxels(3, active_voxels, occupied_voxels_buffer_.ptr(), occupied_voxels_buffer_.step());
+    kfusion::cuda::DeviceArray2D<int> occupied_voxels(3, active_voxels, occupied_voxels_buffer_.ptr(),
+                                                      occupied_voxels_buffer_.step());
 
-    int total_vertices = device::computeOffsetsAndTotalVertices(occupied_voxels);
+    int total_vertices = kfusion::device::computeOffsetsAndTotalVertices(occupied_voxels);
     std::cout << "total no. of vertices: " << total_vertices << std::endl;
 
     float3 volume_size = make_float3(volume.getSize()(0), volume.getSize()(1), volume.getSize()(2));
-    device::generateTriangles(vol, occupied_voxels, volume_size, (DeviceArray<device::PointType>&) triangles_buffer);
+    kfusion::device::generateTriangles(vol, occupied_voxels, volume_size,
+                                       (kfusion::cuda::DeviceArray<kfusion::device::PointType>&) triangles_buffer);
 
     std::cout << "generated triangles" << std::endl;
 
-    device::unbindTextures();
+    kfusion::device::unbindTextures();
 
-    return DeviceArray<PointType>(triangles_buffer.ptr(), total_vertices);
+    return kfusion::cuda::DeviceArray<kfusion::cuda::MarchingCubes::PointType>(triangles_buffer.ptr(), total_vertices);
 }
 
 // edge table maps 8-bit flag representing which cube vertices are inside
