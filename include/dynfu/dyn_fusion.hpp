@@ -31,14 +31,14 @@ struct DynFuParams {
 
     float tukeyOffset;
 
-    float lambda;    // regularisation parameter
-    float psi_data;  // parameter to calculate tukey biweights
-    float psi_reg;   // parameter to calculate huber weights
+    float lambda;   /* regularisation parameter */
+    float psi_data; /* parameter to calculate tukey biweights */
+    float psi_reg;  /* parameter to calculate huber weights */
 
-    int L;     // no. of levels in the regularisation hierarchy
-    int beta;  // ???
+    int L;    /* no. of levels in the regularisation hierarchy */
+    int beta; /* ??? */
 
-    float epsilon;  // decimation density
+    float epsilon; /* decimation density */
 };
 
 /* */
@@ -52,37 +52,22 @@ public:
     /* get dynfu params */
     DynFuParams &params();
 
-    /* perform dynfu on all frames */
+    /* run algorithm on all frames */
     bool operator()(const kfusion::cuda::Depth &depth, const kfusion::cuda::Image &image = kfusion::cuda::Image());
 
-    /* initailise dynfu */
-    void init(kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
+    /* initialise dynfu */
+    void init(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals);
     /* initialise canonical frame with vertices and normals */
     void initCanonicalFrame(pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals);
+
+    /* update the current live frame */
+    void addLiveFrame(int frameID, pcl::PointCloud<pcl::PointXYZ> &vertices, pcl::PointCloud<pcl::Normal> &normals);
 
     /* warp canonical frame to live frame using Opt */
     void warpCanonicalToLiveOpt(cv::Affine3f affine);
 
-    /* update the current live frame */
-    void addLiveFrame(int frameID, kfusion::cuda::Cloud &vertices, kfusion::cuda::Normals &normals);
-
     /* get the canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> getCanonicalWarpedToLive();
-
-    /* control the thread deletion */
-    static bool nextFrameReady;
-
-    /* convert OpenCV matrix to PointCloud<PointXYZ> */
-    pcl::PointCloud<pcl::PointXYZ> matToPointCloudVertices(cv::Mat matrix);
-    /* convert OpenCV matrix to PointCloud<Normal> */
-    pcl::PointCloud<pcl::Normal> matToPointCloudNormals(cv::Mat matrix);
-    /* convert vec3f to OpenCV matrix */
-    cv::Mat vectorToMat(std::vector<cv::Vec3f> vec);
-    /* convert OpenCV matrix to cloud */
-    kfusion::cuda::Cloud matToCloud(cv::Mat matrix);
-
-    /* raycast canonical model warped to live for display */
-    void renderCanonicalWarpedToLive(kfusion::cuda::Image /* &image */, int /* flag */);
 
 private:
     /* algo parameters */
@@ -92,27 +77,14 @@ private:
     std::shared_ptr<dynfu::Frame> canonicalFrame;
     /* canonical frame warped to live */
     std::shared_ptr<dynfu::Frame> canonicalFrameWarpedToLive;
-    /* polygon mesh with the surface of the canonical model warped to live */
-    pcl::PolygonMesh canonicalWarpedToLiveMesh;
-
     /* live frame */
     std::shared_ptr<dynfu::Frame> liveFrame;
 
-    /* warp field */
+    /* warpfield */
     std::shared_ptr<Warpfield> warpfield;
 
     /* find the corresponding vertices and normals of canonical frame in the live frame */
     std::shared_ptr<dynfu::Frame> findCorrespondingFrame(pcl::PointCloud<pcl::PointXYZ> canonicalVertices,
                                                          pcl::PointCloud<pcl::Normal> canonicalNormals,
                                                          pcl::PointCloud<pcl::PointXYZ> liveVertices);
-
-    /* check if kfusion::point contains nan's */
-    static bool isNaN(kfusion::Point pt);
-    /* check if kfusion::point is 0 */
-    static bool isZero(kfusion::Point pt);
-
-    /* convert cloud to opencv matrix */
-    cv::Mat cloudToMat(kfusion::cuda::Cloud cloud);
-    /* convert normals to opencv matrix */
-    cv::Mat normalsToMat(kfusion::cuda::Normals normals);
 };

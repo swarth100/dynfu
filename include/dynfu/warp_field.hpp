@@ -34,13 +34,13 @@ public:
     Warpfield();
     ~Warpfield();
 
-    /* initialise the warp field */
+    /* initialise the warpfield */
     void init(float epsilon, std::vector<std::shared_ptr<Node>> nodes);
 
-    /* return a vector of all nodes in the warp field */
-    std::vector<std::shared_ptr<Node>> getNodes();
     /* add new deformation node to the warp field */
     void addNode(std::shared_ptr<Node> newNode);
+    /* return a vector of all nodes in the warp field */
+    std::vector<std::shared_ptr<Node>> getNodes();
 
     /* get the set of vertices in the frame not supported by the warpfield */
     pcl::PointCloud<pcl::PointXYZ>::Ptr getUnsupportedVertices(std::shared_ptr<dynfu::Frame> frame);
@@ -63,15 +63,17 @@ public:
 private:
     /* frame counter */
     int frameNum = 0;
-    /* list of currently held deformation nodes */
-    std::vector<std::shared_ptr<Node>> nodes;
     /* decimation density */
     float epsilon;
+
+    /* list of currently held deformation nodes */
+    std::vector<std::shared_ptr<Node>> nodes;
     /* cloud data */
     std::shared_ptr<nanoflann::PointCloud> cloud;
     /* KD-tree for deformation nodes */
     std::shared_ptr<kd_tree_t> kdTree;
-    /* getter for the pcl cloud counter */
+
+    /* getter for the pcl::pointcloud counter */
     int getFrameNum();
 };
 

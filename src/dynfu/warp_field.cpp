@@ -27,9 +27,9 @@ void Warpfield::init(float epsilon, std::vector<std::shared_ptr<Node>> nodes) {
     kdTree->buildIndex();
 }
 
-std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
-
 void Warpfield::addNode(std::shared_ptr<Node> newNode) { nodes.emplace_back(newNode); }
+
+std::vector<std::shared_ptr<Node>> Warpfield::getNodes() { return this->nodes; }
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr Warpfield::getUnsupportedVertices(std::shared_ptr<dynfu::Frame> frame) {
     pcl::PointCloud<pcl::PointXYZ>::Ptr unsupportedVertices(new pcl::PointCloud<pcl::PointXYZ>);

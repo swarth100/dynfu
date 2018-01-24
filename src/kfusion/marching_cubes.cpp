@@ -37,7 +37,7 @@ DeviceArray<kfusion::cuda::MarchingCubes::PointType> kfusion::cuda::MarchingCube
 
     device::TsdfVolume vol(volume.data().ptr<ushort2>(), dims, voxel_size, trunc_dist, max_weight);
 
-    int active_voxels = device::getOccupiedVoxels(vol, occupied_voxels_buffer_);  // works up to here
+    int active_voxels = device::getOccupiedVoxels(vol, occupied_voxels_buffer_);
     std::cout << "no. of active voxels: " << active_voxels << std::endl;
 
     if (!active_voxels) {

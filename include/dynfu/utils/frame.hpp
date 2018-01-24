@@ -17,6 +17,7 @@ public:
     /*
      * constructor for a frame
      * takes as input the frame id, the vertices, and the normals
+     *
      */
     Frame(int id, pcl::PointCloud<pcl::PointXYZ> vertices, pcl::PointCloud<pcl::Normal> normals);
     ~Frame();

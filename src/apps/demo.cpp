@@ -18,51 +18,6 @@ struct DynFuApp {
         dynfu              = std::make_shared<DynFusion>(params);
     }
 
-    void show_raycasted(std::shared_ptr<DynFusion> dynfu, int i) {
-        const int mode = 3;
-        (*dynfu).renderImage(view_device_, mode);
-
-        view_host_.create(view_device_.rows(), view_device_.cols(), CV_8UC4);
-        view_device_.download(view_host_.ptr<void>(), view_host_.step);
-
-        if (visualizer_) {
-            cv::imshow("scene", view_host_);
-            cvWaitKey(10);
-        }
-
-        std::string path = outPath_ + "/raycast" + std::to_string(i) + ".png";
-
-        cv::cvtColor(view_host_, view_host_, CV_BGR2GRAY);
-        cv::imwrite(path, view_host_);
-    }
-
-    /* data from the gpu */
-    void show_canonical_warped_to_live(std::shared_ptr<DynFusion> dynfu, int i) {
-        const int mode = 3;
-        dynfu->renderCanonicalWarpedToLive(canonical_to_live_view_device_, mode);
-
-        canonical_to_live_view_host_.create(canonical_to_live_view_device_.rows(),
-                                            canonical_to_live_view_device_.cols(), CV_8UC4);
-        canonical_to_live_view_device_.download(canonical_to_live_view_host_.ptr<void>(),
-                                                canonical_to_live_view_host_.step);
-
-        if (visualizer_) {
-            cv::imshow("canonical warped to live", canonical_to_live_view_host_);
-            cvWaitKey(10);
-        }
-
-        std::string path = outPath_ + "/canonical_to_live" + std::to_string(i) + ".png";
-
-        cv::cvtColor(canonical_to_live_view_host_, canonical_to_live_view_host_, CV_BGR2GRAY);
-        cv::imwrite(path, canonical_to_live_view_host_);
-    }
-
-    void save_polygon_mesh(std::shared_ptr<DynFusion> dynfu, int i) {
-        pcl::PolygonMesh mesh = *(dynfu->getMesh());
-        pcl::io::saveVTKFile(outPath_ + "/" + std::to_string(i) + "_tsdf_mesh.vtk", mesh);
-        std::cout << "saved canonical warped to live mesh to .vtk" << std::endl;
-    }
-
     void save_canonical_warped_to_live_point_cloud(std::shared_ptr<DynFusion> dynfu, int i) {
         auto vertices = dynfu->getCanonicalWarpedToLive()->getVertices();
 
@@ -71,14 +26,14 @@ struct DynFuApp {
         try {
             pcl::io::savePCDFileASCII(filenameStr, vertices);
         } catch (...) {
-            std::cout << "Could not save to " + filenameStr << std::endl;
+            std::cout << "could not save to " + filenameStr << std::endl;
         }
     }
 
-    void take_cloud(std::shared_ptr<DynFusion> dynfu) {
-        kfusion::cuda::DeviceArray<kfusion::Point> cloud = (*dynfu).tsdf().fetchCloud(cloud_buffer);
-        cv::Mat cloud_host(1, static_cast<int>(cloud.size()), CV_32FC4);
-        cloud.download(cloud_host.ptr<kfusion::Point>());
+    void save_polygon_mesh(std::shared_ptr<DynFusion> dynfu, int i) {
+        pcl::PolygonMesh mesh = *(dynfu->getMesh());
+        pcl::io::saveVTKFile(outPath_ + "/" + std::to_string(i) + "_tsdf_mesh.vtk", mesh);
+        std::cout << "saved canonical warped to live mesh to .vtk" << std::endl;
     }
 
     void loadFiles(std::vector<cv::String> *depths, std::vector<cv::String> *images) {
@@ -136,7 +91,6 @@ struct DynFuApp {
 
             {
                 kfusion::SampledScopeTime fps(time_ms);
-                // (void) kfusion::fps;
                 has_image = (*(dynfu))(depth_device_);
             }
 
@@ -153,44 +107,24 @@ struct DynFuApp {
 
             if (visualizer_ && i == 1) {
                 cv::namedWindow("scene", cv::WINDOW_AUTOSIZE);
-                cv::namedWindow("canonical warped to live", cv::WINDOW_AUTOSIZE);
             }
-
-            save_polygon_mesh(dynfu, i);
 
             if (has_image) {
-                show_raycasted(dynfu, i);
-                show_canonical_warped_to_live(dynfu, i);
-
                 save_canonical_warped_to_live_point_cloud(dynfu, i);
+                save_polygon_mesh(dynfu, i);
             }
-
-            // show_depth(depth);
         }
 
         return true;
     }
 
-    std::shared_ptr<DynFusion> dynfu;
-
     std::string filePath_;
     std::string outPath_;
 
-    /* point cloud viz */
-    std::shared_ptr<PointCloudViz> pointCloudViz;
-    /* point cloud viz thread */
-    std::shared_ptr<std::thread> vizThread;
-
     bool exit_, visualizer_;
 
-    cv::Mat view_host_;
-    cv::Mat canonical_to_live_view_host_;
-
-    kfusion::cuda::Image view_device_;
-    kfusion::cuda::Image canonical_to_live_view_device_;
-
     kfusion::cuda::Depth depth_device_;
-    kfusion::cuda::DeviceArray<kfusion::Point> cloud_buffer;
+    std::shared_ptr<DynFusion> dynfu;
 };
 
 /* Parse the input flag and determine the file path and whether or not to enable visualizer
