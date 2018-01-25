@@ -60,6 +60,8 @@ kfusion::KinFu::KinFu(const kfusion::KinFuParams &params) : frame_counter_(0), p
     icp_->setAngleThreshold(params_.icp_angle_thres);
     icp_->setIterationsNum(params_.icp_iter_num);
 
+    mc_ = cv::Ptr<cuda::MarchingCubes>(new cuda::MarchingCubes());
+
     allocate_buffers();
     reset();
 }
@@ -75,6 +77,10 @@ kfusion::cuda::TsdfVolume &kfusion::KinFu::tsdf() { return *volume_; }
 const kfusion::cuda::ProjectiveICP &kfusion::KinFu::icp() const { return *icp_; }
 
 kfusion::cuda::ProjectiveICP &kfusion::KinFu::icp() { return *icp_; }
+
+const kfusion::cuda::MarchingCubes &kfusion::KinFu::mc() const { return *mc_; }
+
+kfusion::cuda::MarchingCubes &kfusion::KinFu::mc() { return *mc_; }
 
 void kfusion::KinFu::allocate_buffers() {
     const int LEVELS = cuda::ProjectiveICP::MAX_PYRAMID_LEVELS;
@@ -226,6 +232,34 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth &depth, const kfusion
 
     return ++frame_counter_, true;
 }
+
+boost::shared_ptr<pcl::PolygonMesh> kfusion::KinFu::convertToMesh(const DeviceArray<pcl::PointXYZ> &triangles) {
+    if (triangles.empty()) {
+        return boost::shared_ptr<pcl::PolygonMesh>(new pcl::PolygonMesh());
+    }
+
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+
+    cloud.width  = static_cast<int>(triangles.size());
+    cloud.height = 1;
+    triangles.download(cloud.points);
+
+    boost::shared_ptr<pcl::PolygonMesh> mesh_ptr(new pcl::PolygonMesh());
+    pcl::toPCLPointCloud2(cloud, mesh_ptr->cloud);
+
+    mesh_ptr->polygons.resize(triangles.size() / 3);
+    for (size_t i = 0; i < mesh_ptr->polygons.size(); ++i) {
+        pcl::Vertices v;
+        v.vertices.push_back(i * 3 + 0);
+        v.vertices.push_back(i * 3 + 2);
+        v.vertices.push_back(i * 3 + 1);
+        mesh_ptr->polygons[i] = v;
+    }
+
+    return mesh_ptr;
+}
+
+boost::shared_ptr<pcl::PolygonMesh> kfusion::KinFu::getMesh() { return mesh_ptr_; }
 
 void kfusion::KinFu::renderImage(cuda::Image &image, int flag) {
     const KinFuParams &p = params_;

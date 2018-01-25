@@ -87,6 +87,7 @@ target_link_libraries(dynfu_test
   ${OPT_LIBRARIES} -Wl,-rpath,${CUDA_HOME}/lib64 dl
   ${PCL_LIBRARIES}
   ${TERRA_LIBRARIES}
+  ${OpenCV_LIBS}
 )
 
 # Generate coverage commands

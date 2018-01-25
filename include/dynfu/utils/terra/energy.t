@@ -1,48 +1,29 @@
--- function definitions
+-- TODO (dig15): rotate canonical vertex node by node
+-- TODO (dig15): add alpha and huber weights to regularisation graph
+
+-- package.cpath = package.cpath .. ";/homes/dig15/df/dynfu/include/dynfu/utils/terra/?.so"
+-- require 'luadq'
+
+----- FUNCTIONS -----
 
 -- calculates the norm of a 3-D vector
 function norm(v)
-  return pow(pow(v(0), 2) + pow(v(1), 2) + pow(v(2), 2), 0.5)
+  return sqrt(v:dot(v))
 end
 
--- calculates the dot product of 3-D vectors
-function dotProduct(a, b)
-  local dot = a(0) * b(0) + a(1) * b(1) + a(2) * b(2)
-  return dot
+-- calculates the transformation weight given the coordinates of a vertex and a node, and the radial basis weight of the node
+function calcTransformationWeight(v, dg_v, dg_w)
+  return exp(-pow(norm(v - dg_v), 2) / (2 * pow(dg_w, 2)))
 end
 
--- calculates the transformation weight given the coordinates of a vertex and a node and the radial basis weight of the node
-function calculateTransformationWeight(vertexCoordinates, nodeCoordinates, radialBasisWeight)
-  return exp(-pow(norm(vertexCoordinates - nodeCoordinates), 2) / (2 * pow(radialBasisWeight, 2)))
-end
-
--- function to calculate the huber penalty
-function huberPenalty(a, delta) -- the value of delta?
-  if lesseq(abs(a), delta) then
-    return a * a / 2
-  else
-    return delta * abs(a) - delta *  delta / 2
-  end
-end
-
--- function to calculate the tukey penalty
-function tukeyPenalty(x, c)
-  if lesseq(abs(x), c) then
-    return x * pow(1.0 - (x * x) / (c * c), 2)
-  else
-    return 0
-  end
-end
-
--- energy specifciation
+----- DATA TERM -----
 
 local D,N = Dim("D",0), Dim("N",1)
 
-local nodeCoordinates = Array("nodeCoordinates",opt_float3,{D},0) -- used to calculate transformation weights from the radial basis weights
-
-local rotation = Unknown("rotation",opt_float3,{D},1)
-local translation = Unknown("translation",opt_float3,{D},2)
-local radialBasisWeights = Unknown("radialBasisWeights",opt_float,{D},3)
+local dg_v = Array("dg_v",opt_float3,{D},0)
+local translations = Unknown("translations",opt_float3,{D},1)
+local rotations = Unknown("rotations",opt_float3,{D},2)
+local dg_w = Array("dg_w",opt_float,{D},3)
 
 local canonicalVertices = Array("canonicalVertices",opt_float3,{N},4)
 local canonicalNormals = Array("canonicalNormals",opt_float3,{N},5)
@@ -50,7 +31,7 @@ local canonicalNormals = Array("canonicalNormals",opt_float3,{N},5)
 local liveVertices = Array("liveVertices",opt_float3,{N},6)
 local liveNormals = Array("liveNormals",opt_float3,{N},7)
 
-local G = Graph("dataGraph", 8,
+local dataG = Graph("dataGraph", 8,
                     "v", {N}, 9,
                     "n0", {D}, 10,
                     "n1", {D}, 11,
@@ -61,16 +42,37 @@ local G = Graph("dataGraph", 8,
                     "n6", {D}, 16,
                     "n7", {D}, 17)
 
-local totalTranslation = 0
-local totalRotation = 0
+local tukeyBiweights = Array("tukeyBiweights",opt_float,{N},18)
 
-nodes = {0,1,2,3,4,5,6,7}
+local nodes = { 0, 1, 2, 3, 4, 5, 6, 7 }
+local totalTranslation = 0
 
 for _,i in ipairs(nodes) do
-    local transformationWeight = calculateTransformationWeight(canonicalVertices(G.v), nodeCoordinates(G["n"..i]), radialBasisWeights(G["n"..i]))
-    totalTranslation = totalTranslation + transformationWeight * translation(G["n"..i])
-    -- totalRotation = totalRotation + rotation(G["n"..i]) -- FIXME (dig15): use rotations
+    local transformationWeight = calcTransformationWeight(canonicalVertices(dataG.v), dg_v(dataG["n"..i]), dg_w(dataG["n"..i]))
+    totalTranslation = totalTranslation + transformationWeight * translations(dataG["n"..i])
 end
 
-Energy(liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)
--- Energy(tukeyPenalty(dotProduct(canonicalNormals(G.v), (liveVertices(G.v) - canonicalVertices(G.v) - totalTranslation)), c)) -- FIXME (dig15): use the normals
+Energy(sqrt(tukeyBiweights(dataG.v)) * (liveVertices(dataG.v) - canonicalVertices(dataG.v) - totalTranslation))
+
+--- REGULARISATION TERM -----
+
+local regG = Graph("regGraph", 19,
+                   "n", {D}, 20,
+                   "v0", {D}, 21,
+                   "v1", {D}, 22,
+                   "v2", {D}, 23,
+                   "v3", {D}, 24,
+                   "v4", {D}, 25,
+                   "v5", {D}, 26,
+                   "v6", {D}, 27,
+                   "v7", {D}, 28)
+
+local huberWeights = Array("huberWeights", opt_float, {D}, 29)
+local w_reg = Param("w_reg", float, 30)
+
+local neighbours = { 0, 1, 2, 3, 4, 5, 6, 7 }
+
+for _,i in ipairs(neighbours) do
+    local alpha = Select(greatereq(dg_w(regG["v"..i]), dg_w(regG.n)), dg_w(regG["v"..i]), dg_w(regG.n))
+    Energy(w_reg * ((dg_v(regG["v"..i]) - translations(regG.n)) - (dg_v(regG["v"..i]) - translations(regG["v"..i]))))
+end

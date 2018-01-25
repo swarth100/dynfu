@@ -18,52 +18,93 @@
 
 class CombinedSolver : public CombinedSolverBase {
 public:
-    CombinedSolver(Warpfield warpfield, CombinedSolverParameters params);
+    /* default constructor */
+    CombinedSolver(Warpfield warpfield, CombinedSolverParameters params, float tukeyOffset, float psi_data,
+                   float lambda, float psi_reg);
 
+    /* init the problem */
     void initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
-                                   const std::shared_ptr<dynfu::Frame> liveFrame);
+                                   const std::shared_ptr<dynfu::Frame> liveFrame, cv::Affine3f affine);
 
-    void initializeConnectivity();
+    /* initialise data graph */
+    void initializeDataGraph();
+    /* initialise regularisation graph */
+    void initializeRegGraph();
 
+    /* set solver params and problem params */
     void combinedSolveInit() override;
-
-    void preSingleSolve() override;
-
-    void postSingleSolve() override;
-
-    virtual void preNonlinearSolve(int iteration) override;
-
-    virtual void postNonlinearSolve(int iteration) override;
-
+    /* do nothing */
     void combinedSolveFinalize() override;
 
-    void resetGPUMemory();
+    /* do nothing */
+    void preSingleSolve() override;
+    /* copy results to cpu */
+    void postSingleSolve() override;
 
+    /* set tukey biweights and huber weights */
+    virtual void preNonlinearSolve(int iteration) override;
+    /* do nothing */
+    virtual void postNonlinearSolve(int iteration) override;
+
+    /* set coordinates of vertices */
+    void resetGPUMemory(cv::Affine3f affine);
+    /* update tukey biweights; for use pre non-linear solve */
+    void updateTukeyBiweights();
+    /* update huber weights; for use pre non-linear solve */
+    void updateHuberWeights();
+
+    /* copy results from gpu to cpu */
     void copyResultToCPUFromFloat3();
 
 private:
+    /* warpfield to use in the solver */
     Warpfield m_warpfield;
+    /* solver parameters */
     CombinedSolverParameters m_solverParameters;
 
-    std::vector<unsigned int> m_dims;  // curent index in the solver
+    float tukeyOffset;
+    /* parameter to calculate tukey biweights */
+    float psi_data;
 
-    std::vector<cv::Vec3f> m_canonicalVerticesOpenCV;
-    std::vector<cv::Vec3f> m_liveVerticesOpenCV;
-    std::vector<cv::Vec3f> m_canonicalNormalsOpenCV;
-    std::vector<cv::Vec3f> m_liveNormalsOpenCV;
+    /* regularisation parameter */
+    float lambda;
+    /* parameter to calculate huber weights */
+    float psi_reg;
 
+    /* current index in the solver */
+    std::vector<unsigned int> m_dims;
+
+    /* canonical vertices stored in a pcl pointcloud */
+    pcl::PointCloud<pcl::PointXYZ> m_canonicalVerticesPCL;
+    /* live vertices stored in a pcl pointcloud */
+    pcl::PointCloud<pcl::PointXYZ> m_liveVerticesPCL;
+    /* canonical normals stored in a pcl pointcloud */
+    pcl::PointCloud<pcl::Normal> m_canonicalNormalsPCL;
+    /* live normals stored in a pcl pointcloud */
+    pcl::PointCloud<pcl::Normal> m_liveNormalsPCL;
+
+    /* OPT IMAGES */
     std::shared_ptr<OptImage> m_canonicalVertices;
     std::shared_ptr<OptImage> m_canonicalNormals;
     std::shared_ptr<OptImage> m_liveVertices;
     std::shared_ptr<OptImage> m_liveNormals;
 
     std::shared_ptr<OptGraph> m_dataGraph;
+    std::shared_ptr<OptGraph> m_regGraph;
 
-    std::shared_ptr<OptImage> m_nodeCoordinates;
+    std::shared_ptr<OptImage> m_dg_v;
+    std::shared_ptr<OptImage> m_translations;
+    std::shared_ptr<OptImage> m_rotations;
+    std::shared_ptr<OptImage> m_dg_w;
 
-    std::shared_ptr<OptImage> m_rotation;
-    std::shared_ptr<OptImage> m_translation;
-    std::shared_ptr<OptImage> m_radialBasisWeights;
+    std::shared_ptr<OptImage> m_tukeyBiweights;
+    std::shared_ptr<OptImage> m_huberWeights;
 
-    std::vector<cv::Vec3f> m_results;
+    /* per-term regularisation weight */
+    float w_reg;
+
+    /* calculate tukey biweight */
+    float calcTukeyBiweight(float tukeyOffset, float c, pcl::PointXYZ ptError);
+    /* calculate huber weight */
+    float calcHuberWeight(float k, float e);
 };

@@ -1,92 +1,117 @@
 #include <dynfu/utils/opt_solver.hpp>
 
-CombinedSolver::CombinedSolver(Warpfield warpfield, CombinedSolverParameters params) {
+CombinedSolver::CombinedSolver(Warpfield warpfield, CombinedSolverParameters params, float tukeyOffset, float psi_data,
+                               float lambda, float psi_reg) {
     m_warpfield                = warpfield;
     m_combinedSolverParameters = params;
+
+    this->tukeyOffset = tukeyOffset;
+    this->psi_data    = psi_data;
+
+    this->lambda  = lambda;
+    this->psi_reg = psi_reg;
 }
 
 void CombinedSolver::initializeProblemInstance(const std::shared_ptr<dynfu::Frame> canonicalFrame,
-                                               const std::shared_ptr<dynfu::Frame> liveFrame) {
-    m_canonicalVerticesOpenCV = canonicalFrame->getVertices();
-    m_canonicalNormalsOpenCV  = canonicalFrame->getNormals();
-    m_liveVerticesOpenCV      = liveFrame->getVertices();
-    m_liveNormalsOpenCV       = liveFrame->getNormals();
+                                               const std::shared_ptr<dynfu::Frame> liveFrame, cv::Affine3f affine) {
+    m_canonicalVerticesPCL = canonicalFrame->getVertices();
+    m_canonicalNormalsPCL  = canonicalFrame->getNormals();
+    m_liveVerticesPCL      = liveFrame->getVertices();
+    m_liveNormalsPCL       = liveFrame->getNormals();
 
     unsigned int D = m_warpfield.getNodes().size();
-
-    /* number of non-zero vertices */
-    unsigned int N = 0;
-
-    for (int i = 0; i < m_canonicalVerticesOpenCV.size(); i++) {
-        auto vertex     = m_canonicalVerticesOpenCV[i];
-        auto normal     = m_canonicalNormalsOpenCV[i];
-        auto vertexLive = m_canonicalVerticesOpenCV[i];
-        auto normalLive = m_canonicalNormalsOpenCV[i];
-
-        if (cv::norm(vertex) != 0 && cv::norm(normal) != 0 && cv::norm(vertexLive) != 0 && cv::norm(normalLive) != 0) {
-            N++;
-        }
-    }
+    unsigned int N = m_canonicalVerticesPCL.size();
 
     std::cout << "no. of non-zero canonical vertices: " << N << std::endl;
 
     m_dims = {D, N};
 
-    m_canonicalVertices = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_canonicalNormals  = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_liveVertices      = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_liveNormals       = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    /* set per-term regularisation weight */
+    w_reg = sqrt(lambda / (D * KNN));
 
-    m_nodeCoordinates = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_canonicalVertices = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
+    m_canonicalNormals  = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
+    m_liveVertices      = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
+    m_liveNormals       = createEmptyOptImage({N}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
 
-    m_rotation           = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_translation        = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
-    m_radialBasisWeights = createEmptyOptImage({D}, OptImage::Type::FLOAT, 1, OptImage::GPU, true);
+    m_dg_v         = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, false);
+    m_translations = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_rotations    = createEmptyOptImage({D}, OptImage::Type::FLOAT, 3, OptImage::GPU, true);
+    m_dg_w         = createEmptyOptImage({D}, OptImage::Type::FLOAT, 1, OptImage::GPU, false);
 
-    resetGPUMemory();
+    m_tukeyBiweights = createEmptyOptImage({N}, OptImage::Type::FLOAT, 1, OptImage::GPU, false);
+    m_huberWeights   = createEmptyOptImage({D}, OptImage::Type::FLOAT, 1, OptImage::GPU, false);
 
-    initializeConnectivity();
+    resetGPUMemory(affine);
+
+    updateTukeyBiweights();
+    updateHuberWeights();
+
+    initializeDataGraph();
+    initializeRegGraph();
 
     addOptSolvers(m_dims, std::string(TOSTRING(TERRA_SOLVER_FILE)));
 }
 
-void CombinedSolver::initializeConnectivity() {
-    unsigned int N                   = m_dims[1];
-    unsigned int noCanonicalVertices = m_canonicalVerticesOpenCV.size();
+void CombinedSolver::initializeDataGraph() {
+    unsigned int N = m_dims[1];
+    std::vector<std::vector<int>> indices(KNN + 1, std::vector<int>(N));
 
-    std::vector<std::vector<int>> indices(9, std::vector<int>(N));
+    for (int count = 0; count < N; count++) {
+        indices[0][count] = count;
 
-    int k = 0;
-    for (int count = 0; count < noCanonicalVertices; count++) {
-        if (cv::norm(m_canonicalVerticesOpenCV[count]) != 0 && cv::norm(m_canonicalNormalsOpenCV[count]) != 0 &&
-            cv::norm(m_liveVerticesOpenCV[count]) != 0 && cv::norm(m_liveNormalsOpenCV[count]) != 0) {
-            indices[0].push_back(k);
-
-            auto vertexNeighbours    = m_warpfield.findNeighbors(KNN, m_canonicalVerticesOpenCV[count]);
-            auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, m_canonicalVerticesOpenCV[count]);
-
-            for (int i = 1; i < indices.size(); i++) {
-                indices[i].push_back(vertexNeighboursIdx[i - 1]);
-            }
-
-            k++;
+        auto vertexNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, m_canonicalVerticesPCL[count]);
+        for (int i = 1; i < KNN + 1; i++) {
+            indices[i][count] = vertexNeighboursIdx[i - 1];
         }
     }
 
     m_dataGraph = std::make_shared<OptGraph>(indices);
 
-    std::cout << "initialized connectivity" << std::endl;
+    std::cout << "initialized data graph" << std::endl;
+}
+
+void CombinedSolver::initializeRegGraph() {
+    auto kdTree = m_warpfield.getKdTree();
+
+    /* not used, ignores the distance to the nodes for now */
+    std::vector<float> outDistSqr(8);
+    std::vector<size_t> retIndex(8);
+
+    unsigned int D = m_dims[0];
+    std::vector<std::vector<int>> indices(KNN + 1, std::vector<int>(D));
+
+    int i = 0;
+    for (auto node : m_warpfield.getNodes()) {
+        pcl::PointXYZ dg_v       = node->getPosition();
+        std::vector<float> query = {dg_v.x, dg_v.y, dg_v.z};
+        int n                    = kdTree->knnSearch(&query[0], KNN, &retIndex[0], &outDistSqr[0]);
+        retIndex.resize(n);
+
+        indices[0][i] = i;
+
+        int j = 1;
+        for (auto idx : retIndex) {
+            indices[j][i] = retIndex[j - 1];
+            j++;
+        }
+
+        i++;
+    }
+
+    m_regGraph = std::make_shared<OptGraph>(indices);
+
+    std::cout << "initialised regularisation graph" << std::endl;
 }
 
 void CombinedSolver::combinedSolveInit() {
     m_solverParams.set("nIterations", &m_combinedSolverParameters.nonLinearIter);
     m_solverParams.set("lIterations", &m_combinedSolverParameters.linearIter);
 
-    m_problemParams.set("nodeCoordinates", m_nodeCoordinates);
-
-    m_problemParams.set("rotation", m_rotation);
-    m_problemParams.set("translation", m_translation);
-    m_problemParams.set("radialBasisWeights", m_radialBasisWeights);
+    m_problemParams.set("dg_v", m_dg_v);
+    m_problemParams.set("translations", m_translations);
+    m_problemParams.set("rotations", m_rotations);
+    m_problemParams.set("dg_w", m_dg_w);
 
     m_problemParams.set("canonicalVertices", m_canonicalVertices);
     m_problemParams.set("canonicalNormals", m_canonicalNormals);
@@ -95,13 +120,24 @@ void CombinedSolver::combinedSolveInit() {
     m_problemParams.set("liveNormals", m_liveNormals);
 
     m_problemParams.set("dataGraph", m_dataGraph);
+    m_problemParams.set("tukeyBiweights", m_tukeyBiweights);
+
+    m_problemParams.set("regGraph", m_regGraph);
+    m_problemParams.set("huberWeights", m_huberWeights);
+
+    m_problemParams.set("w_reg", &w_reg);
 }
 
 void CombinedSolver::preSingleSolve() {}
 
 void CombinedSolver::postSingleSolve() { copyResultToCPUFromFloat3(); }
 
-void CombinedSolver::preNonlinearSolve(int /* iteration */) {}
+void CombinedSolver::preNonlinearSolve(int /* iteration */) {
+    copyResultToCPUFromFloat3();
+
+    updateTukeyBiweights();
+    updateHuberWeights();
+}
 
 void CombinedSolver::postNonlinearSolve(int /* iteration */) {}
 
@@ -110,9 +146,8 @@ void CombinedSolver::combinedSolveFinalize() {
                      nan(""));
 }
 
-void CombinedSolver::resetGPUMemory() {
-    unsigned int N                   = m_dims[1];
-    unsigned int noCanonicalVertices = m_canonicalNormalsOpenCV.size();
+void CombinedSolver::resetGPUMemory(cv::Affine3f affine) {
+    unsigned int N = m_dims[1];
 
     std::vector<float3> h_canonicalVertices(N);
     std::vector<float3> h_canonicalNormals(N);
@@ -120,21 +155,15 @@ void CombinedSolver::resetGPUMemory() {
     std::vector<float3> h_liveVertices(N);
     std::vector<float3> h_liveNormals(N);
 
-    int k = 0;
-    for (int i = 0; i < noCanonicalVertices; i++) {
-        if (cv::norm(m_canonicalVerticesOpenCV[i]) != 0 && cv::norm(m_canonicalNormalsOpenCV[i]) != 0 &&
-            cv::norm(m_liveVerticesOpenCV[i]) != 0 && cv::norm(m_liveNormalsOpenCV[i]) != 0) {
-            h_canonicalVertices[k] = make_float3(m_canonicalVerticesOpenCV[i][0], m_canonicalVerticesOpenCV[i][1],
-                                                 m_canonicalVerticesOpenCV[i][2]);
-            h_canonicalNormals[k]  = make_float3(m_canonicalNormalsOpenCV[i][0], m_canonicalNormalsOpenCV[i][1],
-                                                m_canonicalNormalsOpenCV[i][2]);
+    for (int i = 0; i < N; i++) {
+        h_canonicalVertices[i] =
+            make_float3(m_canonicalVerticesPCL[i].x, m_canonicalVerticesPCL[i].y, m_canonicalVerticesPCL[i].z);
+        h_canonicalNormals[i] = make_float3(m_canonicalNormalsPCL[i].normal_x, m_canonicalNormalsPCL[i].normal_y,
+                                            m_canonicalNormalsPCL[i].normal_z);
 
-            h_liveVertices[k] =
-                make_float3(m_liveVerticesOpenCV[i][0], m_liveVerticesOpenCV[i][1], m_liveVerticesOpenCV[i][2]);
-            h_liveNormals[k] =
-                make_float3(m_liveNormalsOpenCV[i][0], m_liveNormalsOpenCV[i][1], m_liveNormalsOpenCV[i][2]);
-            k++;
-        }
+        h_liveVertices[i] = make_float3(m_liveVerticesPCL[i].x, m_liveVerticesPCL[i].y, m_liveVerticesPCL[i].z);
+        h_liveNormals[i] =
+            make_float3(m_liveNormalsPCL[i].normal_x, m_liveNormalsPCL[i].normal_y, m_liveNormalsPCL[i].normal_z);
     }
 
     m_canonicalVertices->update(h_canonicalVertices);
@@ -143,49 +172,114 @@ void CombinedSolver::resetGPUMemory() {
     m_liveVertices->update(h_liveVertices);
     m_liveNormals->update(h_liveNormals);
 
+    /* FIXME (dig15): make the affine transformations work with the solver */
+    cv::Vec3f affineTranslation = affine.translation();
+    cv::Vec3f affineRot         = affine.rvec();
+
     auto D = m_dims[0];
 
-    std::vector<float3> h_coordinates(D);
-
-    std::vector<float3> h_translation(D);
-    std::vector<float3> h_rotation(D);
-    std::vector<float> h_radialBasisWeight(D);
+    std::vector<float3> h_dg_v(D);
+    std::vector<float3> h_translations(D);
+    std::vector<float3> h_rotations(D);
+    std::vector<float> h_dg_w(D);
 
     for (int i = 0; i < D; i++) {
-        auto nodeCoordinates = m_warpfield.getNodes()[i]->getPosition();
+        auto node = m_warpfield.getNodes()[i];
 
-        auto nodeTransformation = m_warpfield.getNodes()[i]->getTransformation();
+        pcl::PointXYZ nodeCoordinates = node->getPosition();
+        h_dg_v[i]                     = make_float3(nodeCoordinates.x, nodeCoordinates.y, nodeCoordinates.z);
 
-        auto nodeTranslation       = nodeTransformation->getTranslation();
-        auto nodeRotation          = nodeTransformation->getRotation();
-        auto nodeRadialBasisWeight = m_warpfield.getNodes()[i]->getRadialBasisWeight();
+        h_translations[i] = make_float3(0.f, 0.f, 0.f);
+        h_rotations[i]    = make_float3(0.f, 0.f, 0.f);
 
-        h_coordinates[i] = make_float3(nodeCoordinates[0], nodeCoordinates[1], nodeCoordinates[2]);
-
-        h_translation[i]       = make_float3(nodeTranslation[0], nodeTranslation[1], nodeTranslation[2]);
-        h_rotation[i]          = make_float3(0.f, 0.f, 0.f);  // FIXME (dig15): set the rotations
-        h_radialBasisWeight[i] = nodeRadialBasisWeight;
+        h_dg_w[i] = node->getRadialBasisWeight();
     }
 
-    m_nodeCoordinates->update(h_coordinates);
+    m_dg_v->update(h_dg_v);
+    m_translations->update(h_translations);
+    m_rotations->update(h_rotations);
+    m_dg_w->update(h_dg_w);
+}
 
-    m_translation->update(h_translation);
-    m_rotation->update(h_rotation);
-    m_radialBasisWeights->update(h_radialBasisWeight);
+float CombinedSolver::calcTukeyBiweight(float tukeyOffset, float c, pcl::PointXYZ ptError) {
+    auto ptErrorDistScaled = sqrt(ptError.x * ptError.x + ptError.y * ptError.y + ptError.z * ptError.z) / tukeyOffset;
+
+    if (ptErrorDistScaled < c) {
+        return pow(1.f - pow(ptErrorDistScaled, 2) / pow(c, 2), 2);
+    }
+
+    return 0.f;
+}
+
+void CombinedSolver::updateTukeyBiweights() {
+    auto N = m_dims[1];
+    std::vector<float> h_tukeyBiweights(N);
+
+    for (unsigned int i = 0; i < N; i++) {
+        auto canonicalVertex = m_canonicalVerticesPCL[i];
+        auto liveVertex      = m_liveVerticesPCL[i];
+
+        auto dqBlend                    = m_warpfield.calcDQB(canonicalVertex);
+        auto canonicalVertexTransformed = dqBlend->transformVertex(canonicalVertex);
+        pcl::PointXYZ ptError(liveVertex.x - canonicalVertexTransformed.x, liveVertex.y - canonicalVertexTransformed.y,
+                              liveVertex.z - canonicalVertexTransformed.z);
+
+        h_tukeyBiweights[i] = calcTukeyBiweight(tukeyOffset, psi_data, ptError);
+    }
+
+    m_tukeyBiweights->update(h_tukeyBiweights);
+}
+
+float CombinedSolver::calcHuberWeight(float k, float e) {
+    if (abs(e) <= k) {
+        return 1.f;
+    }
+
+    return k / abs(e);
+}
+
+void CombinedSolver::updateHuberWeights() {
+    auto D                = m_dims[0];
+    auto deformationNodes = m_warpfield.getNodes();
+
+    std::vector<float> h_huberWeights(D);
+
+    for (unsigned int i = 0; i < D; i++) {
+        auto nodeNeighboursIdx = m_warpfield.findNeighborsIndex(KNN, deformationNodes[i]->getPosition());
+
+        for (auto neighbourIdx : nodeNeighboursIdx) {
+            auto neighbourCoordinates = deformationNodes[neighbourIdx]->getPosition();
+
+            auto neighbourTransformed1 =
+                deformationNodes[i]->getTransformation()->transformVertex(neighbourCoordinates);
+            auto neighbourTransformed2 =
+                deformationNodes[neighbourIdx]->getTransformation()->transformVertex(neighbourCoordinates);
+
+            pcl::PointXYZ ptError(neighbourTransformed1.x - neighbourTransformed2.x,
+                                  neighbourTransformed1.y - neighbourTransformed2.y,
+                                  neighbourTransformed1.z - neighbourTransformed2.z);
+            float e = sqrt(ptError.x * ptError.x + ptError.y * ptError.y + ptError.z * ptError.z);
+
+            h_huberWeights[i] = calcHuberWeight(psi_reg, e);
+        }
+    }
+
+    m_huberWeights->update(h_huberWeights);
 }
 
 void CombinedSolver::copyResultToCPUFromFloat3() {
     auto D = m_dims[0];
 
-    std::vector<float3> h_translation(D);
-    std::vector<float> h_radialBasisWeights(D);
+    std::vector<float3> h_translations(D);
+    std::vector<float3> h_rotations(D);
 
-    m_translation->copyTo(h_translation);
-    m_radialBasisWeights->copyTo(h_radialBasisWeights);
+    m_translations->copyTo(h_translations);
+    m_rotations->copyTo(h_rotations);
 
     for (unsigned int i = 0; i < D; i++) {
-        m_warpfield.getNodes()[i]->updateTranslation(
-            cv::Vec3f(h_translation[i].x, h_translation[i].y, h_translation[i].z));
-        m_warpfield.getNodes()[i]->setRadialBasisWeight(h_radialBasisWeights[i]);
+        std::shared_ptr<DualQuaternion<float>> dq = std::make_shared<DualQuaternion<float>>(
+            0, 0, 0, h_translations[i].x, h_translations[i].y, h_translations[i].z);
+
+        m_warpfield.getNodes()[i]->updateTransformation(dq);
     }
 }

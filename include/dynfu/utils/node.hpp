@@ -8,6 +8,9 @@
 #include <opencv2/core/affine.hpp>
 #include <opencv2/core/core.hpp>
 
+/* pcl includes */
+#include <pcl/point_types.h>
+
 /* sys headers */
 #include <memory>
 #include <vector>
@@ -29,31 +32,30 @@
  */
 class Node {
 public:
-    Node(cv::Vec3f position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight);
+    /* constructor */
+    Node(pcl::PointXYZ position, std::shared_ptr<DualQuaternion<float>> transformation, float radialBasisWeight);
+    /* destructor */
     ~Node();
 
-    cv::Vec3f getPosition();
+    /* get dg_v of a deformation node */
+    pcl::PointXYZ getPosition();
+
+    /* get the dg_se3 of a deformation node */
     std::shared_ptr<DualQuaternion<float>>& getTransformation();
+    /* update transformation stored in a deformation node */
+    void updateTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3);
+    /* set transformation stored in a deformation node */
+    void setTransformation(std::shared_ptr<DualQuaternion<float>> new_dg_se3);
+
+    /* get radial basis weight of a vertex */
     float getRadialBasisWeight();
-    /* get transformation weight for a point */
-    float getTransformationWeight(cv::Vec3f vertexPosition);
-    template <typename T>
-    T getTransformationWeightT(cv::Vec3f vertexPosition);
-
-    double* getParams();
-
-    void setTranslation(cv::Vec3f translation);
-    void setRotation(boost::math::quaternion<float> real);
-    void setTransformation(std::shared_ptr<DualQuaternion<float>> transformation);
-    void setRadialBasisWeight(float newWeight);
-    void updateTranslation(cv::Vec3f translation);
+    /* get transformation weight for a vertex */
+    float getTransformationWeight(pcl::PointXYZ vertexPosition);
 
 private:
-    cv::Vec3f dg_v;
+    pcl::PointXYZ dg_v;
     std::shared_ptr<DualQuaternion<float>> dg_se3;
     float dg_w;
-
-    double* params;
 };
 
 /* DYNFU_NODE_HPP */
