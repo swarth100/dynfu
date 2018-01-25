@@ -4,9 +4,17 @@
 #include <boost/filesystem.hpp>
 
 /* kinfu includes */
+#include <kfusion/cuda/marching_cubes.hpp>
 #include <kfusion/cuda/projective_icp.hpp>
 #include <kfusion/cuda/tsdf_volume.hpp>
 #include <kfusion/types.hpp>
+
+/* pcl includes */
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 /* sys headers */
 #include <string>
@@ -68,9 +76,15 @@ public:
     const cuda::ProjectiveICP &icp() const;
     cuda::ProjectiveICP &icp();
 
+    const cuda::MarchingCubes &mc() const;
+    cuda::MarchingCubes &mc();
+
     void reset();
 
     bool operator()(const cuda::Depth &depth, const cuda::Image &image = cuda::Image());
+
+    boost::shared_ptr<pcl::PolygonMesh> convertToMesh(const cuda::DeviceArray<pcl::PointXYZ> &triangles);
+    boost::shared_ptr<pcl::PolygonMesh> getMesh();
 
     void renderImage(cuda::Image &image, int flag = 0);
     void renderImage(cuda::Image &image, const Affine3f &pose, int flag = 0);
@@ -91,7 +105,10 @@ protected:
     cuda::Normals normals_;
     cuda::Depth depths_;
 
+    boost::shared_ptr<pcl::PolygonMesh> mesh_ptr_;
+
     cv::Ptr<cuda::TsdfVolume> volume_;
     cv::Ptr<cuda::ProjectiveICP> icp_;
+    cv::Ptr<cuda::MarchingCubes> mc_;
 };
 }  // namespace kfusion

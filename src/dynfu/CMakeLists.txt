@@ -6,7 +6,6 @@ target_compile_definitions(dynfu PUBLIC TERRA_SOLVER_FILE=${CMAKE_SOURCE_DIR}/in
 
 # Link to dynfu library
 target_link_libraries(dynfu
-    ceres
     kfusion
     gcov
     Threads::Threads

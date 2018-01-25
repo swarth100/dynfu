@@ -19,9 +19,8 @@ std::ostream &operator<<(std::ostream &os, const kfusion::Intr &intr) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// TsdfVolume host implementation
 
-kfusion::device::TsdfVolume::TsdfVolume(elem_type *_data, int3 _dims, float3 _voxel_size, float _trunc_dist,
-                                        int _max_weight)
-    : data(_data), dims(_dims), voxel_size(_voxel_size), trunc_dist(_trunc_dist), max_weight(_max_weight) {}
+kfusion::device::TsdfVolume::TsdfVolume(elem_type *data, int3 dims, float3 voxel_size, float trunc_dist, int max_weight)
+    : data(data), dims(dims), voxel_size(voxel_size), trunc_dist(trunc_dist), max_weight(max_weight) {}
 
 // kfusion::device::TsdfVolume::elem_type*
 // kfusionl::device::TsdfVolume::operator()(int x, int y, int z) { return data +
