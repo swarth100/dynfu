@@ -1,8 +1,8 @@
 Dynfu
+============
 
 [Dynfu overview and report](https://spina.me/assets/files/dynamic-fusion.pdf)
 
-============
 Dependencies:
 * CUDA-enabled CPU (Kepler or newer) with CUDA 7.5 or higher, required by Opt
 * OpenCV 2.4.9 with new Viz module (only opencv_core, opencv_highgui, opencv_imgproc, opencv_viz modules required); make sure that WITH_VTK flag is enabled in CMake during OpenCV configuration
