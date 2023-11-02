@@ -1,7 +1,8 @@
 Dynfu
 ============
 
-[Dynfu overview and report](https://spina.me/assets/files/dynamic-fusion.pdf)
+[Dynfu overview and report](https://files.spina.me/dynamic-fusion.pdf)
+
 
 Dependencies:
 * CUDA-enabled CPU (Kepler or newer) with CUDA 7.5 or higher, required by Opt
